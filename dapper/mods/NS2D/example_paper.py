@@ -7,10 +7,10 @@ from dapper.tools.localization import nd_Id_localization
 import numpy as np
 
 TEST_NOISE_LEVEL = 0.02
-System = Model(T=100, nu=0.2)
+System = Model(T=1, N=64, dt=0.00001, nu = 2)
 Nx = System.Nx
 
-tseq = modelling.Chronology(System.dt, dko=1 , BurnIn=20, T=100)
+tseq = modelling.Chronology(System.dt, dko=1 , BurnIn=0.1, T=1)
 
 Dyn = {
     "M" : np.prod((Nx, Nx)),
@@ -18,10 +18,15 @@ Dyn = {
     "linear": System.dstep_dx,
     "noise": 0,
 }
-X0 = modelling.RV(M=Dyn["M"], func=lambda N: np.tile(System.x0.flatten() + TEST_NOISE_LEVEL * np.random.randn(N, Dyn["M"]), (N, 1)))
+X0 = modelling.RV(
+    M=Dyn["M"],
+    func=lambda N: System.x0.flatten()[None, :] - TEST_NOISE_LEVEL * np.random.randn(N, Dyn["M"])
+)
+
 #X0 = lambda N: np.tile(System.x0.flatten() + 0 * np.random.randn(N, Dyn["M"]), (N, 1))
 Obs = modelling.Id_Obs(Nx**2)
 Obs["noise"] = 1
+
 Obs["localizer"] = nd_Id_localization((Nx,), (4, ))
 
 rstream = np.random.RandomState()
@@ -32,7 +37,6 @@ def obs_inds(ko):
         rstream.seed(ko)
         u = rstream.rand()
         return int(np.floor(max_offset * u))
-
     return jj + random_offset()
 
 def obs_now(ko):
@@ -41,9 +45,8 @@ def obs_now(ko):
     @modelling.ens_compatible
     def hmod(E):
         return E[jj]
-
     # Localization.
-    batch_shape = [2, 2]  # width (in grid points) of each state batch.
+    batch_shape = [32, 32]  # width (in grid points) of each state batch.
     # Increasing the width
     #  => quicker analysis (but less rel. speed-up by parallelzt., depending on NPROC)
     #  => worse (increased) rmse (but width 4 is only slightly worse than 1);

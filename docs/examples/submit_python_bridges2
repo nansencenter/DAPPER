@@ -2,14 +2,14 @@
 ### partition 1: RM [default,use one or more full nodes], 
 ### partition 2: RM-shared [use only part of one node] 128 cpu per node
 ### partition 3: RM-512 [use one or more full 512GB-memory nodes]
-#SBATCH --partition=RM-shared # 
+#SBATCH --partition=RM # 
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --time=1:00:00
 #SBATCH --mail-user=nchazma@gmail.com      # Destination email address
 #SBATCH --mail-type=ALL                       # Event(s) that triggers email notification
 #SBATCH --job-name=dapper
-#SBATCH --mem=2000M
+#SBATCH --mem=16G
 #SBATCH --output=dapper_output_%j
 export SLURM_EXPORT_ENV=ALL
 #export I_MPI_FABRICS=shm,tcp
@@ -23,9 +23,9 @@ mkdir -p "$WORKDIR" && cp -r *.py "$WORKDIR" && cp submit_python_bridges2 "$WORK
 source ~/miniforge3/etc/profile.d/conda.sh
 conda activate dapper-env
 cd ~/DAPPER || exit -1
-pip3 install -e '.'
+# pip3 install -e '.'
 cd docs/examples || exit -1
-python3 basic_1.py
+mprof run python3 basic_1.py
 
 cd "$SUBMITDIR" && cp dapper_output_$SLURM_JOB_ID "$WORKDIR"
 
