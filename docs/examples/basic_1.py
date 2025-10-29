@@ -37,9 +37,8 @@ for a in p1:
 # xp = da.OptInterp()
 # xp = da.Var3D()
 # xp = da.ExtKF(infl=90)
-params = [("PertObs", 2)]
 with open("results.txt", "w") as f:
-    fileLines = [f"PARAMETERS: N = {System.Nx}; dt = {System.dt}; nu = {System.nu}; Noise level = {round(TEST_NOISE_LEVEL * 100)}%\n\n"]
+    fileLines = [f"PARAMETERS: N = {System.Nx}; dt = {System.dt}; nu = {System.nu}; Noise level = {TEST_NOISE_LEVEL * 100}%\n\n"]
     for param in params:
         xp = da.EnKF(param[0], N=param[1], infl=1.02, rot=True)
         xp.assimilate(HMM, xx, yy, liveplots=True)
