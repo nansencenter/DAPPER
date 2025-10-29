@@ -25,7 +25,7 @@ conda activate dapper-env
 cd ~/DAPPER || exit -1
 # pip3 install -e '.'
 cd docs/examples || exit -1
-mprof run python3 basic_1.py
+python3 basic_1.py
 
 cd "$SUBMITDIR" && cp dapper_output_$SLURM_JOB_ID "$WORKDIR"
 
