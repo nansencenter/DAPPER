@@ -189,6 +189,7 @@ def Model(N=32, Lxy=2 * np.pi, dt=0.002, nu=1/1600, T=100):
 
     dd = DotDict(
         dt=dt,
+        nu=nu,
         DL=2,
         step=step_parallel,  # Use the parallelized step function
         dstep_dx=dstep_dx,
