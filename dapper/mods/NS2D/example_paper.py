@@ -6,8 +6,8 @@ from dapper.mods.Lorenz96 import LPs
 from dapper.tools.localization import nd_Id_localization
 import numpy as np
 
-TEST_NOISE_LEVEL = 0.02
-System = Model(T=1, N=64, dt=0.00001, nu = 2)
+TEST_NOISE_LEVEL = 0.005
+System = Model(T=1, N=64, dt=0.0001, nu = 0.01)
 Nx = System.Nx
 
 tseq = modelling.Chronology(System.dt, dko=1 , BurnIn=0.1, T=1)
@@ -20,7 +20,7 @@ Dyn = {
 }
 X0 = modelling.RV(
     M=Dyn["M"],
-    func=lambda N: System.x0.flatten()[None, :] - TEST_NOISE_LEVEL * np.random.randn(N, Dyn["M"])
+    func=lambda N: System.x0.flatten()[None, :] - TEST_NOISE_LEVEL * np.random.randn(N, Dyn["M"]) #TODO check this
 )
 
 #X0 = lambda N: np.tile(System.x0.flatten() + 0 * np.random.randn(N, Dyn["M"]), (N, 1))
@@ -46,7 +46,7 @@ def obs_now(ko):
     def hmod(E):
         return E[jj]
     # Localization.
-    batch_shape = [32, 32]  # width (in grid points) of each state batch.
+    batch_shape = [4, 4]  # width (in grid points) of each state batch.
     # Increasing the width
     #  => quicker analysis (but less rel. speed-up by parallelzt., depending on NPROC)
     #  => worse (increased) rmse (but width 4 is only slightly worse than 1);

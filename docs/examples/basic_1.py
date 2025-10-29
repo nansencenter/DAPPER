@@ -17,57 +17,71 @@ dpr.set_seed(3000);
 
 # ### Load experiment setup: the hidden Markov model (HMM)
 
-from dapper.mods.NS2D.example_paper import HMM
+from dapper.mods.NS2D.example_paper import TEST_NOISE_LEVEL, System, HMM
 HMM  # ⇒ printout (in notebooks)
 
 # ### Simulate synthetic truth (xx) and noisy obs (yy)
 # A variable named `<char><char>` conventionally refers to a *time series* of `<char>`.
 
-HMM.tseq.T = 1 # shorten experiment
+HMM.tseq.T = 0.1 # shorten experiment
 xx, yy = HMM.simulate()
 
 # ### Specify a DA method
 # Here "xp" is short for "experiment" configuration.
-
+params = []
+p1 = ["Sqrt", "PertObs"]
+p2=[2, 5, 10, 20, 50]
+for a in p1:
+    for b in p2:
+        params.append( (a, b))
 # xp = da.OptInterp()
 # xp = da.Var3D()
 # xp = da.ExtKF(infl=90)
-xp = da.EnKF("Sqrt", N=10, infl=1.02, rot=True)
+params = [("PertObs", 2)]
+with open("results.txt", "w") as f:
+    fileLines = [f"PARAMETERS: N = {System.Nx}; dt = {System.dt}; nu = {System.nu}; Noise level = {round(TEST_NOISE_LEVEL * 100)}%\n\n"]
+    for param in params:
+        xp = da.EnKF(param[0], N=param[1], infl=1.02, rot=True)
+        xp.assimilate(HMM, xx, yy, liveplots=True)
+        xp.stats.average_in_time()
+        fileLines.append(f"upd_a: {param[0]}, N: {param[1]}\n {xp.avrgs.tabulate(['rmse.a', 'rmv.a'])}\n")
+    f.writelines(fileLines)
+# xp = da.EnKF("Sqrt", N=10, infl=1.02, rot=True)
 # xp = da.EnKF("Sqrt", N=20, infl=1.02, rot=True)
 # xp = da.EnKF("Sqrt", N=50, infl=1.02, rot=True)
 # # xp = da.PartFilt(N=100, reg=2.4, NER=0.3)
 # xp = da.LETKF(mp=True, N=10, infl=1.02, loc_rad=10)
 # xp += da.LETKF(mp=True, N=20, infl=1.02, loc_rad=10)
 # xp += da.LETKF(mp=True, N=50, infl=1.02, loc_rad=10)
-xp  # ⇒ printout (in notebooks)
+# xp  # ⇒ printout (in notebooks)
 
 # ### Assimilate yy
 # Note that the assimilation "knows" the HMM,
 # but `xx` is only used for performance *assessment*.
-xp.assimilate(HMM, xx, yy, liveplots=True)
+# xp.assimilate(HMM, xx, yy, liveplots=False)
 
 # ### Average the time series
 # Computes a set of different statistics.
 
 # print(xp.stats)  # ⇒ long printout
-xp.stats.average_in_time()
+# xp.stats.average_in_time()
 
 # Print some of these time-averages
 
 # print(xp.avrgs)  # ⇒ long printout
-print(xp.avrgs.tabulate(["rmse.a", "rmv.a"]))
+# print(xp.avrgs.tabulate(["rmse.a", "rmv.a"]))
 
 # ### Replay liveplotters
 
-xp.stats.replay(
-    # speed=.6  # `speed` does not work in notebooks
-)
+# xp.stats.replay(
+#     speed=20  # `speed` does not work in notebooks
+# )
 
 # ### Further diagnostic plots
 
-import dapper.tools.viz as viz
+# import dapper.tools.viz as viz
 
-viz.plot_rank_histogram(xp.stats)
+# viz.plot_rank_histogram(xp.stats)
 # viz.plot_err_components(xp.stats)
 # viz.plot_hovmoller(xx)
 

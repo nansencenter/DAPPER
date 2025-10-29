@@ -12,65 +12,7 @@ import matplotlib as mpl
 N_global=64
 def Model(N=32, Lxy=2 * np.pi, dt=0.002, nu=1/1600, T=100):
     assert N == N_global, f"Warning: change N_global in __init__.py to match your parameter ({N})"
-    def det_jacobian_equation_vec(psi_hat_batch):
-        # psi_hat_batch: (N_ens, N, N)
-        scale = 1 / (Lxy * Lxy)
-        dpsi_dy = np.fft.ifft2(1j * ky * psi_hat_batch, axes=(-2, -1)).real * scale
-        domega_dx = np.fft.ifft2(1j * kx * k2 * psi_hat_batch, axes=(-2, -1)).real * scale
-        dpsi_dx = np.fft.ifft2(1j * kx * psi_hat_batch, axes=(-2, -1)).real * scale
-        domega_dy = np.fft.ifft2(1j * ky * k2 * psi_hat_batch, axes=(-2, -1)).real * scale
-        return dpsi_dy * domega_dx - dpsi_dx * domega_dy
-
-    def dealias_vec(f_hat_batch):
-        # f_hat_batch: (N_ens, N, N)
-        Nf = f_hat_batch.shape[-1]
-        k_cutoff = Nf // 3
-        bool_mask = np.ones((Nf, Nf), dtype=bool)
-        bool_mask[k_cutoff:-k_cutoff, :] = False
-        bool_mask[:, k_cutoff:-k_cutoff] = False
-        return f_hat_batch * bool_mask  # broadcasting
-
-    def nonlinear_vec(psi_hat):
-        # psi_hat: (N_ens, N, N)
-        J = det_jacobian_equation_vec(psi_hat)
-        J_hat = np.fft.fft2(J, axes=(-2, -1))
-        J_hat = dealias_vec(J_hat)
-        return -J_hat
-
-    def step_ETD_RK4_vec(X, t, dt):
-        # X: (N_ens, N*N) or (N_ens, N, N)
-        if X.ndim == 2 and X.shape[1] == N*N:
-            X = X.reshape((-1, N, N))
-        N_ens = X.shape[0]
-        p_hat = np.fft.fft2(X, axes=(-2, -1))
-        #omega = laplacian(psi)
-        w_hat = k2 * p_hat
-        N1 = nonlinear_vec(p_hat)
-        v1 = E2 * w_hat + Q * N1
-        N2a = nonlinear_vec(v1)
-        v2a = E2 * w_hat + Q * N2a
-        N2b = nonlinear_vec(v2a)
-        v2b = E2 * v1 + Q * (2 * N2b - N1)
-        N3 = nonlinear_vec(v2b)
-        omega_hat_new = E * w_hat + N1 * f1 + 2 * (N2a + N2b) * f2 + N3 * f3
-        psi_hat_new = omega_hat_new / k2 #i^2 = -1; -1 / - 1 = 1.
-        psi_hat_new[0, 0] = 0  # Enforce zero mean for
-        psi_new = np.fft.ifft2(psi_hat_new).real
-        return psi_new.reshape((N_ens, N*N))
-
-    def step_1(x, t, dt):
-        # x is a 1D flattened state; reshape to 2D for the model
-        psi = x.reshape(N, N)
-        psi_new = step(psi, t, dt)
-        return psi_new.flatten()
-
-    def step_parallel(E, t, dt):
-        """Parallelized step for ensemble (2D array) or single state (1D)."""
-        if E.ndim == 1:
-            return step_1(E, t, dt)
-        if E.ndim == 2:
-            # Use vectorized version for ensembles
-            return step_ETD_RK4_vec(E, t, dt)
+   
     h = dt  # alias -- prevents o/w in step()   
 
         # Initialize grid and wavenumbers
@@ -85,7 +27,10 @@ def Model(N=32, Lxy=2 * np.pi, dt=0.002, nu=1/1600, T=100):
     k2 = kx**2 + ky**2
     k2[0, 0] = 1  # avoid division by zero
     #initial conditions for a Taylor-Green vortex; change as needed
-    psi = np.sin(X) * np.sin(Y)
+    U = 1
+    k = 2
+    psi = -U/k * np.cos(k*Y)
+    # psi = np.sin(X) * np.sin(Y)
     x0 = psi.copy()
     L = -nu * k2 #generalize
     L_flat = L.flatten()
@@ -98,20 +43,25 @@ def Model(N=32, Lxy=2 * np.pi, dt=0.002, nu=1/1600, T=100):
         N = f_hat.shape[0]
         k_cutoff = N // 3
 
-        bool_mask = np.ones_like(f_hat, dtype=bool)
-        bool_mask[k_cutoff:-k_cutoff, :] = False
-        bool_mask[:, k_cutoff:-k_cutoff] = False
+        # bool_mask = np.ones_like(f_hat, dtype=bool)
+        # bool_mask[k_cutoff:-k_cutoff, :] = False
+        # bool_mask[:, k_cutoff:-k_cutoff] = False
 
-        dealiased = np.copy(f_hat)
-        dealiased[~bool_mask] = 0
-        return dealiased
+        # dealiased = np.copy(f_hat)
+        # dealiased[~bool_mask] = 0
+        # return dealiased
+        #above commented code is prone to off by one errors so replacing with:
+        k_int = np.fft.fftfreq(N) * N
+        mask_1d = np.abs(k_int) < k_cutoff
+        mask_2d = np.outer(mask_1d, mask_1d)
+        return f_hat * mask_2d  # element-wise multiplication
 #J = dpsi/dy * domega/dx - dpsi/dx * domega/dy
     def det_jacobian_equation(psi_hat):
         scale = 1 / (Lxy * Lxy)  # Rescale to match the original domain size
-        dpsi_dy = np.fft.ifft2(1j * ky * psi_hat).real * scale
-        domega_dx = np.fft.ifft2(1j * kx * k2 * psi_hat).real * scale
-        dpsi_dx = np.fft.ifft2(1j * kx * psi_hat).real * scale
-        domega_dy = np.fft.ifft2(1j * ky * k2 * psi_hat).real * scale
+        dpsi_dy = np.fft.ifft2(1j * ky * psi_hat) * scale
+        domega_dx = np.fft.ifft2(1j * kx * k2 * psi_hat) * scale
+        dpsi_dx = np.fft.ifft2(1j * kx * psi_hat) * scale
+        domega_dy = np.fft.ifft2(1j * ky * k2 * psi_hat) * scale
 
         # print(f"dpsi/dy: {dpsi_dy}\ndomega/dx: {domega_dx}\ndpsi/dx: {dpsi_dx}\ndomega/dy: {domega_dy}\n")
         return dpsi_dy * domega_dx - dpsi_dx * domega_dy
@@ -123,8 +73,9 @@ def Model(N=32, Lxy=2 * np.pi, dt=0.002, nu=1/1600, T=100):
 
 # Adapted for the Navier-Stokes equations in 2D.
     def NL(psi_hat):
-        J = det_jacobian_equation(psi_hat)
-        J_hat = dealias(np.fft.fft2(J))
+        J = det_jacobian_equation(dealias(psi_hat))
+        # J_hat = dealias(np.fft.fft2(J))
+        J_hat = np.fft.fft2(J)
         return -J_hat
     
     def f(psi): #consider redefining with psi_hat
@@ -152,7 +103,7 @@ def Model(N=32, Lxy=2 * np.pi, dt=0.002, nu=1/1600, T=100):
         epsilon = 1e-6
         assert abs(dt-h) < epsilon, "dt must match the initialized dt"
         
-        psi = x
+        psi = x.reshape((N, N))
         p_hat = np.fft.fft2(psi)
         #omega = laplacian(psi)
         w_hat = k2 * p_hat
@@ -167,13 +118,75 @@ def Model(N=32, Lxy=2 * np.pi, dt=0.002, nu=1/1600, T=100):
         psi_hat_new = omega_hat_new / k2 #i^2 = -1; -1 / - 1 = 1.
         psi_hat_new[0, 0] = 0  # Enforce zero mean for
         psi_new = np.fft.ifft2(psi_hat_new).real
+        
         # assert abs(psi_new.mean()) < 1e-9, f"Mean of psi_hat_new is not approximately zero ({psi_new.mean()})"
         # assert abs(psi_hat_new[0,0]) < 1e-9, "Mean of psi_hat_new is not approximately zero"
         # return np.clip(psi_new.flatten(), -1, 1)
         return psi_new.flatten()
-    step = step_ETD_RK4  # Single state step
     # for _ in range(num_steps):
     #     psi = step(psi, np.nan, h)
+
+    def det_jacobian_equation_vec(psi_hat_batch):
+        # psi_hat_batch: (N_ens, N, N)
+        scale = 1 / (Lxy * Lxy)
+        dpsi_dy = np.fft.ifft2(1j * ky * psi_hat_batch, axes=(-2, -1)) * scale
+        domega_dx = np.fft.ifft2(1j * kx * k2 * psi_hat_batch, axes=(-2, -1)) * scale
+        dpsi_dx = np.fft.ifft2(1j * kx * psi_hat_batch, axes=(-2, -1)) * scale
+        domega_dy = np.fft.ifft2(1j * ky * k2 * psi_hat_batch, axes=(-2, -1)) * scale
+        return dpsi_dy * domega_dx - dpsi_dx * domega_dy
+
+    def dealias_vec(f_hat_batch):
+        # f_hat_batch: (N_ens, N, N)
+        Nf = f_hat_batch.shape[-1]
+        k_cutoff = Nf // 3
+        k_int = np.fft.fftfreq(Nf) * Nf
+        mask_1d = np.abs(k_int) < k_cutoff
+        mask_2d = np.outer(mask_1d, mask_1d)
+        return f_hat_batch * mask_2d  # broadcasting
+        # bool_mask = np.ones((Nf, Nf), dtype=bool)
+        # bool_mask[k_cutoff:-k_cutoff, :] = False
+        # bool_mask[:, k_cutoff:-k_cutoff] = False
+        # return f_hat_batch * bool_mask  # broadcasting
+
+    def nonlinear_vec(psi_hat):
+        # psi_hat: (N_ens, N, N)
+        J = det_jacobian_equation_vec(dealias_vec(psi_hat))
+        J_hat = np.fft.fft2(J, axes=(-2, -1))
+        # J_hat = dealias_vec(J_hat)
+        return -J_hat
+
+    def step_ETD_RK4_vec(X, t, dt):
+        # X: (N_ens, N*N) or (N_ens, N, N)
+        if X.ndim == 2 and X.shape[1] == N*N:
+            X = X.reshape((-1, N, N))
+        N_ens = X.shape[0]
+        p_hat = np.fft.fft2(X, axes=(-2, -1))
+        #omega = laplacian(psi)
+        w_hat = k2 * p_hat
+        N1 = nonlinear_vec(p_hat)
+        v1 = E2 * w_hat + Q * N1
+        N2a = nonlinear_vec(v1)
+        v2a = E2 * w_hat + Q * N2a
+        N2b = nonlinear_vec(v2a)
+        v2b = E2 * v1 + Q * (2 * N2b - N1)
+        N3 = nonlinear_vec(v2b)
+        omega_hat_new = E * w_hat + N1 * f1 + 2 * (N2a + N2b) * f2 + N3 * f3
+        psi_hat_new = omega_hat_new / k2 #i^2 = -1; -1 / - 1 = 1.
+        psi_hat_new[0, 0] = 0  # Enforce zero mean for
+        psi_new = np.fft.ifft2(psi_hat_new).real
+        return psi_new.reshape((N_ens, N*N))
+
+    
+
+    def step_parallel(E, t, dt):
+        """Parallelized step for ensemble (2D array) or single state (1D)."""
+        if E.ndim == 1:
+            return step_ETD_RK4(E, t, dt)
+        if E.ndim == 2:
+            # Use vectorized version for ensembles
+            return step_ETD_RK4_vec(E, t, dt)
+
+
     dd = DotDict(
         dt=dt,
         DL=2,
