@@ -52,7 +52,7 @@ def Model(N=32, Lxy=2 * np.pi, dt=0.002, nu=1/1600, T=100):
     ky = kk.reshape((1, N))
     k2 = kx**2 + ky**2
     k2[0, 0] = 1  # avoid division by zero
-    #initial conditions for a Taylor-Green vortex; to use decaying Kolmogorov, comment 30 and uncomment 31-33
+    #initial conditions for a Taylor-Green vortex; to use decaying Kolmogorov, comment 56 and uncomment 57-59
     psi = np.sin(X) * np.sin(Y)
     # U = 1
     # k = 2
