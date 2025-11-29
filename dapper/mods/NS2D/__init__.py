@@ -9,13 +9,39 @@ from dapper.dpr_config import DotDict
 import dapper.tools.liveplotting as LP
 import matplotlib as mpl
 
-N_global=64
+N_global=64 #This is awkward but necessary because otherwise spatial2D would have to be modified. If there is a better way to do this please change
 def Model(N=32, Lxy=2 * np.pi, dt=0.002, nu=1/1600, T=100):
+    """
+    Parameters
+    ----------
+    N : int
+        N = Nx* = Ny* = number of grid points in each dimension.
+    Lxy : float
+        Domain size in each dimension.
+    dt : float
+        Time step.
+    nu : float
+        Kinematic viscosity (dimensionless units); inversely proportional to Reynolds number.
+    T : float
+        Experiment time; total sim steps = T/dt.
+
+    Returns
+    -------
+    dd : DotDict
+        Model parameters and functions.
+    
+    Notes
+    -----
+    See the report pdf in the folder for further explanation of the implementation and mathematics. \n
+    *Nx and Ny are not the same as the convention in DAPPER where Nx is the state size and Ny is the observation size; 
+    here they just represent N. This is also the convention in the report. More confusingly, sometimes N represents the grid size and sometimes 
+    represents ensemble size; each function will delineate what N is in its parameters if present.
+    """
     assert N == N_global, f"Warning: change N_global in __init__.py to match your parameter ({N})"
    
     h = dt  # alias -- prevents o/w in step()   
 
-        # Initialize grid and wavenumbers
+        # Initialize grid and wavenumbers (N = number of grid points in each dimension)
     x = np.linspace(0, Lxy, N, False)
     y = np.linspace(0, Lxy, N, False)
     X, Y = np.meshgrid(x, y)
@@ -26,11 +52,11 @@ def Model(N=32, Lxy=2 * np.pi, dt=0.002, nu=1/1600, T=100):
     ky = kk.reshape((1, N))
     k2 = kx**2 + ky**2
     k2[0, 0] = 1  # avoid division by zero
-    #initial conditions for a Taylor-Green vortex; change as needed
-    U = 1
-    k = 2
-    psi = -U/k * np.cos(k*Y)
-    # psi = np.sin(X) * np.sin(Y)
+    #initial conditions for a Taylor-Green vortex; to use decaying Kolmogorov, comment 30 and uncomment 31-33
+    psi = np.sin(X) * np.sin(Y)
+    # U = 1
+    # k = 2
+    # psi = -U/k * np.cos(k*Y)
     x0 = psi.copy()
     L = -nu * k2 #generalize
     L_flat = L.flatten()
@@ -40,23 +66,44 @@ def Model(N=32, Lxy=2 * np.pi, dt=0.002, nu=1/1600, T=100):
     E = E.reshape((N, N))
     E2 = E2.reshape((N, N))
     def dealias(f_hat):
+        """Implements the 2/3 rule for dealiasing (Orszag, 1971, https://doi.org/10.1175/1520-0469(1971)028%3C1074:OTEOAI%3E2.0.CO;2)\n
+        See section 2.4 of report
+        
+        Parameters
+        ----------
+        f_hat : ndarray
+            2D array in frequency space.
+        
+        Returns
+        -------
+        ndarray
+            Dealiased 2D array in frequency space.
+        
+        """
         N = f_hat.shape[0]
         k_cutoff = N // 3
 
-        # bool_mask = np.ones_like(f_hat, dtype=bool)
-        # bool_mask[k_cutoff:-k_cutoff, :] = False
-        # bool_mask[:, k_cutoff:-k_cutoff] = False
-
-        # dealiased = np.copy(f_hat)
-        # dealiased[~bool_mask] = 0
-        # return dealiased
-        #above commented code is prone to off by one errors so replacing with:
         k_int = np.fft.fftfreq(N) * N
         mask_1d = np.abs(k_int) < k_cutoff
         mask_2d = np.outer(mask_1d, mask_1d)
         return f_hat * mask_2d  # element-wise multiplication
+    
 #J = dpsi/dy * domega/dx - dpsi/dx * domega/dy
     def det_jacobian_equation(psi_hat):
+        """
+        Computes J in the streamfunction formulation of the 2D Navier-Stokes equations \n
+        See section 2.1, equation 5 of report
+        
+        Parameters
+        ----------
+        psi_hat : ndarray
+            2D array in frequency space.
+        
+        Returns
+        -------
+        ndarray
+            J in physical space.
+        """
         scale = 1 / (Lxy * Lxy)  # Rescale to match the original domain size
         dpsi_dy = np.fft.ifft2(1j * ky * psi_hat) * scale
         domega_dx = np.fft.ifft2(1j * kx * k2 * psi_hat) * scale
@@ -73,16 +120,28 @@ def Model(N=32, Lxy=2 * np.pi, dt=0.002, nu=1/1600, T=100):
 
 # Adapted for the Navier-Stokes equations in 2D.
     def NL(psi_hat):
+        """ Returns the nonlinear term `N` in equation 11 of report
+        Parameters
+        ----------
+        psi_hat : ndarray
+            2D array in frequency space.
+        
+        Returns
+        -------
+        ndarray
+            Nonlinear term in frequency space.
+        """
         J = det_jacobian_equation(dealias(psi_hat))
-        # J_hat = dealias(np.fft.fft2(J))
         J_hat = np.fft.fft2(J)
         return -J_hat
     
+    # For the step function
     def f(psi): #consider redefining with psi_hat
         return np.fft.ifft2(NL(np.fft.fft2(psi)) + nu * k2 * k2 * np.fft.fft2(psi)).real
     def dstep_dx(psi, t, dt):
         return jacobian(f, psi)
     
+    #Contour integral approximation and coefficients
     nRoots = 16
     roots = np.exp(1j * np.pi * (0.5+ np.arange(1, nRoots + 1)) / nRoots)
 
@@ -99,7 +158,21 @@ def Model(N=32, Lxy=2 * np.pi, dt=0.002, nu=1/1600, T=100):
     f2 = f2.reshape((1, N, N))
     f3 = f3.reshape((1, N, N))
     def step_ETD_RK4(x, t, dt):
-        """x = psi"""
+        """
+        Step function using ETD-RK4; x = psi
+
+        Parameters
+        ----------
+        x : ndarray
+            flattened 2D array in physical space.
+        t : float
+        dt : float
+            time step; must match initialized dt.
+
+        Returns
+        -------
+        ndarray
+            flattened 2D array in physical space after time step."""
         epsilon = 1e-6
         assert abs(dt-h) < epsilon, "dt must match the initialized dt"
         
@@ -118,14 +191,9 @@ def Model(N=32, Lxy=2 * np.pi, dt=0.002, nu=1/1600, T=100):
         psi_hat_new = omega_hat_new / k2 #i^2 = -1; -1 / - 1 = 1.
         psi_hat_new[0, 0] = 0  # Enforce zero mean for
         psi_new = np.fft.ifft2(psi_hat_new).real
-        
-        # assert abs(psi_new.mean()) < 1e-9, f"Mean of psi_hat_new is not approximately zero ({psi_new.mean()})"
-        # assert abs(psi_hat_new[0,0]) < 1e-9, "Mean of psi_hat_new is not approximately zero"
-        # return np.clip(psi_new.flatten(), -1, 1)
         return psi_new.flatten()
-    # for _ in range(num_steps):
-    #     psi = step(psi, np.nan, h)
 
+# Vectorized versions of above functions for ensemble computations
     def det_jacobian_equation_vec(psi_hat_batch):
         # psi_hat_batch: (N_ens, N, N)
         scale = 1 / (Lxy * Lxy)
@@ -143,16 +211,11 @@ def Model(N=32, Lxy=2 * np.pi, dt=0.002, nu=1/1600, T=100):
         mask_1d = np.abs(k_int) < k_cutoff
         mask_2d = np.outer(mask_1d, mask_1d)
         return f_hat_batch * mask_2d  # broadcasting
-        # bool_mask = np.ones((Nf, Nf), dtype=bool)
-        # bool_mask[k_cutoff:-k_cutoff, :] = False
-        # bool_mask[:, k_cutoff:-k_cutoff] = False
-        # return f_hat_batch * bool_mask  # broadcasting
 
     def nonlinear_vec(psi_hat):
         # psi_hat: (N_ens, N, N)
         J = det_jacobian_equation_vec(dealias_vec(psi_hat))
         J_hat = np.fft.fft2(J, axes=(-2, -1))
-        # J_hat = dealias_vec(J_hat)
         return -J_hat
 
     def step_ETD_RK4_vec(X, t, dt):
@@ -191,7 +254,7 @@ def Model(N=32, Lxy=2 * np.pi, dt=0.002, nu=1/1600, T=100):
         dt=dt,
         nu=nu,
         DL=2,
-        step=step_parallel,  # Use the parallelized step function
+        step=step_parallel,  # Use the parallelized step function when possible
         dstep_dx=dstep_dx,
         Nx=N,
         x0=x0,
@@ -213,7 +276,7 @@ cm = mpl.cm.viridis
 center = N_global * int(N_global / 2) + int(0.5 * N_global)
 def LP_setup(jj):
     return [
-        (1, LP.spatial2d(square, ind2sub, jj, cm, clims=((-1, 1), (-1, 1), (-1, 1), (-1, 1)))),
+        (1, LP.spatial2d(square, ind2sub, jj, cm, clims=((-1, 1), (-1, 1), (-1, 1), (-1, 1)), domainlims=(2 * np.pi, 2 * np.pi), periodic=(True, True))),
         (0, LP.spectral_errors),
         (0, LP.sliding_marginals),
     ]
