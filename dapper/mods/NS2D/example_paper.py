@@ -6,7 +6,7 @@ from dapper.mods.Lorenz96 import LPs
 from dapper.tools.localization import nd_Id_localization
 import numpy as np
 
-TEST_NOISE_LEVEL = 0.005
+noise_amp = 0.005
 System = Model(T=1, N=64, dt=0.0001, nu = 0.01)
 Nx = System.Nx
 
@@ -20,7 +20,7 @@ Dyn = {
 }
 X0 = modelling.RV(
     M=Dyn["M"],
-    func=lambda N: System.x0.flatten()[None, :] - TEST_NOISE_LEVEL * np.random.randn(N, Dyn["M"]) #TODO check this
+    func=lambda N: System.x0.flatten()[None, :] + noise_amp * np.random.randn(N, Dyn["M"]) #Initial perturbation is noise_amp * N(0, 1) for each gridpoint
 )
 
 #X0 = lambda N: np.tile(System.x0.flatten() + 0 * np.random.randn(N, Dyn["M"]), (N, 1))
