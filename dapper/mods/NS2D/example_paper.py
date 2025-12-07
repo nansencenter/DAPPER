@@ -1,50 +1,61 @@
-#Just using bocquet2019 settings for format and example; reproduce paper results if found
+# Just using bocquet2019 settings for format and example;
+# reproduce paper results if found
 
-from dapper.mods.NS2D import Model, LP_setup
-import dapper.mods as modelling
-from dapper.mods.Lorenz96 import LPs
-from dapper.tools.localization import nd_Id_localization
 import numpy as np
 
+import dapper.mods as modelling
+from dapper.mods.NS2D import LP_setup, Model
+from dapper.tools.localization import nd_Id_localization
+
 noise_amp = 0.005
-System = Model(T=1, N=64, dt=0.0001, nu = 0.01)
+System = Model(T=0.1, N=64, dt=0.0001, nu=0.01)
 Nx = System.Nx
 
-tseq = modelling.Chronology(System.dt, dko=1 , BurnIn=0.1, T=1)
+tseq = modelling.Chronology(System.dt, dko=1, BurnIn=0.01, T=0.1)
 
 Dyn = {
-    "M" : np.prod((Nx, Nx)),
+    "M": np.prod((Nx, Nx)),
     "model": System.step,
     "linear": System.dstep_dx,
     "noise": 0,
 }
 X0 = modelling.RV(
     M=Dyn["M"],
-    func=lambda N: System.x0.flatten()[None, :] + noise_amp * np.random.randn(N, Dyn["M"]) #Initial perturbation is noise_amp * N(0, 1) for each gridpoint
+    func=lambda N: System.x0.flatten()[None, :]
+    + noise_amp
+    * np.random.randn(
+        N, Dyn["M"]
+    ),  # Initial perturbation is noise_amp * N(0, 1) for each gridpoint
 )
 
-#X0 = lambda N: np.tile(System.x0.flatten() + 0 * np.random.randn(N, Dyn["M"]), (N, 1))
+
 Obs = modelling.Id_Obs(Nx**2)
 Obs["noise"] = 1
 
-Obs["localizer"] = nd_Id_localization((Nx,), (4, ))
+Obs["localizer"] = nd_Id_localization((Nx,), (4,))
 
 rstream = np.random.RandomState()
 jj = modelling.linspace_int(Nx, Nx)
 max_offset = jj[1] - jj[0]
+
+
 def obs_inds(ko):
     def random_offset():
         rstream.seed(ko)
         u = rstream.rand()
         return int(np.floor(max_offset * u))
+
     return jj + random_offset()
+
 
 def obs_now(ko):
     jj = obs_inds(ko)
     shape = (Nx, Nx)
+
     @modelling.ens_compatible
     def hmod(E):
         return E[jj]
+
     # Localization.
     batch_shape = [4, 4]  # width (in grid points) of each state batch.
     # Increasing the width

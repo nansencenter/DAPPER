@@ -1262,8 +1262,8 @@ def spatial2d(
     obs_inds=(),
     cm=plt.cm.jet,
     clims=((-40, 40), (-40, 40), (-10, 10), (-10, 10)),
-    domainlims = (2 * np.pi, 2 * np.pi), #Lx, Ly
-    periodic = (True, True)
+    domainlims=(2 * np.pi, 2 * np.pi),  # Lx, Ly
+    periodic=(True, True),
 ):
     def init(fignum, stats, key0, plot_u, E, P, **kwargs):
         GS = {"left": 0.125 - 0.04, "right": 0.9 - 0.04}
@@ -1306,10 +1306,18 @@ def spatial2d(
         arr_mu = square(mu[key0])
         arr_xx = square(xx[k])
         im_11 = ax_11.imshow(
-            arr_mu, cmap=cm, extent=(0, domainlims[0], 0, domainlims[1]), origin="lower", interpolation="nearest"
+            arr_mu,
+            cmap=cm,
+            extent=(0, domainlims[0], 0, domainlims[1]),
+            origin="lower",
+            interpolation="nearest",
         )
         im_12 = ax_12.imshow(
-            arr_xx, cmap=cm, extent=(0, domainlims[0], 0, domainlims[1]), origin="lower", interpolation="nearest"
+            arr_xx,
+            cmap=cm,
+            extent=(0, domainlims[0], 0, domainlims[1]),
+            origin="lower",
+            interpolation="nearest",
         )
         # Ensure spread and error arrays are reshaped correctly
         arr_spread = square(spread[key0])
@@ -1317,10 +1325,18 @@ def spatial2d(
 
         # Update imshow for spread and error plots
         im_21 = ax_21.imshow(
-            arr_spread, cmap=plt.cm.bwr, extent=(0, domainlims[0], 0, domainlims[1]), origin="lower", interpolation="nearest"
+            arr_spread,
+            cmap=plt.cm.bwr,
+            extent=(0, domainlims[0], 0, domainlims[1]),
+            origin="lower",
+            interpolation="nearest",
         )
         im_22 = ax_22.imshow(
-            arr_err, cmap=plt.cm.bwr, extent=(0, domainlims[0], 0, domainlims[1]), origin="lower", interpolation="nearest"
+            arr_err,
+            cmap=plt.cm.bwr,
+            extent=(0, domainlims[0], 0, domainlims[1]),
+            origin="lower",
+            interpolation="nearest",
         )
 
         # Update ims tuple
@@ -1350,16 +1366,16 @@ def spatial2d(
             # Friendly ticks
             ax.set_xticks(np.linspace(0, Lx, 5))
             ax.set_yticks(np.linspace(0, Ly, 5))
-            #relabel in terms of pi if it is periodic
+            # relabel in terms of pi if it is periodic
             if periodic[0]:
-                xticklabels_float = np.linspace(0, domainlims[0]/np.pi, 5)
+                xticklabels_float = np.linspace(0, domainlims[0] / np.pi, 5)
                 xticklabels_string = xticklabels_float.astype(str)
-                xticklabels_string=np.char.add(xticklabels_string, 'π')
+                xticklabels_string = np.char.add(xticklabels_string, "π")
                 ax.set_xticklabels(xticklabels_string)
             if periodic[1]:
-                yticklabels_float = np.linspace(0, domainlims[1]/np.pi, 5)
+                yticklabels_float = np.linspace(0, domainlims[1] / np.pi, 5)
                 yticklabels_string = yticklabels_float.astype(str)
-                yticklabels_string=np.char.add(yticklabels_string, 'π')
+                yticklabels_string = np.char.add(yticklabels_string, "π")
                 ax.set_yticklabels(yticklabels_string)
 
         # TODO 7
