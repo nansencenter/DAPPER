@@ -26,7 +26,7 @@ and then estimate that truth given the models and noisy observations.
 
 ## Getting started
 
-- Read & run [examples](examples)/`basic_1.py` and `basic_2.py`,
+- Read & run [examples](docs/examples)/`basic_1.py` and `basic_2.py`,
   or their corresponding notebooks [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](http://colab.research.google.com/github/nansencenter/DAPPER)
   (requires Google login).
 - This [screencast](https://www.youtube.com/watch?v=YtalK0Zkzvg&t=6475s)
