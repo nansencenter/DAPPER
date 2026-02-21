@@ -1262,6 +1262,8 @@ def spatial2d(
     obs_inds=(),
     cm=plt.cm.jet,
     clims=((-40, 40), (-40, 40), (-10, 10), (-10, 10)),
+    domainlims=(2 * np.pi, 2 * np.pi),  # Lx, Ly
+    periodic=(True, True),
 ):
     def init(fignum, stats, key0, plot_u, E, P, **kwargs):
         GS = {"left": 0.125 - 0.04, "right": 0.9 - 0.04}
@@ -1301,11 +1303,43 @@ def spatial2d(
 
         # Plot
         # - origin='lower' might get overturned by set_ylim() below.
-        im_11 = ax_11.imshow(square(mu[key0]), cmap=cm)
-        im_12 = ax_12.imshow(square(xx[k]), cmap=cm)
-        # hot is better, but needs +1 colorbar
-        im_21 = ax_21.imshow(square(spread[key0]), cmap=plt.cm.bwr)
-        im_22 = ax_22.imshow(square(err[key0]), cmap=plt.cm.bwr)
+        arr_mu = square(mu[key0])
+        arr_xx = square(xx[k])
+        im_11 = ax_11.imshow(
+            arr_mu,
+            cmap=cm,
+            extent=(0, domainlims[0], 0, domainlims[1]),
+            origin="lower",
+            interpolation="nearest",
+        )
+        im_12 = ax_12.imshow(
+            arr_xx,
+            cmap=cm,
+            extent=(0, domainlims[0], 0, domainlims[1]),
+            origin="lower",
+            interpolation="nearest",
+        )
+        # Ensure spread and error arrays are reshaped correctly
+        arr_spread = square(spread[key0])
+        arr_err = square(err[key0])
+
+        # Update imshow for spread and error plots
+        im_21 = ax_21.imshow(
+            arr_spread,
+            cmap=plt.cm.bwr,
+            extent=(0, domainlims[0], 0, domainlims[1]),
+            origin="lower",
+            interpolation="nearest",
+        )
+        im_22 = ax_22.imshow(
+            arr_err,
+            cmap=plt.cm.bwr,
+            extent=(0, domainlims[0], 0, domainlims[1]),
+            origin="lower",
+            interpolation="nearest",
+        )
+
+        # Update ims tuple
         ims = (im_11, im_12, im_21, im_22)
         # Obs init -- a list where item 0 is the handle of something invisible.
         lh = list(ax_12.plot(0, 0)[0:1])
@@ -1315,6 +1349,34 @@ def spatial2d(
         ax_12.set_title("true " + sx)
         ax_21.set_title("spread. " + sx)
         ax_22.set_title("err. " + sx)
+
+        # Physical grid info (for mapping indices -> physical coords)
+        # arr_mu/arr_xx shape -> (ny, nx)
+        try:
+            ny, nx = arr_mu.shape
+        except Exception:
+            # Fallback: assume square
+            ny = nx = int(np.sqrt(arr_mu.size))
+        Lx, Ly = domainlims
+
+        # Ensure axes limits match physical domain (in units of length)
+        for ax in axs.flatten():
+            ax.set_xlim(0, Lx)
+            ax.set_ylim(0, Ly)
+            # Friendly ticks
+            ax.set_xticks(np.linspace(0, Lx, 5))
+            ax.set_yticks(np.linspace(0, Ly, 5))
+            # relabel in terms of pi if it is periodic
+            if periodic[0]:
+                xticklabels_float = np.linspace(0, domainlims[0] / np.pi, 5)
+                xticklabels_string = xticklabels_float.astype(str)
+                xticklabels_string = np.char.add(xticklabels_string, "π")
+                ax.set_xticklabels(xticklabels_string)
+            if periodic[1]:
+                yticklabels_float = np.linspace(0, domainlims[1] / np.pi, 5)
+                yticklabels_string = yticklabels_float.astype(str)
+                yticklabels_string = np.char.add(yticklabels_string, "π")
+                ax.set_yticklabels(yticklabels_string)
 
         # TODO 7
         # for ax in axs.flatten():
@@ -1370,9 +1432,30 @@ def spatial2d(
             #  - ind2sub returns (iy,ix), while plot takes (ix,iy) => reverse.
 
             if ko is not None and not_empty(obs_inds):
-                lh[0] = ax_12.plot(*ind2sub(obs_inds(ko))[::-1], "k.", ms=1, zorder=5)[
-                    0
-                ]
+                inds = obs_inds(ko) if callable(obs_inds) else obs_inds
+                # ind2sub is expected to return (iy, ix) arrays suitable for plotting
+                try:
+                    iy, ix = ind2sub(inds)
+                except Exception:
+                    # If ind2sub returns reversed order, try reversing
+                    tmp = ind2sub(inds)
+                    if len(tmp) >= 2:
+                        iy, ix = tmp[0], tmp[1]
+                    else:
+                        # Give up and plot nothing
+                        iy = ix = np.array([])
+
+                ix = np.asarray(ix)
+                iy = np.asarray(iy)
+
+                # Map integer cell indices to physical cell-centre coordinates
+                if ix.size and iy.size:
+                    x = (ix + 0.5) * (Lx / nx)
+                    y = (iy + 0.5) * (Ly / ny)
+                else:
+                    x = y = []
+
+                lh[0] = ax_12.plot(x, y, "k.", ms=3, zorder=5)[0]
 
             text_t.set_text(format_time(k, ko, t))
 
