@@ -54,9 +54,10 @@ class Chronology:
         K=None,
         Tplot=None,
     ):
-        assert 3 == [dt, dto, T, dko, Ko, K].count(
-            None
-        ), "Chronology is specified using exactly 3 parameters."
+        if 3 != [dt, dto, T, dko, Ko, K].count(None):
+            raise ValueError(
+                "Chronology requires exactly 3 of (dt, dto, T, dko, Ko, K)."
+            )
 
         # Reduce all to "state vars" dt,dko,K
         if not dt:
@@ -71,14 +72,17 @@ class Chronology:
         if not dko:
             if dto:
                 dko = round(dto / dt)
-                assert abs(dto - dko * dt) < dt * 1e-9
+                if abs(dto - dko * dt) >= dt * 1e-9:
+                    raise ValueError(f"dto={dto} is not a multiple of dt={dt}")
             else:
                 raise TypeError("Unable to interpret time setup")
-        assert isinstance(dko, int)
+        if not isinstance(dko, int):
+            raise ValueError(f"dko must be an integer, got {type(dko).__name__}")
         if not K:
             if T:
                 K = round(T / dt)
-                assert abs(T - K * dt) < dt * 1e-9
+                if abs(T - K * dt) >= dt * 1e-9:
+                    raise ValueError(f"T={T} is not a multiple of dt={dt}")
             elif Ko:
                 K = dko * (Ko + 1)
             else:
@@ -102,7 +106,10 @@ class Chronology:
             Tplot = BurnIn
         self.Tplot = Tplot  # don't enforce <T here
 
-        assert len(self.kko) == self.Ko + 1
+        if len(self.kko) != self.Ko + 1:
+            raise ValueError(
+                f"Internal inconsistency: len(kko)={len(self.kko)} != Ko+1={self.Ko+1}"
+            )
 
     ######################################
     # "State vars". Can be set (changed).
