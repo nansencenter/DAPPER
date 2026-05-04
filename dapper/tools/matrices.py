@@ -419,9 +419,7 @@ class CovMat:
     def inv(self):
         if self.M != self.rk:
             raise RuntimeError(
-                "Matrix is rank deficient, "
-                "and cannot be inverted. "
-                "Use .tinv() instead?"
+                "Matrix is rank deficient, and cannot be inverted. Use .tinv() instead?"
             )
         # Temporarily remove any truncation
         tmp = self.trunc

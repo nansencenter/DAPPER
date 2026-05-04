@@ -26,7 +26,7 @@ Obs["noise"] = 0.01
 # But, for strict equivalence, one would have to use
 # uniform (i.e. not Gaussian) random numbers.
 wnumQ = 25
-sample_filename = modelling.rc.dirs.samples / ("LA_Q_wnum%d.npz" % wnumQ)
+sample_filename = modelling.rc.dirs.samples / (f"LA_Q_wnum{wnumQ}.npz")
 
 try:
     # Load pre-generated

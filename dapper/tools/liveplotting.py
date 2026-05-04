@@ -518,8 +518,8 @@ class weight_histogram:
             ax.set_ylim(top=max(nn))
 
             ax.set_title(
-                f"N: {N:d}.   N_eff: {1/(w@w):.4g}."
-                "   Not shown: {N-np.sum(counted):d}. "
+                f"N: {N:d}.   N_eff: {1 / (w @ w):.4g}."
+                f"   Not shown: {N - np.sum(counted):d}. "
             )
 
 
@@ -581,7 +581,7 @@ class correlations:
 
         if E is None and np.isnan(P.diag if isinstance(P, CovMat) else P).all():
             not_available_text(
-                ax, ("Not available in replays" "\ncoz full Ens/Cov not stored.")
+                ax, ("Not available in replays\ncoz full Ens/Cov not stored.")
             )
             self.is_active = False
             return
@@ -733,7 +733,7 @@ def sliding_marginals(
         for ix, (m, ax) in enumerate(zip(p.dims, axs)):
             # ax.set_ylim(*viz.stretch(*viz.xtrema(xx[:, m]), 1/p.zoomy))
             if not p.labels:
-                ax.set_ylabel("$x_{%d}$" % m)
+                ax.set_ylabel(f"$x_{{{m}}}$")
             else:
                 ax.set_ylabel(p.labels[ix])
         axs[-1].set_xlabel("Time (t)")
@@ -872,7 +872,7 @@ def phase_particles(
         if not p.dims:
             p.dims = arange(M)
         if not p.labels:
-            p.labels = ["$x_%d$" % d for d in p.dims]
+            p.labels = [f"$x_{d}$" for d in p.dims]
         assert len(p.dims) == M
 
         # Set up figure, axes

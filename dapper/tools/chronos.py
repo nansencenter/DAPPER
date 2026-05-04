@@ -94,7 +94,7 @@ class Chronology:
         if self.T <= BurnIn:
             BurnIn = self.T / 2
             warning = (
-                "Warning: experiment duration < BurnIn time." "\nReducing BurnIn value."
+                "Warning: experiment duration < BurnIn time.\nReducing BurnIn value."
             )
             print(color_text(warning, colorama.Fore.RED))
         self.BurnIn = BurnIn
