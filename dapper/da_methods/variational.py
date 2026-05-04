@@ -97,9 +97,9 @@ class iEnKS:
     def assimilate(self, HMM, xx, yy):
         Ko = HMM.tseq.Ko
 
-        assert HMM.Dyn.noise.C == 0, (
-            "Q>0 not yet supported." " See Sakov et al 2017: 'An iEnKF with mod. error'"
-        )
+        assert (
+            HMM.Dyn.noise.C == 0
+        ), "Q>0 not yet supported. See Sakov et al 2017: 'An iEnKF with mod. error'"
 
         if self.bundle:
             EPS = 1e-4  # Sakov/Boc use T=EPS*eye(N), with EPS=1e-4, but I ...

@@ -86,7 +86,7 @@ def load_xps(save_as):
             except KeyError:
                 return [data["xp"]]
 
-    print("Loading %d files from %s" % (len(files), save_as))
+    print(f"Loading {len(files)} files from {save_as}")
     xps = []  # NB: progbar wont clean up properly w/ list compr.
     for f in tqdm(files, desc="Loading"):
         xps.extend(load_any(f))

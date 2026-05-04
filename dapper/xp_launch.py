@@ -356,7 +356,7 @@ class xpList(list):
             #     comparison to literal.
             if isinstance(a, np.ndarray):
                 shorten = 6
-                a = f"arr(<id {id(a)//10**shorten}>)"
+                a = f"arr(<id {id(a) // 10**shorten}>)"
             # TODO 3: leave formatting to sub() below?
             # TODO 4: do similar formatting for other non-trivial params?
             # TODO 4: document alternative way to specify non-trivial params:
@@ -404,7 +404,7 @@ class xpList(list):
 
     def __repr__(self):
         distinct, redundant, common = self.prep_table()
-        s = "<xpList> of length %d with attributes:\n" % len(self)
+        s = f"<xpList> of length {len(self)} with attributes:\n"
         s += tabulate(distinct, headers="keys", showindex=True)
         s += "\nOther attributes:\n"
         s += str(struct_tools.AlignedDict({**redundant, **common}))

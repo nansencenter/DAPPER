@@ -152,7 +152,7 @@ def submit_job_GCP(xps_path, **kwargs):
             if nHeld == sc.nJobs:
                 print("NB: All jobs failed")
             else:
-                print("NB: There were %d failed jobs" % nHeld)
+                print(f"NB: There were {nHeld} failed jobs")
             # Print path of error messages for a (the first found) failed job
             for d in list_job_dirs(sc.xps_path):
                 if (d / "xp").stat().st_size == 0:
@@ -204,7 +204,7 @@ def _submit_job(self):
 
 
 def _sync_job(self):
-    print("Syncing %d jobs" % self.nJobs)
+    print(f"Syncing {self.nJobs} jobs")
     xps_path = self.xps_path
 
     # NB: --delete => Must precede other rsync's!
@@ -321,10 +321,7 @@ def _monitor_progress(self):
             pbar.update(increment)
             time.sleep(1)  # dont clog the ssh connection
     except (KeyboardInterrupt, Exception):
-        print(
-            "Some kind of exception occured,"
-            " while %d jobs have not even run." % unfinished
-        )
+        print(f"Exception occured while {unfinished} jobs have not even run.")
         raise
     finally:
         pbar.close()
@@ -350,7 +347,7 @@ def get_ip(instance):
     # cloud.google.com/compute/docs/instances/view-ip-address
     getip = "get(networkInterfaces[0].accessConfigs[0].natIP)"
     ip = sub_run(
-        (f"gcloud compute instances describe {instance}" f" --format={getip}").split()
+        (f"gcloud compute instances describe {instance} --format={getip}").split()
     )
     return ip.strip()
 

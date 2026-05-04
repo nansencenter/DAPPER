@@ -94,7 +94,7 @@ class UncertainQtty:
         frmt = "%.f"
         if n < 0:
             # Ensure we get 1.30 ±0.01, NOT 1.3 ±0.01:
-            frmt = "%%0.%df" % -n
+            frmt = f"%0.{-n}f"
         elif np.isfinite(c):
             # if c >= 1.0
             c = int(c)
