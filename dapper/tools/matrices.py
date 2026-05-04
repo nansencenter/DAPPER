@@ -10,25 +10,6 @@ from dapper.tools.linalg import mrdiv, svd0, truncate_rank
 from dapper.tools.seeding import rng
 
 
-class lazy_property:
-    """Lazy evaluation of property.
-
-    Should represent non-mutable data,
-    as it replaces itself.
-
-    From https://stackoverflow.com/q/3012421
-    """
-
-    def __init__(self, fget):
-        self.fget = fget
-        self.func_name = fget.__name__
-
-    def __get__(self, obj, cls):
-        value = self.fget(obj)
-        setattr(obj, self.func_name, value)
-        return value
-
-
 # Test matrices
 def randcov(M):
     """(Makeshift) random cov mat."""
@@ -230,7 +211,8 @@ class CovMat:
             # automatically go for the EVD, seeing as e.g. the
             # diagonal can be computed without it.
             R = np.atleast_2d(data)
-            assert R.ndim == 2
+            if R.ndim != 2:
+                raise ValueError(f"Expected 2D array, got ndim={R.ndim}")
             self._R = R
             self._m = R.shape[1]
         else:
@@ -244,7 +226,8 @@ class CovMat:
                 # If full has been imput, then we have memory for an EVD,
                 # which will probably be put to use in the DA.
                 C = np.atleast_2d(data)
-                assert C.ndim == 2
+                if C.ndim != 2:
+                    raise ValueError(f"Expected 2D array, got ndim={C.ndim}")
                 self._C = C
                 M = len(C)
                 d, V = sla.eigh(C)
@@ -258,7 +241,8 @@ class CovMat:
                 # (or non-existant) representation of V,
                 # but that would require so much other adaption of other code.
                 d = np.atleast_1d(data)
-                assert d.ndim == 1
+                if d.ndim != 1:
+                    raise ValueError(f"Expected 1D array for diag, got ndim={d.ndim}")
                 self.diag = d
                 M = len(d)
                 if np.all(d == d[0]):
@@ -313,7 +297,7 @@ class CovMat:
         self._C = C
         return C
 
-    @lazy_property
+    @functools.cached_property
     def diag(self):
         """Diagonal of covariance matrix"""
         if hasattr(self, "_C"):
@@ -400,22 +384,22 @@ class CovMat:
 
         return (V * fun(w)) @ V.T
 
-    @lazy_property
+    @functools.cached_property
     def sym_sqrt(self):
         """S such that C = S@S (and i.e. S is square). Uses trunc-level."""
         return self.transform_by(sqrt)
 
-    @lazy_property
+    @functools.cached_property
     def sym_sqrt_inv(self):
         """S such that C^{-1} = S@S (and i.e. S is square). Uses trunc-level."""
         return self.transform_by(lambda x: 1 / sqrt(x))
 
-    @lazy_property
+    @functools.cached_property
     def pinv(self):
         """Pseudo-inverse. Uses trunc-level."""
         return self.transform_by(lambda x: 1 / x)
 
-    @lazy_property
+    @functools.cached_property
     def inv(self):
         if self.M != self.rk:
             raise RuntimeError(

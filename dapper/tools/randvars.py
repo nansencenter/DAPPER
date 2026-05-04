@@ -15,8 +15,8 @@ class RV(NicePrint):
     printopts["ordering"] = "linenumber"
     printopts["reverse"] = True
 
-    def __init__(self, M, **kwargs):
-        """Initalization arguments:
+    def __init__(self, M, *, is0=False, func=None, file=None, icdf=None, cdf=None):
+        """Init arguments:
 
         - `M    <int>    ` : ndim
         - `is0  <bool>   ` : if `True`, the random variable is identically 0
@@ -24,29 +24,27 @@ class RV(NicePrint):
                            `RV(M=4,func=lambda N: rng.random((N,4))`
         - `file <str>    ` : draw from file. Example:
                            `RV(M=4,file=dpr.rc.dirs.data/'tmp.npz')`
-
-        The following kwords (versions) are available,
-        but should not be used for anything serious
-        (use instead subclasses, like `GaussRV`).
-
-        - `icdf <func(x)>` : marginal/independent  "inverse transform" sampling.<br>
-                           Example: `RV(M=4,icdf = scipy.stats.norm.ppf)`
-        - `cdf <func(x)>`  : as icdf, but with approximate icdf, from interpolation.<br>
-                           Example: `RV(M=4,cdf = scipy.stats.norm.cdf)`
-        - `pdf  <func(x)>` : "acceptance-rejection" sampling. Not implemented.
+        - `icdf <func(x)>` : marginal/independent "inverse transform" sampling.
+                           Example: `RV(M=4,icdf=scipy.stats.norm.ppf)`
+        - `cdf <func(x)>`  : as icdf, but with approximate icdf from interpolation.
+                           Example: `RV(M=4,cdf=scipy.stats.norm.cdf)`
         """
         self.M = M
-        for key, value in kwargs.items():
-            setattr(self, key, value)
+        self.is0 = is0
+        self.func = func
+        self.file = file
+        self.icdf = icdf
+        self.cdf = cdf
+        self._icdf_interp = None
 
     def sample(self, N):
-        if getattr(self, "is0", False):
+        if self.is0:
             # Identically 0
             E = np.zeros((N, self.M))
-        elif hasattr(self, "func"):
+        elif self.func is not None:
             # Provided by function
             E = self.func(N)
-        elif hasattr(self, "file"):
+        elif self.file is not None:
             # Provided by numpy file with sample
             data = np.load(self.file)
             sample = data["sample"]
@@ -57,14 +55,14 @@ class RV(NicePrint):
                 w = np.ones(N0) / N0
             idx = rng.choice(N0, N, replace=True, p=w)
             E = sample[idx]
-        elif hasattr(self, "icdf"):
+        elif self.icdf is not None:
             # Independent "inverse transform" sampling
             icdf = np.vectorize(self.icdf)
             uu = rng.random((N, self.M))
             E = icdf(uu)
-        elif hasattr(self, "cdf"):
+        elif self.cdf is not None:
             # Like above, but with inv-cdf approximate, from interpolation
-            if not hasattr(self, "icdf_interp"):
+            if self._icdf_interp is None:
                 # Define inverse-cdf
                 from scipy.interpolate import interp1d
                 from scipy.optimize import fsolve
@@ -75,15 +73,16 @@ class RV(NicePrint):
                 xx = np.linspace(Left, Right, 1001)
                 uu = np.vectorize(cdf)(xx)
                 icdf = interp1d(uu, xx)
-                self.icdf_interp = np.vectorize(icdf)
+                self._icdf_interp = np.vectorize(icdf)
             uu = rng.random((N, self.M))
-            E = self.icdf_interp(uu)
-        elif hasattr(self, "pdf"):
-            # "acceptance-rejection" sampling
-            raise NotImplementedError
+            E = self._icdf_interp(uu)
         else:
             raise KeyError
-        assert self.M == E.shape[1]
+        if self.M != E.shape[1]:
+            raise ValueError(
+                f"sample shape mismatch: expected M={self.M},"
+                " got E.shape[1]={E.shape[1]}"
+            )
         return E
 
 
