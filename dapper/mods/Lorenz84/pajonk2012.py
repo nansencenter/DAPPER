@@ -30,7 +30,7 @@ jj = np.arange(Nx)
 Obs = modelling.partial_Id_Obs(Nx, jj)
 Obs["noise"] = 0.1
 
-HMM = modelling.HiddenMarkovModel(Dyn, Obs, t, X0, LP=LPs(jj))
+HMM = modelling.HiddenMarkovModel(Dyn, Obs, t, X0, liveplotters=LPs(jj))
 
 ####################
 # Suggested tuning

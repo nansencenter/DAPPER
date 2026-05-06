@@ -90,7 +90,7 @@ Obs = dict(time_dependent=lambda ko: obs_now(ko))
 ############################
 # Other
 ############################
-HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, LP=LP_setup(obs_inds))
+HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, liveplotters=LP_setup(obs_inds))
 
 
 ####################

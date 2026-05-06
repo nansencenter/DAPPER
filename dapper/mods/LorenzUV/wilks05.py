@@ -42,7 +42,9 @@ Obs = modelling.partial_Id_Obs(LUV.M, jj)
 Obs["noise"] = R
 
 other = {"name": name + "_full"}
-HMM_full = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, LP=LUV.LPs(jj), **other)
+HMM_full = modelling.HiddenMarkovModel(
+    Dyn, Obs, tseq, X0, liveplotters=LUV.LPs(jj), **other
+)
 
 
 ################
@@ -65,7 +67,9 @@ Obs = modelling.partial_Id_Obs(nU, jj)
 Obs["noise"] = R
 
 other = {"name": name + "_trunc"}
-HMM_trunc = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, LP=LUV.LPs(jj), **other)
+HMM_trunc = modelling.HiddenMarkovModel(
+    Dyn, Obs, tseq, X0, liveplotters=LUV.LPs(jj), **other
+)
 
 LUV.prmzt = lambda x, t: polynom_prmzt(x, t, 1)
 
