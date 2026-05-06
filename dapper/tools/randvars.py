@@ -1,5 +1,8 @@
 """Classes of random variables."""
 
+from collections.abc import Callable
+from pathlib import Path
+
 import numpy as np
 from numpy import sqrt
 from struct_tools import NicePrint
@@ -15,7 +18,16 @@ class RV(NicePrint):
     printopts["ordering"] = "linenumber"
     printopts["reverse"] = True
 
-    def __init__(self, M, *, is0=False, func=None, file=None, icdf=None, cdf=None):
+    def __init__(
+        self,
+        M: int,
+        *,
+        is0: bool = False,
+        func: Callable | None = None,
+        file: str | Path | None = None,
+        icdf: Callable | None = None,
+        cdf: Callable | None = None,
+    ):
         """Init arguments:
 
         - `M    <int>    ` : ndim
@@ -37,7 +49,7 @@ class RV(NicePrint):
         self.cdf = cdf
         self._icdf_interp = None
 
-    def sample(self, N):
+    def sample(self, N: int) -> np.ndarray:
         if self.is0:
             # Identically 0
             E = np.zeros((N, self.M))
@@ -94,7 +106,12 @@ class RV_with_mean_and_cov(RV):
     i.e. its main purpose is provide a common convenience constructor.
     """
 
-    def __init__(self, mu=0, C=0, M=None):
+    def __init__(
+        self,
+        mu: float | np.ndarray = 0,
+        C: float | np.ndarray | CovMat = 0,
+        M: int | None = None,
+    ):
         """Init allowing for shortcut notation."""
         if isinstance(mu, CovMat):
             raise TypeError(
@@ -145,7 +162,7 @@ class RV_with_mean_and_cov(RV):
         self.mu = mu
         self.C = C
 
-    def sample(self, N):
+    def sample(self, N: int) -> np.ndarray:
         """Sample N realizations. Returns N-by-M (ndim) sample matrix.
 
         Examples
@@ -158,7 +175,7 @@ class RV_with_mean_and_cov(RV):
             D = self._sample(N)
         return self.mu + D
 
-    def _sample(self, N):
+    def _sample(self, N: int) -> np.ndarray:
         raise NotImplementedError("Must be implemented in subclass")
 
 
