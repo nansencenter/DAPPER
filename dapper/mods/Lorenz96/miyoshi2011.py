@@ -29,7 +29,7 @@ HMM = modelling.HiddenMarkovModel(
     Obs,
     t,
     X0,
-    LP=LPs(jj),
+    liveplotters=LPs(jj),
     sectors={"land": land_sites, "ocean": ocean_sites},
 )
 

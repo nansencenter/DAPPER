@@ -50,7 +50,7 @@ X0 = modelling.RV(M=Nx, func=lambda N: a * sinusoidal_sample(Nx, wnum, N))
 Obs = modelling.partial_Id_Obs(Nx, jj)
 Obs["noise"] = 0.01
 
-HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, LP=LPs(jj))
+HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, liveplotters=LPs(jj))
 
 
 ####################

@@ -68,7 +68,7 @@ Dyn = {
     "noise": modelling.GaussRV(C=modelling.CovMat(L, "Left")),
 }
 
-HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, LP=LPs(jj))
+HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, liveplotters=LPs(jj))
 
 
 ####################

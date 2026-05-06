@@ -60,7 +60,6 @@ class HiddenMarkovModel(struct_tools.NicePrint):
         liveplotters=None,
         sectors=None,
         name=None,
-        **kwargs,
     ):
         """Initialize.
 
@@ -90,50 +89,21 @@ class HiddenMarkovModel(struct_tools.NicePrint):
         name : str, optional
             Label for the `HMM`.
         """
-        # Expected args/kwargs, along with type and default.
-        attrs = dict(
-            Dyn=(Operator, None),
-            Obs=(TimeDependentOperator, None),
-            tseq=(Chronology, None),
-            X0=(RV, None),
-            liveplotters=(list, []),
-            sectors=(dict, {}),
-            name=(str, self._default_name()),
+        self.Dyn = Dyn if isinstance(Dyn, Operator) else Operator(**Dyn)
+        self.Obs = (
+            Obs
+            if isinstance(Obs, TimeDependentOperator)
+            else TimeDependentOperator(**Obs)
         )
+        self.tseq = tseq
+        self.X0 = X0
+        self.liveplotters = liveplotters or []
+        self.sectors = sectors or {}
+        self.name = name or self._default_name()
 
-        # Un-abbreviate
-        abbrevs = {"LP": "liveplotters", "loc": "localizer"}
-        for key in list(kwargs):
-            try:
-                full = abbrevs[key]
-            except KeyError:
-                pass
-            else:
-                assert full not in kwargs, "Could not sort out arguments."
-                kwargs[full] = kwargs.pop(key)
-
-        # Collect args, kwargs.
-        for key, (type_, default) in attrs.items():
-            val = locals()[key] or kwargs.get(key, default)
-            # Convert dict to object
-            if not isinstance(val, type_) and val is not None:
-                val = type_(**val)
-            kwargs[key] = val
-
-        # Transfer kwargs to self
-        for key in attrs:
-            setattr(self, key, kwargs.pop(key))
-        assert not kwargs, (
-            f"Arguments {list(kwargs)} not recognized. "
-            "If you want, you can still write them to the HMM, "
-            "but this must be done after initialisation."
-        )
-
-        # Further defaults
         # if not hasattr(self.Obs, "localizer"):
         #     self.Obs.localizer = no_localization(self.Nx, self.Ny)
 
-        # Validation
         # if self.Obs.noise.C == 0 or self.Obs.noise.C.rk != self.Obs.noise.C.M:
         #     raise ValueError("Rank-deficient R not supported.")
 
@@ -195,28 +165,30 @@ class TimeDependentOperator:
         If initialized with 1 argument: `dict(time_dependent=func)`
         then `func` must return an `Operator` object.
         """
-        try:
-            fun = kwargs["time_dependent"]
-            assert len(kwargs) == 1
-            assert callable(fun)
-            self.Ops = fun
-        except KeyError:
-            self.Op1 = Operator(**kwargs)
+        if "time_dependent" in kwargs:
+            if len(kwargs) != 1 or not callable(kwargs["time_dependent"]):
+                raise ValueError(
+                    "time_dependent must be the sole argument and must be callable"
+                )
+            self._time_dep_func = kwargs["time_dependent"]
+            self._const_op = None
+        else:
+            self._const_op = Operator(**kwargs)
+            self._time_dep_func = None
 
     def __repr__(self):
         return "<" + type(self).__name__ + "> " + str(self)
 
     def __str__(self):
-        if hasattr(self, "Op1"):
-            return "CONSTANT operator sepcified by .Op1:\n" + repr(self.Op1)
+        if self._const_op is not None:
+            return "CONSTANT operator specified by ._const_op:\n" + repr(self._const_op)
         else:
-            return ".Ops: " + repr(self.Ops)
+            return "._time_dep_func: " + repr(self._time_dep_func)
 
     def __call__(self, ko):
-        try:
-            return self.Ops(ko)
-        except AttributeError:
-            return self.Op1
+        if self._time_dep_func is not None:
+            return self._time_dep_func(ko)
+        return self._const_op
 
 
 class Operator(struct_tools.NicePrint):
@@ -237,15 +209,22 @@ class Operator(struct_tools.NicePrint):
     Any remaining keyword arguments are written to the object as attributes.
     """
 
-    def __init__(self, M, model=None, noise=None, **kwargs):
+    def __init__(
+        self, M, model=None, noise=None, linear=None, localizer=None, **kwargs
+    ):
         self.M = M
 
         # Default to the Identity operator
         if model is None:
             model = Id_op()
-            kwargs["linear"] = lambda *args: np.eye(M)
-        # Assign
+            if linear is None:
+
+                def linear(*args):
+                    return np.eye(M)
+
         self.model = model
+        self.linear = linear
+        self.localizer = localizer
 
         # None/0 => No noise
         if isinstance(noise, RV):
@@ -258,9 +237,17 @@ class Operator(struct_tools.NicePrint):
             else:
                 self.noise = GaussRV(C=noise)
 
-        # Write attributes
-        for key, value in kwargs.items():
-            setattr(self, key, value)
+        # Write remaining unknown attributes
+        if kwargs:
+            import warnings
+
+            warnings.warn(
+                f"Unknown Operator kwargs: {list(kwargs)}",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            for key, value in kwargs.items():
+                setattr(self, key, value)
 
     def __call__(self, *args, **kwargs):
         return self.model(*args, **kwargs)

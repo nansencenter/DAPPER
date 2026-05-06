@@ -39,7 +39,7 @@ HMM = modelling.HiddenMarkovModel(
     Obs,
     tseq,
     X0,
-    LP=LPs(),
+    liveplotters=LPs(),
     sectors={"land": np.arange(*xtrema(obs_sites)).astype(int)},
 )
 
