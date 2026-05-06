@@ -43,6 +43,7 @@ class Stats(series.StatPrint):
         self.yy = yy
         self.liveplots = liveplots
         self.store_u = store_u
+        self._stat_names: list[str] = []
         self.store_s = any(
             key in xp.__dict__ for key in ["Lag", "DeCorr"]
         )  # prms used by smoothers
@@ -425,7 +426,7 @@ class Stats(series.StatPrint):
             return avrgs
 
         def recurse_average(stat_parent, avrgs_parent):
-            for key in getattr(stat_parent, "stat_register", []):
+            for key in getattr(stat_parent, "_stat_names", []):
                 try:
                     tseries = getattr(stat_parent, key)
                 except AttributeError:
@@ -493,14 +494,15 @@ class Stats(series.StatPrint):
 
 
 def register_stat(self, name, value):
-    """Do `self.name = value` and register `name` as in self's `stat_register`.
+    """Do `self.name = value` and register `name` in `self._stat_names`.
 
-    Note: `self` is not always a `Stats` object, but could be a "child" of it.
+    Note: `self` is not always a `Stats` object, but could be a "child" of it
+    (e.g. a FAUSt or DataSeries). Child objects get `_stat_names` lazily.
     """
     setattr(self, name, value)
-    if not hasattr(self, "stat_register"):
-        self.stat_register = []
-    self.stat_register.append(name)
+    if not hasattr(self, "_stat_names"):
+        self._stat_names: list[str] = []
+    self._stat_names.append(name)
 
 
 class Avrgs(series.StatPrint, struct_tools.DotDict):
