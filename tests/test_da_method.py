@@ -156,6 +156,47 @@ class TestAssimilateIntegration:
         xp.assimilate(self.HMM, self.xx, self.yy)
         assert xp.stats.duration >= 0
 
+    def test_average_in_time_populates_avrgs(self):
+        xp = self._make_noop()
+        xp.assimilate(self.HMM, self.xx, self.yy)
+        xp.stats.average_in_time()
+
+        # Top-level keys from Stats.new_series() calls
+        expected_top = {
+            "err",
+            "spread",
+            "mu",
+            "gscore",
+            "mad",
+            "skew",
+            "kurt",
+            "duration",
+        }
+        assert expected_top <= set(xp.avrgs)
+
+        # Field-summary sub-keys on vector stats (from field_summaries)
+        assert {"m", "rms", "ma"} <= set(xp.avrgs.err)
+        assert {"m", "rms", "ma"} <= set(xp.avrgs.spread)
+
+        # Analysis values are accessible and finite
+        # (.a is UncertainQtty, .val is the float)
+        import math
+
+        assert math.isfinite(xp.avrgs.err.rms.a.val)
+        assert math.isfinite(xp.avrgs.spread.rms.a.val)
+        assert math.isfinite(xp.avrgs.gscore.rms.a.val)
+        assert math.isfinite(xp.avrgs.mad.a.val)
+
+        # Spread must be positive
+        assert xp.avrgs.spread.rms.a.val > 0
+
+        # Scalar: duration is a plain float, not a mean_with_conf
+        assert isinstance(xp.avrgs.duration, float)
+        assert xp.avrgs.duration > 0
+
+        # Ensemble-specific keys present (NoOp has N=5)
+        assert "rh" in xp.avrgs  # rank histogram
+
 
 # ---------------------------------------------------------------------------
 # fail_gently behaviour
