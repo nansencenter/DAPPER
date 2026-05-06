@@ -176,7 +176,16 @@ class Stats(series.StatPrint):
             k for k in vars(self) if isinstance(getattr(self, k), series.DataSeries)
         ]
 
-    def assess(self, k, ko=None, faus=None, E=None, w=None, mu=None, Cov=None):
+    def assess(
+        self,
+        k: int,
+        ko: int | None = None,
+        faus: str | None = None,
+        E: np.ndarray | None = None,
+        w: np.ndarray | None = None,
+        mu: np.ndarray | None = None,
+        Cov: np.ndarray | None = None,
+    ) -> None:
         """Common interface for both [`Stats`.assess_ens][stats.Stats.assess_ens]
         and [`Stats`.assess_ext][stats.Stats.assess_ext].
 
@@ -377,7 +386,12 @@ class Stats(series.StatPrint):
         # Here, sqrt(2/pi) is the ratio, of MAD/Spread for Gaussians
         now.mad = np.nanmean(now.spread) * np.sqrt(2 / np.pi)
 
-    def average_in_time(self, kk=None, kko=None, free=False):
+    def average_in_time(
+        self,
+        kk: np.ndarray | None = None,
+        kko: np.ndarray | None = None,
+        free: bool = False,
+    ) -> None:
         """Avarage all univariate (scalar) time series.
 
         - `kk`    time inds for averaging

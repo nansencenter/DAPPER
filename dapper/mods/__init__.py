@@ -5,6 +5,7 @@
 
 import copy as cp
 import inspect
+from collections.abc import Callable
 from pathlib import Path
 
 import numpy as np
@@ -210,7 +211,13 @@ class Operator(struct_tools.NicePrint):
     """
 
     def __init__(
-        self, M, model=None, noise=None, linear=None, localizer=None, **kwargs
+        self,
+        M: int,
+        model: Callable | None = None,
+        noise: RV | float | np.ndarray | None = None,
+        linear: Callable | None = None,
+        localizer: Callable | None = None,
+        **kwargs,
     ):
         self.M = M
 
