@@ -1,5 +1,6 @@
 """Variational DA methods (iEnKS, 4D-Var, etc)."""
 
+from dataclasses import dataclass
 from typing import Optional
 
 import numpy as np
@@ -15,17 +16,17 @@ from dapper.tools.seeding import rng
 from . import da_method
 
 
-@da_method
+@dataclass(kw_only=True)
 class var_method:
-    """Declare default variational arguments."""
+    """Default variational arguments (shared via inheritance)."""
 
     Lag: int = 1
     nIter: int = 10
     wtol: float = 0
 
 
-@var_method
-class iEnKS:
+@da_method()
+class iEnKS(var_method):
     """Iterative EnKS.
 
     Special cases: EnRML, ES-MDA, iEnKF, EnKF [raanes2019][].
@@ -276,8 +277,8 @@ def iEnKS_update(upd_a, E, DAW, HMM, stats, EPS, y, time, Rm12, xN, MDA, thresho
     return E
 
 
-@var_method
-class Var4D:
+@da_method()
+class Var4D(var_method):
     """4D-Var.
 
     Cycling scheme is same as in iEnKS (i.e. the shift is always 1*ko).

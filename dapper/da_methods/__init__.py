@@ -3,10 +3,15 @@
 --8<-- "dapper/da_methods/README.md"
 """
 
+from collections.abc import Callable
 from pathlib import Path
+from typing import TypeVar, dataclass_transform
+
+_C = TypeVar("_C", bound=type)
 
 
-def da_method(*default_dataclasses):
+@dataclass_transform()
+def da_method(*default_dataclasses: type) -> Callable[[_C], _C]:
     """Turn a dataclass-style class into a DA method for DAPPER (`xp`).
 
     This decorator applies to classes that define DA methods.

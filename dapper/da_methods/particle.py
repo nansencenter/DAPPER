@@ -1,5 +1,7 @@
 """Weight- & resampling-based DA methods."""
 
+from dataclasses import dataclass
+
 import numpy as np
 
 from dapper.stats import unbias_var, weight_degeneracy
@@ -11,16 +13,16 @@ from dapper.tools.seeding import rng
 from . import da_method
 
 
-@da_method
+@dataclass(kw_only=True)
 class particle_method:
-    """Declare default particle arguments."""
+    """Default particle filter arguments (shared via inheritance)."""
 
     NER: float = 1.0
     resampl: str = "Sys"
 
 
-@particle_method
-class PartFilt:
+@da_method()
+class PartFilt(particle_method):
     r"""Particle filter ≡ Sequential importance (re)sampling SIS (SIR).
 
     Refs: [wikle2007][], [van2009][], [chen2003][]
@@ -88,8 +90,8 @@ class PartFilt:
             self.stats.assess(k, ko, "u", E=E, w=w)
 
 
-@particle_method
-class OptPF:
+@da_method()
+class OptPF(particle_method):
     """'Optimal proposal' particle filter, also known as 'Implicit particle filter'.
 
     Ref: [bocquet2010a][].
@@ -152,8 +154,8 @@ class OptPF:
             self.stats.assess(k, ko, "u", E=E, w=w)
 
 
-@particle_method
-class PFa:
+@da_method()
+class PFa(particle_method):
     """PF with weight adjustment withOUT compensating for the bias it introduces.
 
     'alpha' sets wroot before resampling such that N_effective becomes >alpha*N.
@@ -228,8 +230,8 @@ class PFa:
             self.stats.assess(k, ko, "u", E=E, w=w)
 
 
-@particle_method
-class PFxN_EnKF:
+@da_method()
+class PFxN_EnKF(particle_method):
     """Particle filter with EnKF-based proposal, q.
 
     Also employs xN duplication, as in PFxN.
@@ -352,8 +354,8 @@ class PFxN_EnKF:
             self.stats.assess(k, ko, "u", E=E, w=w)
 
 
-@particle_method
-class PFxN:
+@da_method()
+class PFxN(particle_method):
     """Particle filter with buckshot duplication during analysis.
 
     Idea: sample xN duplicates from each of the N kernels.
