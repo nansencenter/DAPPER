@@ -1,5 +1,7 @@
 """The EnKF and other ensemble-based methods."""
 
+from dataclasses import dataclass
+
 import numpy as np
 import scipy.linalg as sla
 from numpy import diag, eye, sqrt, zeros
@@ -15,17 +17,17 @@ from dapper.tools.seeding import rng
 from . import da_method
 
 
-@da_method
+@dataclass(kw_only=True)
 class ens_method:
-    """Declare default ensemble arguments."""
+    """Default ensemble arguments (shared via inheritance)."""
 
     infl: float = 1.0
     rot: bool = False
     fnoise_treatm: str = "Stoch"
 
 
-@ens_method
-class EnKF:
+@da_method()
+class EnKF(ens_method):
     """The ensemble Kalman filter.
 
     Refs: [evensen2009a][].
@@ -350,8 +352,8 @@ def add_noise(E, dt, noise, method):
     return E
 
 
-@ens_method
-class EnKS:
+@da_method()
+class EnKS(ens_method):
     """The ensemble Kalman smoother.
 
     Refs: [evensen2009a][]
@@ -410,8 +412,8 @@ class EnKS:
                 self.stats.assess(k, ko, "s", E=E[k])
 
 
-@ens_method
-class EnRTS:
+@da_method()
+class EnRTS(ens_method):
     """EnRTS (Rauch-Tung-Striebel) smoother.
 
     Refs: [raanes2016thesis][]
@@ -480,8 +482,8 @@ def serial_inds(upd_a, y, cvR, A):
     return inds
 
 
-@ens_method
-class SL_EAKF:
+@da_method()
+class SL_EAKF(ens_method):
     """Serial, covariance-localized EAKF.
 
     Refs: [karspeck2007][].
@@ -610,8 +612,8 @@ def local_analyses(E, Eo, R, y, state_batches, obs_taperer, mp=map, xN=None, g=0
     return E, dict(ad_inf=sqrt(np.mean(np.array(infl1) ** 2)))
 
 
-@ens_method
-class LETKF:
+@da_method()
+class LETKF(ens_method):
     """Same as EnKF (Sqrt), but with localization.
 
     Refs: [hunt2007][].
@@ -843,8 +845,8 @@ def zeta_a(eN, cL, w):
     return za
 
 
-@ens_method
-class EnKF_N:
+@da_method()
+class EnKF_N(ens_method):
     """Finite-size EnKF (EnKF-N).
 
     Refs: [bocquet2011][], [bocquet2015][]
