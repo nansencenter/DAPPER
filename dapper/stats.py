@@ -170,12 +170,6 @@ class Stats(series.StatPrint):
                         struct_tools.deep_getattr(self, f"{name}.{suffix}"), sector, ()
                     )
 
-    @property
-    def data_series(self):
-        return [
-            k for k in vars(self) if isinstance(getattr(self, k), series.DataSeries)
-        ]
-
     def assess(
         self,
         k: int,
