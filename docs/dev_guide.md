@@ -98,6 +98,12 @@ mkdocs serve
 
 - Temporarily disable `mkdocs-jupyter` in `mkdocs.yml` to speed up build reloads.
 - Set `validation: unrecognized_links: warn` to get warnings about linking issues.
+- Filter [spurious pandoc/version warnings](https://github.com/danielfrg/mkdocs-jupyter/issues/231):
+  (TODO 4: checkup on bug resolved?):
+
+  ```sh
+  mkdocs serve 2>&1 | grep -Ev '^\[WARNING\] Div at|^[0-9]+\.[0-9]+\.[0-9]'
+  ```
 
 Docstrings should be written in the [style of numpy](https://mkdocstrings.github.io/griffe/reference/docstrings/#numpydoc-style).
 Additional details on the documentation system are collected in the following subsection.
