@@ -225,9 +225,9 @@ def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats=None, ko=None):
     # Diagnostic: relative influence of observations
     if stats is not None:
         if "trHK" in locals():
-            stats.trHK[ko] = trHK / hnoise.M
+            stats.trHK.a[ko] = trHK / hnoise.M
         elif "HK" in locals():
-            stats.trHK[ko] = HK.trace() / hnoise.M
+            stats.trHK.a[ko] = HK.trace() / hnoise.M
 
     return E
 
@@ -1013,8 +1013,8 @@ class EnKF_N(ens_method):
                 E = mu + w @ A + T @ A
                 E = post_process(E, self.infl, self.rot)
 
-                self.stats.infl[ko] = l1
-                self.stats.trHK[ko] = (
+                self.stats.infl.a[ko] = l1
+                self.stats.trHK.a[ko] = (
                     ((l1 * s) ** 2 + N1) ** (-1.0) * s**2
                 ).sum() / len(y)
 

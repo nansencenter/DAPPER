@@ -218,7 +218,7 @@ class PFa(particle_method):
                         if 1 / (sw @ sw) < N * self.alpha:
                             wroot += 0.2
                         else:
-                            self.stats.wroot[ko] = wroot
+                            self.stats.wroot.a[ko] = wroot
                             break
                     idx, w = resample(sw, self.resampl, wroot=1)
 
@@ -436,8 +436,8 @@ def trigger_resampling(w, NER, stat_args):
     # Unpack stat args
     stats, E, k, ko = stat_args
 
-    stats.N_eff[ko] = N_eff
-    stats.resmpl[ko] = 1 if do_resample else 0
+    stats.N_eff.a[ko] = N_eff
+    stats.resmpl.a[ko] = 1 if do_resample else 0
 
     # Why have we put self.stats.assess() here?
     # Because we need to write self.stats.N_eff and self.stats.resmpl before calling

@@ -117,21 +117,20 @@ class Stats(series.StatPrint):
         ######################################
         # Allocate a few series for outside use
         ######################################
-        self.new_series("trHK", 1, Ko + 1)
-        self.new_series("infl", 1, Ko + 1)
-        self.new_series("iters", 1, Ko + 1)
+        self.new_series("trHK", 1, analysis_only=True)
+        self.new_series("infl", 1, analysis_only=True)
+        self.new_series("iters", 1, analysis_only=True)
 
         # Weight-related
-        self.new_series("N_eff", 1, Ko + 1)
-        self.new_series("wroot", 1, Ko + 1)
-        self.new_series("resmpl", 1, Ko + 1)
+        self.new_series("N_eff", 1, analysis_only=True)
+        self.new_series("wroot", 1, analysis_only=True)
+        self.new_series("resmpl", 1, analysis_only=True)
 
-    def new_series(self, name, shape, length="DACycleSeries", field_mean=False, **kws):
+    def new_series(self, name, shape, analysis_only=False, field_mean=False, **kws):
         """Create (and register) a statistics time series, initialized with `nan`s.
 
-        If `length` is an integer, a `DataSeries` (a trivial subclass of
-        `numpy.ndarray`) is made. By default, though, a
-        [tools.series.DACycleSeries][] is created.
+        Creates a [tools.series.DACycleSeries][]. If `analysis_only=True`, the
+        series has no `.f` sub-array and `.i` is a ring buffer of size 1.
 
         NB: The `sliding_diagnostics` liveplotting relies on detecting `nan`'s
             to avoid plotting stats that are not being used.
@@ -145,13 +144,15 @@ class Stats(series.StatPrint):
                 shape = (shape,)
 
         def make_series(parent, name, shape):
-            if length == "DACycleSeries":
-                total_shape = self.K, self.Ko, shape
-                store_opts = self.store_i, self.store_s
-                tseries = series.DACycleSeries(*total_shape, *store_opts, **kws)
-            else:
-                total_shape = (length,) + shape
-                tseries = series.DataSeries(total_shape, *kws)
+            tseries = series.DACycleSeries(
+                self.K,
+                self.Ko,
+                shape,
+                store_i=not analysis_only and self.store_i,
+                store_s=not analysis_only and self.store_s,
+                store_f=not analysis_only,
+                **kws,
+            )
             register_stat(parent, name, tseries)
 
         # Principal series
@@ -247,8 +248,8 @@ class Stats(series.StatPrint):
             stat = struct_tools.deep_getattr(self, name)
             if isinstance(stat, series.DACycleSeries):
                 ind = (k if stat.store_i else 0) if sub == "i" else ko
-                getattr(stat, sub)[ind] = val
-                stat.were_changed = True
+                if hasattr(stat, sub):
+                    getattr(stat, sub)[ind] = val
             else:
                 stat[ko] = val
 
@@ -419,16 +420,6 @@ class Stats(series.StatPrint):
                 if tseries.store_i:
                     avrgs["i"] = series.mean_with_conf(tseries.i[kk])
 
-            elif isinstance(tseries, series.DataSeries):
-                if tseries.array.shape[1:] != ():
-                    return average_multivariate()
-                elif len(tseries.array) == self.Ko + 1:
-                    avrgs = series.mean_with_conf(tseries[kko])
-                elif len(tseries.array) == self.K + 1:
-                    avrgs = series.mean_with_conf(tseries[kk])
-                else:
-                    raise ValueError
-
             elif np.isscalar(tseries):
                 avrgs = tseries  # Eg. just copy over "duration" from stats
 
@@ -509,7 +500,7 @@ def register_stat(self, name, value):
     """Do `self.name = value` and register `name` in `self._stat_names`.
 
     Note: `self` is not always a `Stats` object, but could be a "child" of it
-    (e.g. a DACycleSeries or DataSeries). Child objects get `_stat_names` lazily.
+    (e.g. a DACycleSeries). Child objects get `_stat_names` lazily.
     """
     setattr(self, name, value)
     if not hasattr(self, "_stat_names"):

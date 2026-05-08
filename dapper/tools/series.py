@@ -142,52 +142,6 @@ class StatPrint(NicePrint):
             return super().__str__()
 
 
-def monitor_setitem(cls):
-    """Modify cls to track of whether its `__setitem__` has been called.
-
-    See sub.py for a sublcass solution (drawback: creates a new class).
-    """
-    orig_setitem = cls.__setitem__
-
-    def setitem(self, key, val):
-        orig_setitem(self, key, val)
-        self.were_changed = True
-
-    cls.__setitem__ = setitem
-
-    # Using class var for were_changed => don't need explicit init
-    cls.were_changed = False
-
-    if issubclass(cls, NicePrint):
-        cls.printopts["excluded"] = cls.printopts.get("excluded", []) + ["were_changed"]
-
-    return cls
-
-
-@monitor_setitem
-class DataSeries(StatPrint):
-    """Basically just an `np.ndarray`. But adds:
-
-    - Possibility of adding attributes.
-    - The class (type) provides way to acertain if an attribute is a series.
-
-    Note: subclassing `ndarray` is too dirty => We'll just use the
-    `array` attribute, and provide `{s,g}etitem`.
-    """
-
-    def __init__(self, shape, **kwargs):
-        self.array = np.full(shape, nan, **kwargs)
-
-    def __len__(self):
-        return len(self.array)
-
-    def __getitem__(self, key):
-        return self.array[key]
-
-    def __setitem__(self, key, val):
-        self.array[key] = val
-
-
 class DACycleSeries(StatPrint):
     """Container for time series of a statistic across one DA cycle.
 
@@ -213,20 +167,20 @@ class DACycleSeries(StatPrint):
         stat.i[k]  = val   # or stat.i[0] when store_i=False
 
     !!! note
-        If a series only pertains to analysis times, use a plain np.array instead.
+        If a series only pertains to analysis times, pass `store_f=False`.
     """
 
-    were_changed = False
-
-    def __init__(self, K, Ko, item_shape, store_i, store_s, **kwargs):
+    def __init__(self, K, Ko, item_shape, store_i, store_s, store_f=True, **kwargs):
         """Construct object.
 
         - `item_shape` : shape of an item in the series.
         - `store_i`    : if False: only the current value is stored in `.i`.
+        - `store_f`    : if False: `.f` is not created (analysis-only stats).
         - `kwargs`     : passed on to ndarrays.
         """
         fill_value = -99 if kwargs.get("dtype", None) is int else nan
-        self.f = np.full((Ko + 1,) + item_shape, fill_value, **kwargs)
+        if store_f:
+            self.f = np.full((Ko + 1,) + item_shape, fill_value, **kwargs)
         self.a = np.full((Ko + 1,) + item_shape, fill_value, **kwargs)
         if store_s:
             self.s = np.full((Ko + 1,) + item_shape, fill_value, **kwargs)
@@ -237,6 +191,7 @@ class DACycleSeries(StatPrint):
 
     # Using property => won't appear in vars(self), and read-only.
     item_shape = property(lambda self: self.a.shape[1:])
+    store_f = property(lambda self: hasattr(self, "f"))
     store_i = property(lambda self: len(self.i) > 1)
 
     def __getitem__(self, key):
