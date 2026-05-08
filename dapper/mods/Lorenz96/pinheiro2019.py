@@ -11,21 +11,23 @@ tseq = modelling.Chronology(0.01, dko=10, K=4000, Tplot=10, BurnIn=10)
 
 Nx = 1000
 
-Dyn = {
-    "M": Nx,
-    "model": step,
+Dyn = modelling.Operator(
+    M=Nx,
+    model=step,
     # It's not clear from the paper whether Q=0.5 or 0.25.
     # But I'm pretty sure it's applied each dto (not dt).
-    "noise": 0.25 / tseq.dto,
-    # 'noise': 0.5 / t.dto,
-}
+    noise=0.25 / tseq.dto,
+    # noise=0.5 / tseq.dto,
+)
 
 X0 = modelling.GaussRV(mu=x0(Nx), C=0.001)
 
 jj = linspace_int(Nx, Nx // 4, periodic=True)
-Obs = modelling.partial_Id_Obs(Nx, jj)
-Obs["noise"] = 0.1**2
-Obs["localizer"] = nd_Id_localization((Nx,), (1,), jj, periodic=True)
+Obs = modelling.Operator(
+    **modelling.partial_Id_Obs(Nx, jj),
+    noise=0.1**2,
+    localizer=nd_Id_localization((Nx,), (1,), jj, periodic=True),
+)
 
 HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0)
 

@@ -9,17 +9,14 @@ from dapper.tools.localization import nd_Id_localization
 tseq = modelling.Chronology(0.02, dto=0.4, Ko=2000, Tplot=Tplot, BurnIn=2 * Tplot)
 Nx = 40
 x0 = x0(Nx)
-Dyn = {
-    "M": Nx,
-    "model": step,
-    "linear": dstep_dx,
-    "noise": 0,
-}
+Dyn = modelling.Operator(M=Nx, model=step, linear=dstep_dx, noise=0)
 X0 = modelling.GaussRV(mu=x0, C=0.1)
 jj = np.arange(0, Nx, 2)
-Obs = modelling.partial_Id_Obs(Nx, jj)
-Obs["noise"] = 0.5
-Obs["localizer"] = nd_Id_localization((Nx,), (2,), jj)
+Obs = modelling.Operator(
+    **modelling.partial_Id_Obs(Nx, jj),
+    noise=0.5,
+    localizer=nd_Id_localization((Nx,), (2,), jj),
+)
 HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0)
 
 ####################

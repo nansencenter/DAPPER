@@ -91,11 +91,14 @@ class HiddenMarkovModel(struct_tools.NicePrint):
             Label for the `HMM`.
         """
         self.Dyn = Dyn if isinstance(Dyn, Operator) else Operator(**Dyn)
-        self.Obs = (
-            Obs
-            if isinstance(Obs, TimeDependentOperator)
-            else TimeDependentOperator(**Obs)
-        )
+        if isinstance(Obs, TimeDependentOperator):
+            self.Obs = Obs
+        elif isinstance(Obs, Operator):
+            self.Obs = TimeDependentOperator.__new__(TimeDependentOperator)
+            self.Obs._const_op = Obs
+            self.Obs._time_dep_func = None
+        else:
+            self.Obs = TimeDependentOperator(**Obs)
         self.tseq = tseq
         self.X0 = X0
         self.liveplotters = liveplotters or []

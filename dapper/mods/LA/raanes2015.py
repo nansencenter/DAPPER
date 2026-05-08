@@ -14,8 +14,7 @@ Nx = 1000
 Ny = 40
 
 jj = modelling.linspace_int(Nx, Ny)
-Obs = modelling.partial_Id_Obs(Nx, jj)
-Obs["noise"] = 0.01
+Obs = modelling.Operator(**modelling.partial_Id_Obs(Nx, jj), noise=0.01)
 
 
 #################
@@ -61,12 +60,12 @@ def step(x, t, dt):
     return x @ Fm.T
 
 
-Dyn = {
-    "M": Nx,
-    "model": lambda x, t, dt: damp * step(x, t, dt),
-    "linear": lambda x, t, dt: damp * Fm,
-    "noise": modelling.GaussRV(C=modelling.CovMat(L, "Left")),
-}
+Dyn = modelling.Operator(
+    M=Nx,
+    model=lambda x, t, dt: damp * step(x, t, dt),
+    linear=lambda x, t, dt: damp * Fm,
+    noise=modelling.GaussRV(C=modelling.CovMat(L, "Left")),
+)
 
 HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, liveplotters=LPs(jj))
 
