@@ -70,7 +70,7 @@ class HiddenMarkovModel(struct_tools.NicePrint):
             Operator for the dynamics.
         Obs : Operator or callable(ko) -> Operator
             Operator for the observations.
-            For time-dependent observations, pass a callable ``Obs(ko) -> Operator``.
+            For time-dependent observations, pass a callable `Obs(ko) -> Operator`.
         tseq : tools.chronos.Chronology
             Time sequence of the HMM process.
         X0 : tools.randvars.RV
@@ -150,9 +150,9 @@ class HiddenMarkovModel(struct_tools.NicePrint):
 
 
 class TimeDependentOperator:
-    """Callable wrapper for ``HMM.Obs`` enablign time-dependent obs. operators.
+    """Callable wrapper for `HMM.Obs` enablign time-dependent obs. operators.
 
-    The call argument ``ko`` is the observation index (not wall time).
+    The call argument `ko` is the observation index (not wall time).
     The return value is always an `Operator`.
 
     Examples: `docs/examples/time-dep-obs-operator.py`
@@ -160,11 +160,11 @@ class TimeDependentOperator:
     """
 
     def __init__(self, op_or_func):
-        """Initialize from a constant `Operator` or a callable ``ko -> Operator``.
+        """Initialize from a constant `Operator` or a callable `ko -> Operator`.
 
-        When given an `Operator`, it is returned unchanged for any ``ko``
+        When given an `Operator`, it is returned unchanged for any `ko`
         (constant-in-time case).
-        When given a callable, it is called with ``ko`` on each access.
+        When given a callable, it is called with `ko` on each access.
         """
         if isinstance(op_or_func, Operator):
             self._op = op_or_func
