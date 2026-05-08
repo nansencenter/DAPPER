@@ -115,7 +115,7 @@ class iEnKS(var_method):
         k = 0
         if self.Lag == 0:
             for k, t, dt in HMM.tseq.cycle(ko=0):
-                self.stats.assess(k - 1, None, "u", E=E)
+                self.stats.assess(k - 1, None, "i", E=E)
                 E = HMM.Dyn(E, t - dt, dt)
 
         # Loop over DA windows (DAW).
@@ -150,10 +150,10 @@ class iEnKS(var_method):
 
             for kCycle in cycle_window:
                 for k, t, dt in HMM.tseq.cycle(kCycle):
-                    self.stats.assess(k - 1, None, "u", E=E)
+                    self.stats.assess(k - 1, None, "i", E=E)
                     E = HMM.Dyn(E, t - dt, dt)
 
-        self.stats.assess(k, Ko, "us", E=E)
+        self.stats.assess(k, Ko, "is", E=E)
 
 
 def iEnKS_update(upd_a, E, DAW, HMM, stats, EPS, y, time, Rm12, xN, MDA, threshold):
@@ -386,8 +386,8 @@ class Var4D(var_method):
                         HMM.tseq.kko[kLag], kLag, "s", mu=x, Cov=X @ Cow1 @ X.T
                     )
                 for k, t, dt in HMM.tseq.cycle(kLag + 1):
-                    self.stats.assess(k - 1, None, "u", mu=x, Cov=Y @ Y.T)
+                    self.stats.assess(k - 1, None, "i", mu=x, Cov=Y @ Y.T)
                     X = HMM.Dyn.linear(x, t - dt, dt) @ X
                     x = HMM.Dyn(x, t - dt, dt)
 
-        self.stats.assess(k, Ko, "us", mu=x, Cov=X @ Cow1 @ X.T)
+        self.stats.assess(k, Ko, "is", mu=x, Cov=X @ Cow1 @ X.T)

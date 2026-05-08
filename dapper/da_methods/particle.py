@@ -87,7 +87,7 @@ class PartFilt(particle_method):
                     #     # Compensate for rroot
                     #     w *= np.exp(-0.5*chi2*(1 - 1/rroot))
                     #     w /= w.sum()
-            self.stats.assess(k, ko, "u", E=E, w=w)
+            self.stats.assess(k, ko, "i", E=E, w=w)
 
 
 @da_method()
@@ -151,7 +151,7 @@ class OptPF(particle_method):
                     idx, w = resample(w, self.resampl, wroot=self.wroot)
                     E, _ = regularize(C12, E, idx, self.nuj)
 
-            self.stats.assess(k, ko, "u", E=E, w=w)
+            self.stats.assess(k, ko, "i", E=E, w=w)
 
 
 @da_method()
@@ -227,7 +227,7 @@ class PFa(particle_method):
                     #     Compensate for rroot
                     #     w *= np.exp(-0.5*chi2*(1 - 1/rroot))
                     #     w /= w.sum()
-            self.stats.assess(k, ko, "u", E=E, w=w)
+            self.stats.assess(k, ko, "i", E=E, w=w)
 
 
 @da_method()
@@ -351,7 +351,7 @@ class PFxN_EnKF(particle_method):
                             break
                         else:
                             wroot += 0.1
-            self.stats.assess(k, ko, "u", E=E, w=w)
+            self.stats.assess(k, ko, "i", E=E, w=w)
 
 
 @da_method()
@@ -425,7 +425,7 @@ class PFxN(particle_method):
                             break
                         else:
                             wroot += 0.1
-            self.stats.assess(k, ko, "u", E=E, w=w)
+            self.stats.assess(k, ko, "i", E=E, w=w)
 
 
 def trigger_resampling(w, NER, stat_args):

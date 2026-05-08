@@ -33,8 +33,8 @@ class Climatology:
         self.stats.trHK[:] = 0
 
         for k, ko, _, _ in progbar(HMM.tseq.ticker):
-            fau = "u" if ko is None else "fau"
-            self.stats.assess(k, ko, fau, mu=muC, Cov=PC)
+            fai = "i" if ko is None else "fai"
+            self.stats.assess(k, ko, fai, mu=muC, Cov=PC)
 
 
 @da_method()
@@ -177,7 +177,7 @@ class Persistence:
     """Sets estimate to the **true state** at the previous time index.
 
     The analysis (`.a`) stat uses the previous obs. time.
-    The forecast and universal (`.f` and `.u`) stats use previous integration time
+    The forecast and integrational (`.f` and `.i`) stats use previous integration time
     index.
     """
 
@@ -185,7 +185,7 @@ class Persistence:
         prev = xx[0]
         self.stats.assess(0, mu=prev)
         for k, ko, _t, _dt in progbar(HMM.tseq.ticker):
-            self.stats.assess(k, ko, "fu", mu=xx[k - 1])
+            self.stats.assess(k, ko, "fi", mu=xx[k - 1])
             if ko is not None:
                 self.stats.assess(k, ko, "a", mu=prev)
                 prev = xx[k]
@@ -205,6 +205,6 @@ class PreProg:
     def assimilate(self, HMM, xx, yy):
         self.stats.assess(0, mu=self.schedule(0, xx, yy))
         for k, ko, _t, _dt in progbar(HMM.tseq.ticker):
-            self.stats.assess(k, ko, "fu", mu=self.schedule(k, xx, yy))
+            self.stats.assess(k, ko, "fi", mu=self.schedule(k, xx, yy))
             if ko is not None:
                 self.stats.assess(k, ko, "a", mu=self.schedule(k, xx, yy))

@@ -121,10 +121,10 @@ class StatPrint(NicePrint):
         reverse=True,
         indent=2,
         aliases={
-            "f": "Forecast  (.f)",
-            "a": "Analysis  (.a)",
-            "s": "Smoothed  (.s)",
-            "u": "Universal (.u)",
+            "f": "Forecast      (.f)",
+            "a": "Analysis      (.a)",
+            "s": "Smoothed      (.s)",
+            "i": "Integrational (.i)",
             "m": "Field mean (.m)",
             "ma": "Field mean-abs (.ma)",
             "rms": "Field root-mean-square (.rms)",
@@ -188,38 +188,41 @@ class DataSeries(StatPrint):
         self.array[key] = val
 
 
-@monitor_setitem
-class FAUSt(DataSeries, StatPrint):
-    """Container for time series of a statistic from filtering.
+class DACycleSeries(StatPrint):
+    """Container for time series of a statistic across one DA cycle.
 
-    Four attributes, each of which is an ndarray:
+    Four attributes, each an ndarray:
 
-    - `.f` for forecast      , `(Ko+1,)+item_shape`
-    - `.a` for analysis      , `(Ko+1,)+item_shape`
-    - `.s` for smoothed      , `(Ko+1,)+item_shape`
-    - `.u` for universial/all, `(K   +1,)+item_shape`
+    - `.f` for forecast      , shape `(Ko+1,)+item_shape`
+    - `.a` for analysis      , shape `(Ko+1,)+item_shape`
+    - `.s` for smoothed      , shape `(Ko+1,)+item_shape`
+    - `.i` for integrational , shape `(K +1,)+item_shape`
 
-    If `store_u=False`, then `.u` series has shape `(1,)+item_shape`,
-    wherein only the most-recently-written item is stored.
+    `.i` covers every model time step, including the ones between observations.
+    The name fits three synonyms: **integrational** (steps taken by the model
+    integrator), **intermediate** (between analysis times), **intervening**
+    (between obs times).
 
-    Series can also be indexed as in
+    If `store_i=False`, `.i` has shape `(1,)+item_shape` — only the
+    most-recently-written step is kept (ring buffer of size 1).
 
-        self[ko,'a']
-        self[whatever,ko,'a']
-        # ... and likewise for 'f' and 's'. For 'u', can use:
-        self[k,'u']
-        self[k,whatever,'u']
+    Use direct attribute access::
+
+        stat.f[ko] = val
+        stat.a[ko] = val
+        stat.i[k]  = val   # or stat.i[0] when store_i=False
 
     !!! note
-        If a data series only pertains to analysis times, then you should use a plain
-        np.array instead.
+        If a series only pertains to analysis times, use a plain np.array instead.
     """
 
-    def __init__(self, K, Ko, item_shape, store_u, store_s, **kwargs):
+    were_changed = False
+
+    def __init__(self, K, Ko, item_shape, store_i, store_s, **kwargs):
         """Construct object.
 
         - `item_shape` : shape of an item in the series.
-        - `store_u`    : if False: only the current value is stored.
+        - `store_i`    : if False: only the current value is stored in `.i`.
         - `kwargs`     : passed on to ndarrays.
         """
         fill_value = -99 if kwargs.get("dtype", None) is int else nan
@@ -227,28 +230,20 @@ class FAUSt(DataSeries, StatPrint):
         self.a = np.full((Ko + 1,) + item_shape, fill_value, **kwargs)
         if store_s:
             self.s = np.full((Ko + 1,) + item_shape, fill_value, **kwargs)
-        if store_u:
-            self.u = np.full((K + 1,) + item_shape, fill_value, **kwargs)
+        if store_i:
+            self.i = np.full((K + 1,) + item_shape, fill_value, **kwargs)
         else:
-            self.u = np.full((1,) + item_shape, fill_value, **kwargs)
+            self.i = np.full((1,) + item_shape, fill_value, **kwargs)
 
-    # We could just store the input values for these attrs, but using
-    # property => Won't be listed in vars(self), and un-writeable.
+    # Using property => won't appear in vars(self), and read-only.
     item_shape = property(lambda self: self.a.shape[1:])
-    store_u = property(lambda self: len(self.u) > 1)
-
-    def _ind(self, key):
-        """Aux function to unpack `key` (`k,ko,faus`)"""
-        if key[-1] == "u":
-            return key[0] if self.store_u else 0
-        else:
-            return key[-2]
-
-    def __setitem__(self, key, item):
-        getattr(self, key[-1])[self._ind(key)] = item
+    store_i = property(lambda self: len(self.i) > 1)
 
     def __getitem__(self, key):
-        return getattr(self, key[-1])[self._ind(key)]
+        """Read via `(k, ko, sub)` tuple — used internally by liveplotting."""
+        sub = key[-1]
+        ind = (key[0] if self.store_i else 0) if sub == "i" else key[-2]
+        return getattr(self, sub)[ind]
 
 
 class RollingArray:
