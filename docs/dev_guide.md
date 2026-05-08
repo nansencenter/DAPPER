@@ -10,28 +10,28 @@ hide:
 - Ensemble (data) matrices are `np.ndarrays` with shape `N-by-Nx`.
   This shape (orientation) is contrary to the EnKF literature,
   but has the following advantages:
-    - Improves speed in row-by-row accessing,
+  - Improves speed in row-by-row accessing,
       since that's `np`'s default orientation.
-    - Facilitates broadcasting for, e.g. centring the matrix.
-    - Fewer indices: `[n,:]` yields same as `[n]`
-    - Beneficial operator precedence without `()`.
+  - Facilitates broadcasting for, e.g. centring the matrix.
+  - Fewer indices: `[n,:]` yields same as `[n]`
+  - Beneficial operator precedence without `()`.
       E.g. `dy @ Rinv @ Y.T @ Pw` (where `dy` is a vector)
-    - Less transposing for for ensemble space formulae.
-    - It's the standard for data matrices in the broader statistical literature.
+  - Less transposing for for ensemble space formulae.
+  - It's the standard for data matrices in the broader statistical literature.
 - Naming:
-    - `E`: ensemble matrix
-    - `w`: ensemble weights or coefficients
-    - `X`: centred ensemble ("anomalies")
-    - `N`: ensemble size
-    - `Nx`: state size
-    - `Ny`: observation size
-    - *Double letters* means a sequence of something.
+  - `E`: ensemble matrix
+  - `w`: ensemble weights or coefficients
+  - `X`: centred ensemble ("anomalies")
+  - `N`: ensemble size
+  - `Nx`: state size
+  - `Ny`: observation size
+  - *Double letters* means a sequence of something.
       For example:
-        - `xx`: Time series of truth; shape `(K+1, Nx)`
-        - `yy`: Time series of observations; shape `(Ko+1, Nx)`
-        - `EE`: Time series of ensemble matrices
-        - `ii`, `jj`: Sequences of indices (integers)
-    - `xps`: an `xpList` or `xpDict`,
+    - `xx`: Time series of truth; shape `(K+1, Nx)`
+    - `yy`: Time series of observations; shape `(Ko+1, Nx)`
+    - `EE`: Time series of ensemble matrices
+    - `ii`, `jj`: Sequences of indices (integers)
+  - `xps`: an `xpList` or `xpDict`,
       where `xp` abbreviates "experiment".
 
 
@@ -140,7 +140,7 @@ The following works, but does not get validated! `[link label](../sibling-page)`
 
 Thanks to the `autorefs` plugin,
 links to **headings** (including page titles) don't even require specifying the page path!
-Syntax: `[visible label][link]` i.e. double pairs of _brackets_. Shorthand: `[link][]`.
+Syntax: `[visible label][link]` i.e. double pairs of *brackets*. Shorthand: `[link][]`.
 !!! info
     - Clearly, non-unique headings risk being confused with others in this way.
     - The link (anchor) must be lowercase!
@@ -148,9 +148,9 @@ Syntax: `[visible label][link]` i.e. double pairs of _brackets_. Shorthand: `[li
 This facilitates linking to
 
 - **API (code reference)** items.
-  For example, ``[`da_methods.ensemble`][]``,
-  where the backticks are optional (makes the link _look_ like a code reference).
-- **References**. For example ``[`bocquet2016`][]``,
+  For example, `[`da_methods.ensemble`][]`,
+  where the backticks are optional (makes the link *look* like a code reference).
+- **References**. For example `[`bocquet2016`][]`,
 
 ### Docstring injection
 
@@ -253,6 +253,7 @@ Upload to Test.PyPI
 ```sh
 twine upload --repository testpypi dist/*
 ```
+
 where `~/.pypirc` contains
 
 ```ini
