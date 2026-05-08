@@ -104,4 +104,4 @@ viz.plot_hovmoller(xx)
 # ### Excercise (memory)
 # Why are the replay plots not as smooth as the liveplot?
 #
-# *Hint*: provide the keyword `store_u=True` to `assimilate()` to avoid this.
+# *Hint*: provide the keyword `store_i=True` to `assimilate()` to avoid this.

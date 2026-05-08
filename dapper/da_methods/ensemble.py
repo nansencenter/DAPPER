@@ -407,7 +407,7 @@ class EnKS(ens_method):
                 self.stats.assess(k, ko, "a", E=E[k])
 
         for k, ko, _, _ in progbar(HMM.tseq.ticker, desc="Assessing"):
-            self.stats.assess(k, ko, "u", E=E[k])
+            self.stats.assess(k, ko, "i", E=E[k])
             if ko is not None:
                 self.stats.assess(k, ko, "s", E=E[k])
 
@@ -455,7 +455,7 @@ class EnRTS(ens_method):
             E[k] += (E[k + 1] - Ef[k + 1]) @ J
 
         for k, ko, _, _ in progbar(HMM.tseq.ticker, desc="Assessing"):
-            self.stats.assess(k, ko, "u", E=E[k])
+            self.stats.assess(k, ko, "i", E=E[k])
             if ko is not None:
                 self.stats.assess(k, ko, "s", E=E[k])
 

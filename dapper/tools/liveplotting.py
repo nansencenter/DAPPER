@@ -37,7 +37,7 @@ from dapper.mods.utils import linspace_int
 from dapper.tools.chronos import format_time
 from dapper.tools.matrices import CovMat
 from dapper.tools.progressbar import read1
-from dapper.tools.series import FAUSt, RollingArray
+from dapper.tools.series import DACycleSeries, RollingArray
 from dapper.tools.viz import not_available_text, plot_pause
 
 
@@ -48,7 +48,7 @@ class LivePlot:
 
     - Pause, skip.
     - Which liveploters to call.
-    - `plot_u`
+    - `plot_i`
     - Figure window (title and number).
     """
 
@@ -56,7 +56,7 @@ class LivePlot:
         self,
         stats,
         liveplots,
-        key0=(0, None, "u"),
+        key0=(0, None, "i"),
         E=None,
         P=None,
         speed=1.0,
@@ -87,18 +87,18 @@ class LivePlot:
         else:
             return
 
-        # Determine whether all/universal/intermediate stats are plotted
-        self.plot_u = not replay or stats.store_u
+        # Determine whether integrational (between-obs) stats are plotted
+        self.plot_i = not replay or stats.store_i
 
         # Set speed/pause params
         self.params = {
             "pause_f": 0.05,
             "pause_a": 0.05,
             "pause_s": 0.05,
-            "pause_u": 0.001,
+            "pause_i": 0.001,
         }
         # If speed>100: set to inf. Coz pause=1e-99 causes hangup.
-        for pause in ["pause_" + x for x in "faus"]:
+        for pause in ["pause_" + x for x in "fais"]:
             speed = speed if speed < 100 else np.inf
             self.params[pause] /= speed
 
@@ -151,7 +151,7 @@ class LivePlot:
                 if not self.any_figs:
                     print("Initializing liveplots...")
                     if is_notebook_or_qt:
-                        pauses = [self.params["pause_" + x] for x in "faus"]
+                        pauses = [self.params["pause_" + x] for x in "fais"]
                         if any((p > 0) for p in pauses):
                             print(
                                 "Note: liveplotting does not work very well"
@@ -172,8 +172,8 @@ class LivePlot:
                     self.any_figs = True
 
                 # Init figure
-                post_title = "" if self.plot_u else "\n(obs times only)"
-                updater = init(name, stats, key0, self.plot_u, E, P, **kwargs)
+                post_title = "" if self.plot_i else "\n(obs times only)"
+                updater = init(name, stats, key0, self.plot_i, E, P, **kwargs)
                 if plt.fignum_exists(name) and getattr(updater, "is_active", 1):
                     self.figures[name] = updater
                     fig = plt.figure(name)
@@ -221,7 +221,7 @@ class LivePlot:
             pause()
 
         else:
-            if key == (0, None, "u"):
+            if key == (0, None, "i"):
                 # Skip read1 for key0 (coz it blocks)
                 pass
             else:
@@ -247,7 +247,7 @@ class LivePlot:
         # Update figures
         if not self.skipping:
             faus = key[-1]
-            if faus != "u" or self.plot_u:
+            if faus != "i" or self.plot_i:
                 for name, (updater) in self.figures.items():
                     if plt.fignum_exists(name) and getattr(updater, "is_active", 1):
                         _ = plt.figure(name)
@@ -267,14 +267,14 @@ class LivePlot:
 
 
 # TODO 6:
-# - iEnKS diagnostics don't work at all when store_u=False
+# - iEnKS diagnostics don't work at all when store_i=False
 star = "${}^*$"
 
 
 class sliding_diagnostics:
     """Plots a sliding window (like a heart rate monitor) of certain diagnostics."""
 
-    def __init__(self, fignum, stats, key0, plot_u, E, P, Tplot=None, **kwargs):
+    def __init__(self, fignum, stats, key0, plot_i, E, P, Tplot=None, **kwargs):
         # STYLE TABLES - Defines which/how diagnostics get plotted
         styles = {}
 
@@ -322,7 +322,7 @@ class sliding_diagnostics:
                     continue
                 # try: val0 = stat[key0[0]]
                 # except KeyError: continue
-                # PS: recall (from series.py) that even if store_u is false, stat[k] is
+                # PS: recall (from series.py) that even if store_i is false, stat[k] is
                 # still present if liveplots=True via the k_tmp functionality.
 
                 # Unpack style
@@ -332,11 +332,11 @@ class sliding_diagnostics:
                 ln["plt"] = style_table[name][2]
 
                 # Create series
-                if isinstance(stat, FAUSt):
-                    ln["plot_u"] = plot_u
-                    K_plot = comp_K_plot(K_lag, a_lag, ln["plot_u"])
+                if isinstance(stat, DACycleSeries):
+                    ln["plot_i"] = plot_i
+                    K_plot = comp_K_plot(K_lag, a_lag, ln["plot_i"])
                 else:
-                    ln["plot_u"] = False
+                    ln["plot_i"] = False
                     K_plot = a_lag
                 ln["data"] = RollingArray(K_plot)
                 ln["tt"] = RollingArray(K_plot)
@@ -376,14 +376,15 @@ class sliding_diagnostics:
             for name, ln in lines.items():
                 stat = deep_getattr(stats, name)
                 t = tseq.tt[k]  # == tseq.tto[ko]
-                if isinstance(stat, FAUSt):
+                if isinstance(stat, DACycleSeries):
                     # ln['data'] will contain duplicates for f/a times.
-                    if ln["plot_u"]:
-                        val = stat[key]
+                    if ln["plot_i"]:
+                        ind = (k if stat.store_i else 0) if faus == "i" else ko
+                        val = getattr(stat, faus)[ind]
                         ln["tt"].insert(k, t)
                         ln["data"].insert(k, ln["transf"](val))
-                    elif "u" not in faus:
-                        val = stat[key]
+                    elif "i" not in faus:
+                        val = getattr(stat, faus)[ko]
                         ln["tt"].insert(ko, t)
                         ln["data"].insert(ko, ln["transf"](val))
                 else:
@@ -486,7 +487,7 @@ def sliding_xlim(ax, tt, lag, margin=False):
 class weight_histogram:
     """Plots histogram of weights. Refreshed each analysis."""
 
-    def __init__(self, fignum, stats, key0, plot_u, E, P, **kwargs):
+    def __init__(self, fignum, stats, key0, plot_i, E, P, **kwargs):
         if not hasattr(stats, "w"):
             self.is_active = False
             return
@@ -526,13 +527,13 @@ class weight_histogram:
 class spectral_errors:
     """Plots the (spatial-RMS) error as a functional of the SVD index."""
 
-    def __init__(self, fignum, stats, key0, plot_u, E, P, **kwargs):
+    def __init__(self, fignum, stats, key0, plot_i, E, P, **kwargs):
         fig, ax = place.freshfig(fignum, figsize=(6, 3))
         ax.set_xlabel("Sing. value index")
         ax.set_yscale("log")
         self.init_incomplete = True
         self.ax = ax
-        self.plot_u = plot_u
+        self.plot_i = plot_i
 
         try:
             self.msft = stats.umisf
@@ -546,7 +547,7 @@ class spectral_errors:
         k, ko, faus = key
         ax = self.ax
         if self.init_incomplete:
-            if self.plot_u or "f" == faus:
+            if self.plot_i or "f" == faus:
                 self.init_incomplete = False
                 msft = abs(self.msft[key])
                 sprd = self.sprd[key]
@@ -575,7 +576,7 @@ class correlations:
 
     half = True  # Whether to show half/full (symmetric) corr matrix.
 
-    def __init__(self, fignum, stats, key0, plot_u, E, P, **kwargs):
+    def __init__(self, fignum, stats, key0, plot_i, E, P, **kwargs):
         GS = {"height_ratios": [4, 1], "hspace": 0.09, "top": 0.95}
         fig, (ax, ax2) = place.freshfig(fignum, figsize=(5, 6), nrows=2, gridspec_kw=GS)
 
@@ -698,7 +699,7 @@ def sliding_marginals(
     # Store parameters
     params_orig = DotDict(**locals())
 
-    def init(fignum, stats, key0, plot_u, E, P, **kwargs):
+    def init(fignum, stats, key0, plot_i, E, P, **kwargs):
         xx, yy, mu, spread, tseq = (
             stats.xx,
             stats.yy,
@@ -716,7 +717,7 @@ def sliding_marginals(
 
         # Lag settings:
         T_lag, K_lag, a_lag = validate_lag(p.Tplot, tseq)
-        K_plot = comp_K_plot(K_lag, a_lag, plot_u)
+        K_plot = comp_K_plot(K_lag, a_lag, plot_i)
         # Extend K_plot forther for adding blanks in resampling (PartFilt):
         has_w = hasattr(stats, "w")
         if has_w:
@@ -782,7 +783,7 @@ def sliding_marginals(
             EE = duplicate_with_blanks_for_resampled(E, p.dims, key, has_w)
 
             # Roll data array
-            ind = k if plot_u else ko
+            ind = k if plot_i else ko
             for Ens in EE:  # If E is duplicated, so must the others be.
                 if "E" in d:
                     d.E.insert(ind, Ens)
@@ -858,7 +859,7 @@ def phase_particles(
 
     M = 3 if is_3d else 2
 
-    def init(fignum, stats, key0, plot_u, E, P, **kwargs):
+    def init(fignum, stats, key0, plot_i, E, P, **kwargs):
         xx, yy, mu, _, tseq = stats.xx, stats.yy, stats.mu, stats.spread, stats.HMM.tseq
 
         # Set parameters (kwargs takes precedence over params_orig)
@@ -870,7 +871,7 @@ def phase_particles(
             K_plot = 1
         else:
             T_lag, K_lag, a_lag = validate_lag(p.Tplot, tseq)
-            K_plot = comp_K_plot(K_lag, a_lag, plot_u)
+            K_plot = comp_K_plot(K_lag, a_lag, plot_i)
             # Extend K_plot forther for adding blanks in resampling (PartFilt):
             if has_w:
                 K_plot += a_lag
@@ -946,7 +947,7 @@ def phase_particles(
             EE = duplicate_with_blanks_for_resampled(E, p.dims, key, has_w)
 
             # Roll data array
-            ind = k if plot_u else ko
+            ind = k if plot_i else ko
             for Ens in EE:  # If E is duplicated, so must the others be.
                 if "E" in d:
                     d.E.insert(ind, Ens)
@@ -1017,9 +1018,9 @@ def validate_lag(Tplot, tseq):
     return T_lag, K_lag, a_lag
 
 
-def comp_K_plot(K_lag, a_lag, plot_u):
+def comp_K_plot(K_lag, a_lag, plot_i):
     K_plot = 2 * a_lag  # Sum of lags of {f,a} series.
-    if plot_u:
+    if plot_i:
         K_plot += K_lag  # Add lag of u series.
     return K_plot
 
@@ -1070,7 +1071,7 @@ def duplicate_with_blanks_for_resampled(E, dims, key, has_w):
             pass
         elif faus == "a":
             _Ea[0] = E[:, 0]  # Store (1st dim of) ens.
-        elif faus == "u" and ko is not None:
+        elif faus == "i" and ko is not None:
             # Find resampled particles. Insert duplicate ensemble. Write nans (breaks).
             resampled = _Ea[0] != E[:, 0]  # Mark as resampled if ens changed.
             # Insert current ensemble (copy to avoid overwriting).
@@ -1161,7 +1162,7 @@ def spatial1d(
     # Store parameters
     params_orig = DotDict(**locals())
 
-    def init(fignum, stats, key0, plot_u, E, P, **kwargs):
+    def init(fignum, stats, key0, plot_i, E, P, **kwargs):
         xx, yy, mu = stats.xx, stats.yy, stats.mu
 
         # Set parameters (kwargs takes precedence over params_orig)
@@ -1252,7 +1253,7 @@ def spatial1d(
                     line_y.set_zorder(5)
                     line_y.set_visible(True)
 
-            if "u" in faus:
+            if "i" in faus:
                 if not_empty(p.obs_inds):
                     line_y.set_visible(False)
 
@@ -1270,7 +1271,7 @@ def spatial2d(
     cm=plt.cm.jet,
     clims=((-40, 40), (-40, 40), (-10, 10), (-10, 10)),
 ):
-    def init(fignum, stats, key0, plot_u, E, P, **kwargs):
+    def init(fignum, stats, key0, plot_i, E, P, **kwargs):
         GS = {"left": 0.125 - 0.04, "right": 0.9 - 0.04}
         fig, axs = place.freshfig(
             fignum,

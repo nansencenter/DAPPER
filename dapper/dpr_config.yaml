@@ -20,6 +20,6 @@ comps:
   max_spectral: 51
 
 sigfig: 4             # Default significant figures
-store_u: no           # Store stats between analysis times?
+store_i: no           # Store stats between analysis times?
 liveplotting: yes     # Enable liveplotting?
 place_figs: False     # Place (certain) figures automatically (experimental)?

@@ -13,7 +13,7 @@ import pytest
 import dapper as dpr
 import dapper.da_methods as da
 
-statkeys = ["err.rms.a", "err.rms.f", "err.rms.u"]
+statkeys = ["err.rms.a", "err.rms.f", "err.rms.i"]
 
 
 ##############################
@@ -57,14 +57,14 @@ def L63_gen():
         xp.seed = 3000
 
     # Run
-    xps.launch(HMM, False, store_u=True)
+    xps.launch(HMM, False, store_i=True)
     table = xps.tabulate_avrgs(statkeys, decimals=4, colorize=False)
     print(table)
     return table
 
 
 L63_old = """
-    da_method     infl  rot    upd_a       N    xN   NER  reg  |  err.rms.a  1σ      err.rms.f  1σ      err.rms.u  1σ
+    da_method     infl  rot    upd_a       N    xN   NER  reg  |  err.rms.a  1σ      err.rms.f  1σ      err.rms.i  1σ
 --  -----------  -----  -----  -------  ----  ----  ----  ---  -  -----------------  -----------------  -----------------
  0  Climatology                                                |     7.7221 ±1.2096     7.7221 ±1.2096     7.1855 ±2.4362
  1  OptInterp                                                  |     1.0847 ±0.1002     7.7221 ±1.2096     1.4922 ±0.2957
@@ -142,14 +142,14 @@ def L96_gen():
     for xp in xps:
         xp.seed = 3000
 
-    xps.launch(HMM, store_u=True)
+    xps.launch(HMM, store_i=True)
     table = xps.tabulate_avrgs(statkeys, decimals=4, colorize=False)
     print(table)
     return table
 
 
 L96_old = """
-    da_method    infl  rot    upd_a     N  xN  loc_rad  |  err.rms.a  1σ      err.rms.f  1σ      err.rms.u  1σ
+    da_method    infl  rot    upd_a     N  xN  loc_rad  |  err.rms.a  1σ      err.rms.f  1σ      err.rms.i  1σ
 --  -----------  ----  -----  -------  --  --  -------  -  -----------------  -----------------  -----------------
  0  Climatology                                         |     0.8343 ±0.2329     0.8343 ±0.2329     0.8343 ±0.2329
  1  OptInterp                                           |     0.1563 ±0.0355     0.8343 ±0.2329     0.1563 ±0.0355

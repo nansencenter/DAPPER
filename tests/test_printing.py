@@ -22,7 +22,7 @@ def test_L63():
         free=False,
         statkeys=True,
         liveplots=None,
-        store_u=False,
+        store_i=False,
         fail_gently=False,
         save_as=False,
     )
@@ -59,7 +59,7 @@ def test_L96():
         free=False,
         statkeys=True,
         liveplots=None,
-        store_u=False,
+        store_i=False,
         fail_gently=False,
         save_as=False,
     )

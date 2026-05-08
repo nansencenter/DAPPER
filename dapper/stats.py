@@ -32,7 +32,7 @@ from dapper.tools.progressbar import progbar
 class Stats(series.StatPrint):
     """Contains and computes statistics of the DA methods."""
 
-    def __init__(self, xp, HMM, xx, yy, liveplots=False, store_u=rc.store_u):
+    def __init__(self, xp, HMM, xx, yy, liveplots=False, store_i=rc.store_i):
         """Init the default statistics."""
         ######################################
         # Preamble
@@ -42,7 +42,7 @@ class Stats(series.StatPrint):
         self.xx = xx
         self.yy = yy
         self.liveplots = liveplots
-        self.store_u = store_u
+        self.store_i = store_i
         self._stat_names: list[str] = []
         self.store_s = any(
             key in xp.__dict__ for key in ["Lag", "DeCorr"]
@@ -126,12 +126,12 @@ class Stats(series.StatPrint):
         self.new_series("wroot", 1, Ko + 1)
         self.new_series("resmpl", 1, Ko + 1)
 
-    def new_series(self, name, shape, length="FAUSt", field_mean=False, **kws):
+    def new_series(self, name, shape, length="DACycleSeries", field_mean=False, **kws):
         """Create (and register) a statistics time series, initialized with `nan`s.
 
         If `length` is an integer, a `DataSeries` (a trivial subclass of
-        `numpy.ndarray`) is made. By default, though, a [tools.series.FAUSt][]
-        is created.
+        `numpy.ndarray`) is made. By default, though, a
+        [tools.series.DACycleSeries][] is created.
 
         NB: The `sliding_diagnostics` liveplotting relies on detecting `nan`'s
             to avoid plotting stats that are not being used.
@@ -145,10 +145,10 @@ class Stats(series.StatPrint):
                 shape = (shape,)
 
         def make_series(parent, name, shape):
-            if length == "FAUSt":
+            if length == "DACycleSeries":
                 total_shape = self.K, self.Ko, shape
-                store_opts = self.store_u, self.store_s
-                tseries = series.FAUSt(*total_shape, *store_opts, **kws)
+                store_opts = self.store_i, self.store_s
+                tseries = series.DACycleSeries(*total_shape, *store_opts, **kws)
             else:
                 total_shape = (length,) + shape
                 tseries = series.DataSeries(total_shape, *kws)
@@ -180,7 +180,7 @@ class Stats(series.StatPrint):
         self,
         k: int,
         ko: int | None = None,
-        faus: str | None = None,
+        fais: str | None = None,
         E: np.ndarray | None = None,
         w: np.ndarray | None = None,
         mu: np.ndarray | None = None,
@@ -192,10 +192,10 @@ class Stats(series.StatPrint):
         The `_ens` assessment function gets called if `E is not None`,
         and `_ext` if `mu is not None`.
 
-        faus: One or more of `['f',' a', 'u', 's']`, indicating
+        fais: One or more of `['f', 'a', 'i', 's']`, indicating
               that the result should be stored in (respectively)
-              the forecast/analysis/universal attribute.
-              Default: `'u' if ko is None else 'au' ('a' and 'u')`.
+              the forecast/analysis/integrational/smoothed attribute.
+              Default: `'i' if ko is None else 'ai' ('a' and 'i')`.
         """
         # Initial consistency checks.
         if k == 0:
@@ -213,15 +213,15 @@ class Stats(series.StatPrint):
                     raise TypeError("Expected mu/Cov input but mu is None")
 
         # Default. Don't add more defaults. It just gets confusing.
-        if faus is None:
-            faus = "u" if ko is None else "au"
+        if fais is None:
+            fais = "i" if ko is None else "ai"
 
-        # TODO 4: for faus="au" (e.g.) we don't need to re-**compute** stats,
+        # TODO 4: for fais="ai" (e.g.) we don't need to re-**compute** stats,
         #         merely re-write them?
-        for sub in faus:
-            # Skip assessment if ('u' and stats not stored or plotted)
+        for sub in fais:
+            # Skip assessment if ('i' and stats not stored or plotted)
             if k != 0 and ko is None:
-                if not (self.store_u or self.LP_instance.any_figs):
+                if not (self.store_i or self.LP_instance.any_figs):
                     continue
 
             # Silence repeat warnings caused by zero variance
@@ -239,7 +239,7 @@ class Stats(series.StatPrint):
 
             self.write(stats_now, k, ko, sub)
 
-            # LivePlot -- Both init and update must come after the assessment.
+            # LivePlot — both init and update must come after the assessment.
             try:
                 self.LP_instance.update((k, ko, sub), E, Cov)
             except AttributeError:
@@ -251,8 +251,12 @@ class Stats(series.StatPrint):
         """Write `stat_dict` to series at `(k, ko, sub)`."""
         for name, val in stat_dict.items():
             stat = struct_tools.deep_getattr(self, name)
-            isFaust = isinstance(stat, series.FAUSt)
-            stat[(k, ko, sub) if isFaust else ko] = val
+            if isinstance(stat, series.DACycleSeries):
+                ind = (k if stat.store_i else 0) if sub == "i" else ko
+                getattr(stat, sub)[ind] = val
+                stat.were_changed = True
+            else:
+                stat[ko] = val
 
     def summarize_marginals(self, now):
         """Compute Mean-field and RMS values."""
@@ -412,14 +416,14 @@ class Stats(series.StatPrint):
             # Plain averages of nd-series are rarely interesting.
             # => Shortcircuit => Leave for manual computations
 
-            if isinstance(tseries, series.FAUSt):
+            if isinstance(tseries, series.DACycleSeries):
                 # Average series for each subscript
                 if tseries.item_shape != ():
                     return average_multivariate()
                 for sub in [ch for ch in "fas" if hasattr(tseries, ch)]:
-                    avrgs[sub] = series.mean_with_conf(tseries[kko, sub])
-                if tseries.store_u:
-                    avrgs["u"] = series.mean_with_conf(tseries[kk, "u"])
+                    avrgs[sub] = series.mean_with_conf(getattr(tseries, sub)[kko])
+                if tseries.store_i:
+                    avrgs["i"] = series.mean_with_conf(tseries.i[kk])
 
             elif isinstance(tseries, series.DataSeries):
                 if tseries.array.shape[1:] != ():
@@ -462,7 +466,7 @@ class Stats(series.StatPrint):
         - 'figlist' and 'speed': See LivePlot's doc.
 
         !!! note
-            `store_u` (whether to store non-obs-time stats) must
+            `store_i` (whether to store non-obs-time stats) must
             have been `True` to have smooth graphs as in the actual LivePlot.
 
         !!! note
@@ -496,7 +500,7 @@ class Stats(series.StatPrint):
                 if ko is not None:
                     LP.update((k, ko, "f"), None, None)
                     LP.update((k, ko, "a"), None, None)
-                LP.update((k, ko, "u"), None, None)
+                LP.update((k, ko, "i"), None, None)
 
         # Pause required when speed=inf.
         # On Mac, it was also necessary to do it for each fig.
@@ -511,7 +515,7 @@ def register_stat(self, name, value):
     """Do `self.name = value` and register `name` in `self._stat_names`.
 
     Note: `self` is not always a `Stats` object, but could be a "child" of it
-    (e.g. a FAUSt or DataSeries). Child objects get `_stat_names` lazily.
+    (e.g. a DACycleSeries or DataSeries). Child objects get `_stat_names` lazily.
     """
     setattr(self, name, value)
     if not hasattr(self, "_stat_names"):
