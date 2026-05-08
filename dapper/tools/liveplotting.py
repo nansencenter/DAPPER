@@ -333,7 +333,7 @@ class sliding_diagnostics:
 
                 # Create series
                 if isinstance(stat, DACycleSeries):
-                    ln["plot_i"] = plot_i
+                    ln["plot_i"] = plot_i and stat.store_f
                     K_plot = comp_K_plot(K_lag, a_lag, ln["plot_i"])
                 else:
                     ln["plot_i"] = False
@@ -380,21 +380,15 @@ class sliding_diagnostics:
                     # ln['data'] will contain duplicates for f/a times.
                     if ln["plot_i"]:
                         ind = (k if stat.store_i else 0) if faus == "i" else ko
-                        val = getattr(stat, faus)[ind]
-                        ln["tt"].insert(k, t)
-                        ln["data"].insert(k, ln["transf"](val))
+                        if hasattr(stat, faus):
+                            val = getattr(stat, faus)[ind]
+                            ln["tt"].insert(k, t)
+                            ln["data"].insert(k, ln["transf"](val))
                     elif "i" not in faus:
-                        val = getattr(stat, faus)[ko]
-                        ln["tt"].insert(ko, t)
-                        ln["data"].insert(ko, ln["transf"](val))
-                else:
-                    # ln['data'] will not contain duplicates, coz only 'a' is input.
-                    if "a" in faus:
-                        val = stat[ko]
-                        ln["tt"].insert(ko, t)
-                        ln["data"].insert(ko, ln["transf"](val))
-                    elif "f" in faus:
-                        pass
+                        if hasattr(stat, faus):
+                            val = getattr(stat, faus)[ko]
+                            ln["tt"].insert(ko, t)
+                            ln["data"].insert(ko, ln["transf"](val))
 
         def update_plot_data(ax, lines):
             def bend_into(shape, xx, yy):
@@ -423,7 +417,7 @@ class sliding_diagnostics:
             for name in list(lines):
                 ln = lines[name]
                 stat = deep_getattr(stats, name)
-                if not stat.were_changed:
+                if not np.any(np.isfinite(stat.a)):
                     ln["handle"].remove()  # rm from axes
                     del lines[name]  # rm from dict
             # Add legends

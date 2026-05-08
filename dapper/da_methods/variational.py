@@ -267,9 +267,9 @@ def iEnKS_update(upd_a, E, DAW, HMM, stats, EPS, y, time, Rm12, xN, MDA, thresho
     final_increment = (dw + T - T_old) @ Xf
     # See docs/images/snippets/iEnKS_Ea.jpg.
     stats.assess(k, ko, "a", E=E + final_increment)
-    stats.iters[ko] = iteration + 1
+    stats.iters.a[ko] = iteration + 1
     if xN:
-        stats.infl[ko] = np.sqrt(N1 / za)
+        stats.infl.a[ko] = np.sqrt(N1 / za)
 
     # Final (smoothed) estimate of E at [kLag].
     E = x0 + (w + T) @ X0
@@ -373,7 +373,7 @@ class Var4D(var_method):
                 self.stats.assess(
                     k, ko, "a", mu=x + final_increment, Cov=X @ Cow1 @ X.T
                 )
-                self.stats.iters[ko] = iteration + 1
+                self.stats.iters.a[ko] = iteration + 1
 
                 # Final (smoothed) estimate at [kLag].
                 x = x0 + B12 @ w

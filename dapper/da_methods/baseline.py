@@ -30,7 +30,7 @@ class Climatology:
         PC = CovMat(AC, "A")
 
         self.stats.assess(0, mu=muC, Cov=PC)
-        self.stats.trHK[:] = 0
+        self.stats.trHK.a[:] = 0
 
         for k, ko, _, _ in progbar(HMM.tseq.ticker):
             fai = "i" if ko is None else "fai"
