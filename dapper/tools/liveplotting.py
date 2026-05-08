@@ -764,17 +764,17 @@ def sliding_marginals(
             h.s = []
 
         # Plot (invisible coz everything here is nan, for the moment).
-        for ix, ax in zip(p.dims, axs):
+        for i, (_ix, ax) in enumerate(zip(p.dims, axs)):
             if True:
-                h.x += ax.plot(d.t, d.x[:, ix], "k")
+                h.x += ax.plot(d.t, d.x[:, i], "k")
             if not_empty(p.obs_inds):
-                h.y += ax.plot(d.t, d.y[:, ix], "g*", ms=10)
+                h.y += ax.plot(d.t, d.y[:, i], "g*", ms=10)
             if "E" in d:
-                h.E += [ax.plot(d.t, d.E[:, :, ix], **p.ens_props)]
+                h.E += [ax.plot(d.t, d.E[:, :, i], **p.ens_props)]
             if "mu" in d:
-                h.mu += ax.plot(d.t, d.mu[:, ix], "b")
+                h.mu += ax.plot(d.t, d.mu[:, i], "b")
             if "s" in d:
-                h.s += [ax.plot(d.t, d.s[:, :, ix], "b--", lw=1)]
+                h.s += [ax.plot(d.t, d.s[:, :, i], "b--", lw=1)]
 
         def update(key, E, P):
             k, ko, faus = key
@@ -796,26 +796,33 @@ def sliding_marginals(
                     xy = nan * ones(len(p.dims))
                     if ko is not None:
                         jj = p.obs_inds(ko) if callable(p.obs_inds) else p.obs_inds
-                        xy[jj] = yy[ko]
+                        jj = list(jj)
+                        for i, dim in enumerate(p.dims):
+                            try:
+                                iobs = jj.index(dim)
+                            except ValueError:
+                                pass
+                            else:
+                                xy[i] = yy[ko][iobs]
                     d.y.insert(ind, xy)
                 if True:
                     d.x.insert(ind, xx[k, p.dims])
 
             # Update graphs
-            for ix, ax in zip(p.dims, axs):
+            for i, (_ix, ax) in enumerate(zip(p.dims, axs)):
                 sliding_xlim(ax, d.t, T_lag, True)
                 if True:
-                    h.x[ix].set_data(d.t, d.x[:, ix])
+                    h.x[i].set_data(d.t, d.x[:, i])
                 if not_empty(p.obs_inds):
-                    h.y[ix].set_data(d.t, d.y[:, ix])
+                    h.y[i].set_data(d.t, d.y[:, i])
                 if "mu" in d:
-                    h.mu[ix].set_data(d.t, d.mu[:, ix])
+                    h.mu[i].set_data(d.t, d.mu[:, i])
                 if "s" in d:
-                    [h.s[ix][b].set_data(d.t, d.s[:, b, ix]) for b in [0, 1]]
+                    [h.s[i][b].set_data(d.t, d.s[:, b, i]) for b in [0, 1]]
                 if "E" in d:
-                    [h.E[ix][n].set_data(d.t, d.E[:, n, ix]) for n in range(len(E))]
+                    [h.E[i][n].set_data(d.t, d.E[:, n, i]) for n in range(len(E))]
                 if "E" in d:
-                    update_alpha(key, stats, h.E[ix])
+                    update_alpha(key, stats, h.E[i])
 
                 # TODO 3: fixup. This might be slow?
                 # In any case, it is very far from tested.
@@ -825,7 +832,7 @@ def sliding_marginals(
                     lims = d.E
                 elif "mu" in d:
                     lims = d.mu
-                lims = np.array(viz.xtrema(lims[..., ix]))
+                lims = np.array(viz.xtrema(lims[..., i]))
                 if lims[0] == lims[1]:
                     lims += [-0.5, +0.5]
                 ax.set_ylim(*viz.stretch(*lims, 1 / p.zoomy))
