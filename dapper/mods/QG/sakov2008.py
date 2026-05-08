@@ -76,13 +76,12 @@ def obs_now(ko):
     )
 
 
-Obs = modelling.TimeDependentOperator(time_dependent=lambda ko: obs_now(ko))
-
-
 ############################
 # Other
 ############################
-HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, liveplotters=LP_setup(obs_inds))
+HMM = modelling.HiddenMarkovModel(
+    Dyn, obs_now, tseq, X0, liveplotters=LP_setup(obs_inds)
+)
 
 
 ####################

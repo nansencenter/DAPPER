@@ -9,7 +9,7 @@ HMM = _HMM.copy()
 # The only diff to sakov2012 is R:
 # bocquet2012 uses 1 and 8, sakov2012 uses 2 (and 8)
 
-HMM.Obs._const_op.noise.C = modelling.CovMat(np.eye(3))
+HMM.Obs(0).noise = modelling.GaussRV(C=np.eye(3))
 
 HMM.name = HMM.name.replace("sakov", "bocquet")
 

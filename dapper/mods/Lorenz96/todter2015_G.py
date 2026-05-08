@@ -4,7 +4,7 @@ import dapper.mods as modelling
 from dapper.mods.Lorenz96.todter2015 import HMM as _HMM
 
 HMM = _HMM.copy()
-HMM.Obs._const_op.noise = modelling.GaussRV(C=HMM.Obs._const_op.noise.C)
+HMM.Obs(0).noise = modelling.GaussRV(C=HMM.Obs(0).noise.C)
 
 ####################
 # Suggested tuning

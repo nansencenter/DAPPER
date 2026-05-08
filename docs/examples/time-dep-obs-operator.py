@@ -26,11 +26,11 @@ def dxdt_double(x):
 
 
 Nx = 6
-Dyn = {
-    "M": Nx,
-    "model": modelling.with_rk4(dxdt_double, autonom=True),
-    "noise": 0,
-}
+Dyn = modelling.Operator(
+    M=Nx,
+    model=modelling.with_rk4(dxdt_double, autonom=True),
+    noise=0,
+)
 
 X0 = modelling.GaussRV(C=2, mu=np.ones(Nx))
 
@@ -49,7 +49,7 @@ obs1 = modelling.Operator(**modelling.partial_Id_Obs(Nx, jj1), noise=1)
 obs2 = modelling.Operator(**modelling.partial_Id_Obs(Nx, jj2), noise=1)
 
 HMM = modelling.HiddenMarkovModel(
-    Dyn, dict(time_dependent=Obs), tseq, X0, sectors={"slow": jj1, "fast": jj2}
+    Dyn, Obs, tseq, X0, sectors={"slow": jj1, "fast": jj2}
 )
 
 HMM.liveplotters = LPs(jj=lambda ko: jj1 if ko % 2 else jj2, params=dict())

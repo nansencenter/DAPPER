@@ -68,9 +68,9 @@ class HiddenMarkovModel(struct_tools.NicePrint):
         ----------
         Dyn : Operator or dict
             Operator for the dynamics.
-        Obs : Operator or TimeDependentOperator or dict
-            Operator for the observations
-            Can also be time-dependent, ref `TimeDependentOperator`.
+        Obs : Operator or callable(ko) -> Operator
+            Operator for the observations.
+            For time-dependent observations, pass a callable ``Obs(ko) -> Operator``.
         tseq : tools.chronos.Chronology
             Time sequence of the HMM process.
         X0 : tools.randvars.RV
@@ -91,14 +91,11 @@ class HiddenMarkovModel(struct_tools.NicePrint):
             Label for the `HMM`.
         """
         self.Dyn = Dyn if isinstance(Dyn, Operator) else Operator(**Dyn)
-        if isinstance(Obs, TimeDependentOperator):
-            self.Obs = Obs
-        elif isinstance(Obs, Operator):
-            self.Obs = TimeDependentOperator.__new__(TimeDependentOperator)
-            self.Obs._const_op = Obs
-            self.Obs._time_dep_func = None
-        else:
-            self.Obs = TimeDependentOperator(**Obs)
+        self.Obs = (
+            Obs
+            if isinstance(Obs, TimeDependentOperator)
+            else TimeDependentOperator(Obs)
+        )
         self.tseq = tseq
         self.X0 = X0
         self.liveplotters = liveplotters or []
@@ -153,46 +150,34 @@ class HiddenMarkovModel(struct_tools.NicePrint):
 
 
 class TimeDependentOperator:
-    """Wrapper for `Operator` that enables time dependence.
+    """Callable wrapper for ``HMM.Obs`` enablign time-dependent obs. operators.
 
-    The time instance should be specified by `ko`,
-    i.e. the index of an observation time.
+    The call argument ``ko`` is the observation index (not wall time).
+    The return value is always an `Operator`.
 
     Examples: `docs/examples/time-dep-obs-operator.py`
     and `dapper/mods/QG/sakov2008.py`.
     """
 
-    def __init__(self, **kwargs):
-        """Can be initialized like `Operator`, in which case the resulting
-        object will always return the same `Operator` nomatter the input time.
+    def __init__(self, op_or_func):
+        """Initialize from a constant `Operator` or a callable ``ko -> Operator``.
 
-        If initialized with 1 argument: `dict(time_dependent=func)`
-        then `func` must return an `Operator` object.
+        When given an `Operator`, it is returned unchanged for any ``ko``
+        (constant-in-time case).
+        When given a callable, it is called with ``ko`` on each access.
         """
-        if "time_dependent" in kwargs:
-            if len(kwargs) != 1 or not callable(kwargs["time_dependent"]):
-                raise ValueError(
-                    "time_dependent must be the sole argument and must be callable"
-                )
-            self._time_dep_func = kwargs["time_dependent"]
-            self._const_op = None
+        if isinstance(op_or_func, Operator):
+            self._op = op_or_func
+            self._func = None
         else:
-            self._const_op = Operator(**kwargs)
-            self._time_dep_func = None
+            self._op = None
+            self._func = op_or_func
+
+    def __call__(self, ko: int) -> "Operator":
+        return self._op if self._op is not None else self._func(ko)
 
     def __repr__(self):
-        return "<" + type(self).__name__ + "> " + str(self)
-
-    def __str__(self):
-        if self._const_op is not None:
-            return "CONSTANT operator specified by ._const_op:\n" + repr(self._const_op)
-        else:
-            return "._time_dep_func: " + repr(self._time_dep_func)
-
-    def __call__(self, ko):
-        if self._time_dep_func is not None:
-            return self._time_dep_func(ko)
-        return self._const_op
+        return repr(self(0))
 
 
 class Operator(struct_tools.NicePrint):
