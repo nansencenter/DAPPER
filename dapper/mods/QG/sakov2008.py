@@ -11,11 +11,7 @@ from dapper.tools.localization import nd_Id_localization
 ############################
 
 model = model_config("sakov2008", {})
-Dyn = {
-    "M": np.prod(shape),
-    "model": model.step,
-    "noise": 0,
-}
+Dyn = modelling.Operator(M=np.prod(shape), model=model.step, noise=0)
 
 # Considering that I have 8GB mem on the Mac, and the estimate:
 # ≈ (8 bytes/float)*(129² float/stat)*(7 stat/k) * K,
@@ -24,7 +20,7 @@ tseq = modelling.Chronology(dt=model.prms["dtout"], dko=1, T=1500, BurnIn=250)
 # In my opinion the burn in should be 400.
 # Sakov also used 10 repetitions.
 
-X0 = modelling.RV(M=Dyn["M"], file=sample_filename)
+X0 = modelling.RV(M=Dyn.M, file=sample_filename)
 
 
 ############################
@@ -33,7 +29,7 @@ X0 = modelling.RV(M=Dyn["M"], file=sample_filename)
 
 # This will look like satellite tracks when plotted in 2D
 Ny = 300
-jj = modelling.linspace_int(Dyn["M"], Ny)
+jj = modelling.linspace_int(Dyn.M, Ny)
 
 # Want: random_offset(t1)==random_offset(t2) if t1==t2.
 # Solutions: (1) use caching (ensure maxsize=inf) or (2) stream seeding.
@@ -68,23 +64,19 @@ def obs_now(ko):
     #     if inflation is applied locally, then rmse might actually improve.
     localizer = nd_Id_localization(shape[::-1], batch_shape[::-1], jj, periodic=False)
 
-    Obs = {
-        "M": Ny,
-        "model": hmod,
-        "noise": modelling.GaussRV(C=4 * np.eye(Ny)),
-        "localizer": localizer,
-    }
-
-    # Moving localization mask for smoothers:
-    Obs["loc_shift"] = lambda ii, dt: ii  # no movement (suboptimal, but easy)
-
     # Jacobian left unspecified coz it's (usually) employed by methods that
     # compute full cov, which in this case is too big.
+    # Moving localization mask for smoothers: no movement (suboptimal, but easy)
+    return modelling.Operator(
+        M=Ny,
+        model=hmod,
+        noise=modelling.GaussRV(C=4 * np.eye(Ny)),
+        localizer=localizer,
+        loc_shift=lambda ii, dt: ii,
+    )
 
-    return modelling.Operator(**Obs)
 
-
-Obs = dict(time_dependent=lambda ko: obs_now(ko))
+Obs = modelling.TimeDependentOperator(time_dependent=lambda ko: obs_now(ko))
 
 
 ############################

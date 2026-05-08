@@ -19,14 +19,13 @@ def HMMs(stepper="Tay2", resolution="Low", R=1):
         t.dt = 0.01
 
     # Dynamical operator
-    Dyn = {"M": Nx, "model": steppers(stepper)}
+    Dyn = modelling.Operator(M=Nx, model=steppers(stepper))
 
     # (Random) initial condition
     X0 = modelling.GaussRV(mu=x0(Nx), C=0.001)
 
     # Observation operator
     jj = range(Nx)  # obs_inds
-    Obs = modelling.partial_Id_Obs(Nx, jj)
-    Obs["noise"] = R
+    Obs = modelling.Operator(**modelling.partial_Id_Obs(Nx, jj), noise=R)
 
     return modelling.HiddenMarkovModel(Dyn, Obs, t, X0)

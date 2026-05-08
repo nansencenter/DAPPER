@@ -10,9 +10,7 @@ HMM = _HMM.copy()
 HMM.tseq = modelling.Chronology(0.01, dko=12, T=4**5, BurnIn=4)
 
 jj = np.array([0])
-Obs = modelling.partial_Id_Obs(Nx, jj)
-Obs["noise"] = 8
-HMM.Obs = modelling.Operator(**Obs)
+HMM.Obs = modelling.Operator(**modelling.partial_Id_Obs(Nx, jj), noise=8)
 
 ####################
 # Suggested tuning

@@ -5,18 +5,12 @@ from dapper.mods.DoublePendulum import LP_setup, dstep_dx, step, x0
 
 t = modelling.Chronology(0.01, dko=100, T=30, BurnIn=10)
 
-Dyn = {
-    "M": len(x0),
-    "model": step,
-    "noise": 0,
-    "linear": dstep_dx,
-}
+Dyn = modelling.Operator(M=len(x0), model=step, noise=0, linear=dstep_dx)
 
 X0 = modelling.GaussRV(mu=x0, C=0.01**2)
 
 jj = [0, 2]
-Obs = modelling.partial_Id_Obs(len(x0), jj)
-Obs["noise"] = 0.1**2
+Obs = modelling.Operator(**modelling.partial_Id_Obs(len(x0), jj), noise=0.1**2)
 
 HMM = modelling.HiddenMarkovModel(Dyn, Obs, t, X0, liveplotters=LP_setup(jj))
 
