@@ -66,13 +66,11 @@ def obs_now(ko):
 
     # Jacobian left unspecified coz it's (usually) employed by methods that
     # compute full cov, which in this case is too big.
-    # Moving localization mask for smoothers: no movement (suboptimal, but easy)
     return modelling.Operator(
         M=Ny,
         model=hmod,
         noise=modelling.GaussRV(C=4 * np.eye(Ny)),
         localizer=localizer,
-        loc_shift=lambda ii, dt: ii,
     )
 
 

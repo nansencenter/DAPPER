@@ -34,7 +34,8 @@ In addition  `py_mod` requires `f2py`, while `qg` requires `netcdf` libraries.
 **Install compilers.** Use one of:
 
 ```bash
-brew install gcc gfortran # macOS
+brew install gcc gfortran # macOS brw
+port install gcc14 # macOS macports
 apt install gcc gfortran # Ubuntu
 conda install -c conda-forge gcc gfortran # general
 ```
