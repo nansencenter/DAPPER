@@ -1,29 +1,19 @@
+# QG Fortran model
+
+### From Sakov's `enkf-matlab`
+
 This model was taken from Sakov's EnKF-Matlab package.
-Licence reproduced here.
+Licence reproduced in THIRD_PARTY_NOTICES.
 
-        Copyright (C) 2008, 2009 Pavel Sakov
+Changelog since `enkf-matlab`
 
-        Redistribution and use of material from the package EnKF-Matlab, with or
-        without modification, are permitted provided that the following conditions are 
-        met:
-        
-           1. Redistributions of material must retain the above copyright notice, this
-              list of conditions and the following disclaimer.
-           2. The name of the author may not be used to endorse or promote products
-              derived from this software without specific prior written permission.
-        
-        THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR IMPLIED 
-        WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-        MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
-        EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-        EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
-        OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-        INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-        CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-        IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
-        OF SUCH DAMAGE.
-
-Compile as follows...
+- Rm Matlab interface functions: `qgplay.m qgplot.m qgread.m mexcmd.m qgstep_mex.f90 mexf90.f90`
+- Modified makefile, as described above.
+- In parameters.f90:
+  - Capitalized m,n
+  - Swapped `NY1` and `NX1` in definitions of M,N
+  - Changed typing of arrays in `interface.f90`, `qgflux.f90`, `qgstep.f90` to allocatable.
+- Made `interface.f90` for Python.
 
 ### This `f90` directory
 
@@ -39,17 +29,24 @@ In addition  `py_mod` requires `f2py`, while `qg` requires `netcdf` libraries.
 
 ### For DAPPER
 
-To build `py_mod`, ensure that both `gcc` and `gfortran` are installed.
-For example, with `conda`:
+`py_mod` requires `gcc`, `gfortran`, and `f2py` (bundled with `numpy`).
 
-    conda install -c conda-forge gcc
-    conda install -c conda-forge gfortran
+**Install compilers.** Use one of:
 
-Then run:
+```bash
+brew install gcc gfortran # macOS
+apt install gcc gfortran # Ubuntu
+conda install -c conda-forge gcc gfortran # general
+```
 
-    cd dapper/mods/QG/f90
-    rm -rf py_mod.cpython-* __pycache__
-    f2py -c utils.f90 parameters.f90 helmholtz.f90 calc.f90 qgflux.f90 qgstep.f90 interface.f90 -m py_mod
+**Build.** From the repo root:
+
+```bash
+cd dapper/mods/QG/f90
+rm -rf py_mod.cpython-* __pycache__  # remove stale build artifacts before rebuilding
+export FC=gfortran-mp-14 # indicate the appropriate gfortran
+python -m numpy.f2py -c utils.f90 parameters.f90 helmholtz.f90 calc.f90 qgflux.f90 qgstep.f90 interface.f90 -m py_mod
+```
 
 ### For the standalone executable `qg`
 
@@ -59,23 +56,16 @@ Then run:
 
 Example: here's how I compiled the standalone on my Mac:
 
-    - get netcdf: `brew install netcdf --with-fortran`
-    - In makefile, changed to:
-          FC = gfortran-5
-          NCLIB = /usr/local/lib/libnetcdff.dylib /usr/local/lib/libnetcdf.dylib
-    - Matlab has a new netcdf interface. Therefore, qgread.m should use
-          % ncdisp(fname)
-          ncid = netcdf.open(fname);
-          psi  = permute( netcdf.getVar(ncid, netcdf.inqVarID(ncid,'psi')), [3 2 1]);
-          q    = permute( netcdf.getVar(ncid, netcdf.inqVarID(ncid,'q'))  , [3 2 1]);
-          t    = netcdf.getVar(ncid, netcdf.inqVarID(ncid,'t'));
+- Get `netcdf`
+- In makefile, changed to:
 
-### Changelog since Sakov's `enkf-matlab`
+      FC = gfortran-5
+      NCLIB = /usr/local/lib/libnetcdff.dylib /usr/local/lib/libnetcdf.dylib
 
-    - Rm Matlab interface funcs: qgplay.m qgplot.m qgread.m mexcmd.m qgstep_mex.f90 mexf90.f90
-    - Modified makefile, as described above.
-    - In parameters.f90:
-        - Capitalized m,n
-        - Swapped NY1 and NX1 in definitions of M,N
-        - Changed typing of arrays in interface.f90, qgflux.f90, qgstep.f90 to allocatable.
-    - Made `interface.f90` for Python.
+- Matlab has a new `netcdf` interface. Therefore, `qgread.m` should use
+
+      % ncdisp(fname)
+      ncid = netcdf.open(fname);
+      psi  = permute( netcdf.getVar(ncid, netcdf.inqVarID(ncid,'psi')), [3 2 1]);
+      q    = permute( netcdf.getVar(ncid, netcdf.inqVarID(ncid,'q'))  , [3 2 1]);
+      t    = netcdf.getVar(ncid, netcdf.inqVarID(ncid,'t'));

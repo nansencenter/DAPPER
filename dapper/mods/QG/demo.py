@@ -1,8 +1,8 @@
 """Demonstrate the QG (quasi-geostrophic) model."""
 
 import numpy as np
-import scipy.ndimage.filters as filters
 from matplotlib import pyplot as plt
+from scipy.ndimage import laplace
 
 from dapper.mods.QG import default_prms, nx, sample_filename, square
 from dapper.tools.progressbar import progbar
@@ -36,7 +36,7 @@ dx = 1 / (nx - 1)
 
 
 def compute_q(psi):
-    Lapl = filters.laplace(psi, mode="constant") / dx**2
+    Lapl = laplace(psi, mode="constant") / dx**2
     # mode='constant' coz BCs are: psi = nabla psi = nabla^2 psi = 0
     return Lapl - default_prms["F"] * psi
 
