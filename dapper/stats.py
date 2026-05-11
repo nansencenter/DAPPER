@@ -32,11 +32,10 @@ from dapper.tools.rounding import UncertainQtty
 
 
 class DACycleAvrgs(series.StatPrint, struct_tools.DotDict):
-    """Time-averaged scalar stat: one [`UncertainQtty`][] per subscript.
+    """Time-averaged scalar stat: one [`tools.rounding.UncertainQtty`][] per subscript.
 
     Only subscripts for which finite data exist are set as attributes.
-    Inherits [`DotDict`][struct_tools.DotDict] so the object is iterable
-    and supports `in` tests.
+    Inherits `DotDict` so the object is iterable and supports `in` tests.
     """
 
     # Declared for static analysis; populated by Stats.average_in_time().
@@ -51,11 +50,10 @@ class DACycleAvrgs(series.StatPrint, struct_tools.DotDict):
 
 
 class FieldAvrgs(series.StatPrint, struct_tools.DotDict):
-    """Time-averaged vector stat: one [`DACycleAvrgs`][] per field summary.
+    """Time-averaged vector stat: one [`stats.DACycleAvrgs`][] per field summary.
 
     Only the field summaries that were actually computed are set as attributes.
-    Inherits [`DotDict`][struct_tools.DotDict] so the object is iterable
-    and supports `in` tests.
+    Inherits `DotDict` so the object is iterable and supports `in` tests.
     """
 
     # Declared for static analysis; populated by Stats.average_in_time().
@@ -607,14 +605,14 @@ def register_stat(self, name, value):
 
 
 class Avrgs(series.StatPrint, struct_tools.DotDict):
-    """Time-averaged statistics produced by [`Stats.average_in_time`][].
+    """Time-averaged statistics produced by [`stats.Stats.average_in_time`][].
 
     Attributes get populated by `Stats.average_in_time()`.
 
     Vector stats time series (e.g. `err`, `spread`) first get reduced to
-    scalar time series ([`FieldAvrgs`][] objects).
+    scalar time series ([`stats.FieldAvrgs`][] objects).
     Scalar time series (including those inherently so, e.g. `mad`, `trHK`)
-    get reduced to [`DACycleAvrgs`][] objects.
+    get reduced to [`stats.DACycleAvrgs`][] objects.
 
     Supports:
 
@@ -622,8 +620,7 @@ class Avrgs(series.StatPrint, struct_tools.DotDict):
     - Dotted-key `getattr`: `getattr(avrgs, "err.rms.a")`
     - Named abbreviations (as properties): `avrgs.rmse`  →  `avrgs.err.rms`
     - Tabulation: `avrgs.tabulate(["rmse.a", "rmv.a"])`
-    - Dict-like iteration and `in` tests (inherited from
-      [`DotDict`][struct_tools.DotDict]).
+    - Dict-like iteration and `in` tests (inherited from `DotDict`)
     """
 
     # Declared for static analysis; populated by Stats.average_in_time().
