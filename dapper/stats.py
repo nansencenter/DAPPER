@@ -495,8 +495,9 @@ class Stats(series.StatPrint):
             if not isinstance(tseries, series.DACycleSeries):
                 raise TypeError(f"Expected DACycleSeries but got {type(tseries)}")
 
+            # Average DACycleSeries.f/a/s/i
             if tseries.item_shape == ():
-                # Scalar time series
+                # Is a scalar (univariate) time series
                 result = StatAvrg()
                 for sub in "fasi":
                     arr = getattr(tseries, sub, None)
@@ -508,8 +509,10 @@ class Stats(series.StatPrint):
                     if np.any(np.isfinite(vals)):
                         result[sub] = series.mean_with_conf(vals)
             else:
-                # Vector stat: don't average directly; collect field summaries.
-                result: FieldStatAvrg | StatAvrg = FieldStatAvrg()
+                # Is a vector (multivariate) time series: don't average because usually
+                # not very interesting (user can do themselves if stats not "free"d),
+                # but init the namespace for the sake of its children (field summaries).
+                result: FieldStatAvrg = FieldStatAvrg()
 
             # Recurse into children (field summaries and sector sub-stats).
             for name in getattr(tseries, "_stat_names", []):
