@@ -22,8 +22,11 @@
       "Bash(gh issue:*)",
       "WebSearch",
       "WebFetch(domain:stackoverflow.com)",
-      "Bash(pytest tests/ -x -q)",
-      "Bash(~/.local/share/nvim/mason/bin/pyright *)"
+      "Bash(pytest tests/ *)",
+      "Bash(~/.local/share/nvim/mason/bin/pyright *)",
+      "Bash(python -m pytest *)",
+      "Bash(mkdocs build *)",
+      "Bash(pip show *)"
     ]
   }
 }
