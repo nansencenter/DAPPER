@@ -406,10 +406,9 @@ class Stats(series.StatPrint):
             avrgs = Avrgs()
 
             def average_multivariate():
+                # Plain averages of nd-series are rarely interesting.
+                # => Shortcircuit => Leave for manual computations
                 return avrgs
-
-            # Plain averages of nd-series are rarely interesting.
-            # => Shortcircuit => Leave for manual computations
 
             if isinstance(tseries, series.DACycleSeries):
                 # Average series for each subscript
