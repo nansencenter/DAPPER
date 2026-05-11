@@ -2,26 +2,16 @@
 
 [`Stats`][stats.Stats] records per-timestep statistics during assimilation and
 exposes them as [`DACycleSeries`][tools.series.DACycleSeries] attributes.
-The default statistics form a two-level hierarchy:
+The default statistics come in two shapes and sizes:
 
 - **Vector stats** (`err`, `spread`, `mu`, …) — one value per state dim.
   Each has child scalar **field-summary** (`.rms`, `.m`, `.ma`, …)
 - **Scalar stats** (`mad`, `skew`, `kurt`, `trHK`, …) — inherently scalar.
 
-[`Avrgs`][stats.Avrgs] holds the same hierarchy *after time-averaging:*
-
-- `avrgs.err.rms` → [`StatAvrg`][stats.StatAvrg] (one
-  [`UncertainQtty`][tools.rounding.UncertainQtty] per subscript f/a/s/i)
-- `avrgs.mad` → [`StatAvrg`][stats.StatAvrg]
-- `avrgs.rmse` → property alias for `avrgs.err.rms`
-
-Both objects are created by [`da_methods.da_method`][] and attached to the `xp`
-as `xp.stats` and `xp.avrgs`.
+[`Avrgs`][stats.Avrgs] holds the same hierarchy *after time-averaging*.
 
 --8<-- "dapper/stats_etc.md"
 """
-
-from __future__ import annotations
 
 import warnings
 
@@ -499,33 +489,36 @@ class Stats(series.StatPrint):
 
         def avg(tseries):
             """Recursively average a DACycleSeries (or copy a scalar)."""
-            if isinstance(tseries, series.DACycleSeries):
-                if tseries.item_shape != ():
-                    # Vector stat: don't average directly; collect field summaries.
-                    result: FieldStatAvrg | StatAvrg = FieldStatAvrg()
-                else:
-                    result = StatAvrg()
-                    for sub in "fasi":
-                        arr = getattr(tseries, sub, None)
-                        if arr is None:
-                            continue
-                        inds = kk if sub == "i" else kko
-                        if sub == "i" and not tseries.store_i:
-                            continue  # ring buffer — not stored over time
-                        vals = arr[inds]
-                        if np.any(np.isfinite(vals)):
-                            setattr(result, sub, series.mean_with_conf(vals))
-                # Recurse into children (field summaries and sector sub-stats).
-                for name in getattr(tseries, "_stat_names", []):
-                    child = getattr(tseries, name, None)
-                    if child is not None:
-                        setattr(result, name, avg(child))
-                return result
-            elif np.isscalar(tseries):
-                return tseries  # e.g. duration — copy directly
-            else:
-                raise TypeError(f"Don't know how to average {tseries!r}")
+            if np.isscalar(tseries):
+                return tseries  # Not a time series (e.g. duration) ⇒ copy directly
 
+            if not isinstance(tseries, series.DACycleSeries):
+                raise TypeError(f"Expected DACycleSeries but got {type(tseries)}")
+
+            if tseries.item_shape == ():
+                # Scalar time series
+                result = StatAvrg()
+                for sub in "fasi":
+                    arr = getattr(tseries, sub, None)
+                    if arr is None:
+                        continue
+                    if sub == "i" and not tseries.store_i:
+                        continue  # ring buffer — not stored over time
+                    vals = arr[kk if sub == "i" else kko]
+                    if np.any(np.isfinite(vals)):
+                        result[sub] = series.mean_with_conf(vals)
+            else:
+                # Vector stat: don't average directly; collect field summaries.
+                result: FieldStatAvrg | StatAvrg = FieldStatAvrg()
+
+            # Recurse into children (field summaries and sector sub-stats).
+            for name in getattr(tseries, "_stat_names", []):
+                child = getattr(tseries, name, None)
+                if child is not None:
+                    result[name] = avg(child)
+            return result
+
+        # Init recursion
         avrgs = Avrgs()
         for name in self._stat_names:
             tseries = getattr(self, name, None)

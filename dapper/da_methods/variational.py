@@ -25,8 +25,7 @@ class var_method:
     wtol: float = 0
 
 
-@da_method()
-class iEnKS(var_method):
+class iEnKS(da_method, var_method):
     """Iterative EnKS.
 
     Special cases: EnRML, ES-MDA, iEnKF, EnKF [raanes2019][].
@@ -277,8 +276,7 @@ def iEnKS_update(upd_a, E, DAW, HMM, stats, EPS, y, time, Rm12, xN, MDA, thresho
     return E
 
 
-@da_method()
-class Var4D(var_method):
+class Var4D(da_method, var_method):
     """4D-Var.
 
     Cycling scheme is same as in iEnKS (i.e. the shift is always 1*ko).

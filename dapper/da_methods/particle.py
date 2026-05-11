@@ -21,8 +21,7 @@ class particle_method:
     resampl: str = "Sys"
 
 
-@da_method()
-class PartFilt(particle_method):
+class PartFilt(da_method, particle_method):
     r"""Particle filter ≡ Sequential importance (re)sampling SIS (SIR).
 
     Refs: [wikle2007][], [van2009][], [chen2003][]
@@ -90,8 +89,7 @@ class PartFilt(particle_method):
             self.stats.assess(k, ko, "i", E=E, w=w)
 
 
-@da_method()
-class OptPF(particle_method):
+class OptPF(da_method, particle_method):
     """'Optimal proposal' particle filter, also known as 'Implicit particle filter'.
 
     Ref: [bocquet2010a][].
@@ -154,8 +152,7 @@ class OptPF(particle_method):
             self.stats.assess(k, ko, "i", E=E, w=w)
 
 
-@da_method()
-class PFa(particle_method):
+class PFa(da_method, particle_method):
     """PF with weight adjustment withOUT compensating for the bias it introduces.
 
     'alpha' sets wroot before resampling such that N_effective becomes >alpha*N.
@@ -230,8 +227,7 @@ class PFa(particle_method):
             self.stats.assess(k, ko, "i", E=E, w=w)
 
 
-@da_method()
-class PFxN_EnKF(particle_method):
+class PFxN_EnKF(da_method, particle_method):
     """Particle filter with EnKF-based proposal, q.
 
     Also employs xN duplication, as in PFxN.
@@ -354,8 +350,7 @@ class PFxN_EnKF(particle_method):
             self.stats.assess(k, ko, "i", E=E, w=w)
 
 
-@da_method()
-class PFxN(particle_method):
+class PFxN(da_method, particle_method):
     """Particle filter with buckshot duplication during analysis.
 
     Idea: sample xN duplicates from each of the N kernels.
