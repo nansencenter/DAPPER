@@ -41,9 +41,13 @@ class DACycleAvrgs(series.StatPrint, struct_tools.DotDict):
 
     # Declared for static analysis; populated by Stats.average_in_time().
     f: UncertainQtty
+    """Forecast (prior) time average."""
     a: UncertainQtty
+    """Analysis (posterior) time average."""
     s: UncertainQtty
+    """Smoothed time average (smoothers only)."""
     i: UncertainQtty
+    """Integrational (between-obs) time average."""
 
 
 class FieldAvrgs(series.StatPrint, struct_tools.DotDict):
@@ -56,10 +60,15 @@ class FieldAvrgs(series.StatPrint, struct_tools.DotDict):
 
     # Declared for static analysis; populated by Stats.average_in_time().
     m: DACycleAvrgs
+    """Mean-field average."""
     ms: DACycleAvrgs
+    """Mean-square average."""
     rms: DACycleAvrgs
+    """Root-mean-square average."""
     ma: DACycleAvrgs
+    """Mean-absolute average."""
     gm: DACycleAvrgs
+    """Geometric-mean average."""
 
 
 class Stats(series.StatPrint):
@@ -71,27 +80,46 @@ class Stats(series.StatPrint):
 
     # Declared for static analysis; created dynamically via new_series() in __init__.
     mu: series.DACycleSeries
+    """Mean estimate (ensemble mean, or Kalman/variational estimate)."""
     spread: series.DACycleSeries
+    """Ensemble spread (std dev), or Kalman posterior std dev."""
     err: series.DACycleSeries
+    """Error of the mean estimate vs. truth (`mu - x`)."""
     gscore: series.DACycleSeries
+    """Gaussian (log) score: `2 log(spread) + (err/spread)²`."""
     crps: series.DACycleSeries
+    """Continuous ranked probability score."""
     mad: series.DACycleSeries
+    """Mean absolute deviation of the ensemble from its mean."""
     skew: series.DACycleSeries
+    """Skewness of the ensemble."""
     kurt: series.DACycleSeries
+    """Excess kurtosis of the ensemble (0 for Gaussians)."""
     # Ensemble-only (created only when xp has N):
     w: series.DACycleSeries
+    """Importance weights (particle filter; absent when weights are uniform)."""
     rh: series.DACycleSeries
+    """Rank histogram: rank of the truth among sorted ensemble members."""
     svals: series.DACycleSeries
+    """Singular values (principal-component scores) of the ensemble anomalies."""
     umisf: series.DACycleSeries
+    """Error projected onto the leading ensemble/covariance directions."""
     # Analysis-only:
     trHK: series.DACycleSeries
+    """Trace of the observation-space gain matrix `HK`."""
     infl: series.DACycleSeries
+    """Inflation factor applied at this analysis step."""
     iters: series.DACycleSeries
+    """Number of iterations (iterative methods only)."""
     N_eff: series.DACycleSeries
+    """Effective ensemble size `1 / Σwᵢ²`."""
     wroot: series.DACycleSeries
+    """Root-finding output for optimal weight tempering (particle filter)."""
     resmpl: series.DACycleSeries
+    """Resampling flag/count at this analysis step."""
     # Added by da_method wrapper after assimilate() returns:
     duration: float
+    """Wall-clock time (seconds) for the full `assimilate()` call."""
 
     def __init__(self, xp, HMM, xx, yy, liveplots=False, store_i=rc.store_i):
         """Init the default statistics."""
@@ -600,23 +628,41 @@ class Avrgs(series.StatPrint, struct_tools.DotDict):
 
     # Declared for static analysis; populated by Stats.average_in_time().
     err: FieldAvrgs
+    """Time-averaged error field (and its scalar summaries)."""
     spread: FieldAvrgs
+    """Time-averaged spread field (and its scalar summaries)."""
     mu: FieldAvrgs
+    """Time-averaged mean-estimate field (and its scalar summaries)."""
     gscore: FieldAvrgs
+    """Time-averaged Gaussian score field (and its scalar summaries)."""
     crps: FieldAvrgs
+    """Time-averaged CRPS field (and its scalar summaries)."""
     mad: DACycleAvrgs
+    """Time-averaged mean absolute deviation."""
     skew: DACycleAvrgs
+    """Time-averaged skewness."""
     kurt: DACycleAvrgs
+    """Time-averaged excess kurtosis."""
     w: FieldAvrgs
+    """Time-averaged importance weights (and their scalar summaries)."""
     svals: FieldAvrgs
+    """Time-averaged singular values (and their scalar summaries)."""
     umisf: FieldAvrgs
+    """Time-averaged projected error (and its scalar summaries)."""
     trHK: DACycleAvrgs
+    """Time-averaged trace of `HK`."""
     infl: DACycleAvrgs
+    """Time-averaged inflation factor."""
     iters: DACycleAvrgs
+    """Time-averaged iteration count."""
     N_eff: DACycleAvrgs
+    """Time-averaged effective ensemble size."""
     wroot: DACycleAvrgs
+    """Time-averaged weight-tempering root."""
     resmpl: DACycleAvrgs
+    """Time-averaged resampling count."""
     duration: float
+    """Wall-clock time (seconds) for the full `assimilate()` call."""
 
     def __getattr__(self, key: str):
         """Forward dotted-key lookups such as `getattr(avrgs, "err.rms.a")`.
