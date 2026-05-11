@@ -12,8 +12,7 @@ from . import da_method
 from .ensemble import ens_method
 
 
-@da_method()
-class RHF(ens_method):
+class RHF(da_method, ens_method):
     """Rank histogram filter.
 
     Refs: [anderson2010][].
@@ -83,8 +82,7 @@ class RHF(ens_method):
             stats.assess(k, ko, E=E)
 
 
-@da_method()
-class LNETF(ens_method):
+class LNETF(da_method, ens_method):
     """The Nonlinear-Ensemble-Transform-Filter (localized).
 
     Refs: [wiljes2016][], [todter2015a][].

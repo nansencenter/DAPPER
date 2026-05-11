@@ -26,8 +26,7 @@ class ens_method:
     fnoise_treatm: str = "Stoch"
 
 
-@da_method()
-class EnKF(ens_method):
+class EnKF(da_method, ens_method):
     """The ensemble Kalman filter.
 
     Refs: [evensen2009a][].
@@ -352,8 +351,7 @@ def add_noise(E, dt, noise, method):
     return E
 
 
-@da_method()
-class EnKS(ens_method):
+class EnKS(da_method, ens_method):
     """The ensemble Kalman smoother.
 
     Refs: [evensen2009a][]
@@ -412,8 +410,7 @@ class EnKS(ens_method):
                 self.stats.assess(k, ko, "s", E=E[k])
 
 
-@da_method()
-class EnRTS(ens_method):
+class EnRTS(da_method, ens_method):
     """EnRTS (Rauch-Tung-Striebel) smoother.
 
     Refs: [raanes2016thesis][]
@@ -482,8 +479,7 @@ def serial_inds(upd_a, y, cvR, A):
     return inds
 
 
-@da_method()
-class SL_EAKF(ens_method):
+class SL_EAKF(da_method, ens_method):
     """Serial, covariance-localized EAKF.
 
     Refs: [karspeck2007][].
@@ -612,8 +608,7 @@ def local_analyses(E, Eo, R, y, state_batches, obs_taperer, mp=map, xN=None, g=0
     return E, dict(ad_inf=sqrt(np.mean(np.array(infl1) ** 2)))
 
 
-@da_method()
-class LETKF(ens_method):
+class LETKF(da_method, ens_method):
     """Same as EnKF (Sqrt), but with localization.
 
     Refs: [hunt2007][].
@@ -845,8 +840,7 @@ def zeta_a(eN, cL, w):
     return za
 
 
-@da_method()
-class EnKF_N(ens_method):
+class EnKF_N(da_method, ens_method):
     """Finite-size EnKF (EnKF-N).
 
     Refs: [bocquet2011][], [bocquet2015][]

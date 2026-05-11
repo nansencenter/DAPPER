@@ -16,8 +16,7 @@ from dapper.tools.progressbar import progbar
 from . import da_method
 
 
-@da_method()
-class Climatology:
+class Climatology(da_method):
     """A baseline/reference method.
 
     Note that the "climatology" is computed from truth, which might be
@@ -37,8 +36,7 @@ class Climatology:
             self.stats.assess(k, ko, fai, mu=muC, Cov=PC)
 
 
-@da_method()
-class OptInterp:
+class OptInterp(da_method):
     """Optimal Interpolation -- a baseline/reference method.
 
     Uses the Kalman filter equations,
@@ -79,8 +77,7 @@ class OptInterp:
             self.stats.assess(k, ko, mu=mu, Cov=2 * PC * SM(k))
 
 
-@da_method()
-class Var3D:
+class Var3D(da_method):
     """3D-Var -- a baseline/reference method.
 
     This implementation is not "Var"-ish: there is no *iterative* optimzt.
@@ -172,8 +169,7 @@ def fit_sigmoid(Sb, L, kb):
     return S
 
 
-@da_method()
-class Persistence:
+class Persistence(da_method):
     """Sets estimate to the **true state** at the previous time index.
 
     The analysis (`.a`) stat uses the previous obs. time.
@@ -191,8 +187,7 @@ class Persistence:
                 prev = xx[k]
 
 
-@da_method()
-class PreProg:
+class PreProg(da_method):
     """Simply look-up the estimates in user-specified function (`schedule`).
 
     For example, with `schedule` given by `lambda k, xx, yy: xx[k]`

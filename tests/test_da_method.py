@@ -1,4 +1,7 @@
-"""Tests for the @da_method decorator."""
+"""Tests for the da_method base class."""
+
+from dataclasses import dataclass as _dataclass
+from dataclasses import field as _field
 
 import pytest
 
@@ -21,14 +24,13 @@ def _simulate(HMM):
 
 
 # ---------------------------------------------------------------------------
-# Decorator produces a dataclass-like class
+# Base class produces a dataclass-like class
 # ---------------------------------------------------------------------------
 
 
 class TestDecoratorStructure:
     def test_init_with_fields(self):
-        @da_method()
-        class Dummy:
+        class Dummy(da_method):
             alpha: float = 1.0
 
             def assimilate(self, HMM, xx, yy):
@@ -37,8 +39,7 @@ class TestDecoratorStructure:
         assert Dummy(alpha=2.5).alpha == 2.5
 
     def test_default_field(self):
-        @da_method()
-        class Dummy:
+        class Dummy(da_method):
             alpha: float = 1.0
 
             def assimilate(self, HMM, xx, yy):
@@ -47,8 +48,7 @@ class TestDecoratorStructure:
         assert Dummy().alpha == 1.0
 
     def test_repr_includes_class_name(self):
-        @da_method()
-        class Dummy:
+        class Dummy(da_method):
             alpha: float = 1.0
 
             def assimilate(self, HMM, xx, yy):
@@ -57,8 +57,7 @@ class TestDecoratorStructure:
         assert "Dummy" in repr(Dummy())
 
     def test_equality(self):
-        @da_method()
-        class Dummy:
+        class Dummy(da_method):
             alpha: float = 1.0
 
             def assimilate(self, HMM, xx, yy):
@@ -68,8 +67,7 @@ class TestDecoratorStructure:
         assert Dummy(alpha=1.0) != Dummy(alpha=2.0)
 
     def test_da_method_class_attr(self):
-        @da_method()
-        class MyFilter:
+        class MyFilter(da_method):
             N: int = 10
 
             def assimilate(self, HMM, xx, yy):
@@ -80,24 +78,23 @@ class TestDecoratorStructure:
     def test_missing_assimilate_raises(self):
         with pytest.raises(AttributeError):
 
-            @da_method()
-            class Bad:
+            class Bad(da_method):
                 pass
 
 
 # ---------------------------------------------------------------------------
-# Inherited defaults via default_dataclasses
+# Inherited defaults via @dataclass(kw_only=True) base class
 # ---------------------------------------------------------------------------
 
 
 class TestInheritedDefaults:
     def test_inherited_defaults_present(self):
+        @_dataclass(kw_only=True)
         class shared:
             infl: float = 1.0
             rot: bool = False
 
-        @da_method(shared)
-        class FilterA:
+        class FilterA(da_method, shared):
             N: int
 
             def assimilate(self, HMM, xx, yy):
@@ -108,13 +105,13 @@ class TestInheritedDefaults:
         assert f.rot is False
 
     def test_own_field_takes_precedence(self):
+        @_dataclass(kw_only=True)
         class shared:
             infl: float = 1.0
 
-        @da_method(shared)
-        class FilterB:
+        class FilterB(da_method, shared):
             N: int
-            infl: float = 2.0
+            infl: float = _field(default=2.0, kw_only=True)
 
             def assimilate(self, HMM, xx, yy):
                 pass
@@ -133,8 +130,7 @@ class TestAssimilateIntegration:
         self.xx, self.yy = _simulate(self.HMM)
 
     def _make_noop(self):
-        @da_method()
-        class NoOp:
+        class NoOp(da_method):
             N: int = 5
 
             def assimilate(self, HMM, xx, yy):
@@ -209,8 +205,7 @@ class TestFailGently:
         self.xx, self.yy = _simulate(self.HMM)
 
     def _crasher(self):
-        @da_method()
-        class Crasher:
+        class Crasher(da_method):
             def assimilate(self, HMM, xx, yy):
                 raise RuntimeError("intentional crash")
 

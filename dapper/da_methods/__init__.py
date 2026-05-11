@@ -3,154 +3,98 @@
 --8<-- "dapper/da_methods/README.md"
 """
 
-from collections.abc import Callable
-from pathlib import Path
-from typing import TypeVar, dataclass_transform
+import functools
+import time
+from dataclasses import dataclass, field
+from typing import dataclass_transform
 
-_C = TypeVar("_C", bound=type)
+from dapper.stats import Avrgs, Stats, register_stat
+
+
+def _setup_da_method(cls: type) -> None:
+    """Apply dataclass and enhance `assimilate()` so that it includes
+
+    - timing
+    - gentle failure handling
+    - progress bar naming
+    - stats (see `dapper.stats.Stats`) init.
+    """
+    dataclass(cls)
+
+    _assimilate = cls.assimilate
+
+    def assimilate(self, HMM, xx, yy, desc=None, fail_gently=False, **stat_kwargs):
+        pb_name_hook = self.da_method if desc is None else desc  # noqa
+        self.stats = Stats(self, HMM, xx, yy, **stat_kwargs)
+        time0 = time.time()
+        try:
+            _assimilate(self, HMM, xx, yy)
+        except Exception as ERR:
+            if fail_gently:
+                self.crashed = True
+                if fail_gently not in ["silent", "quiet"]:
+                    _print_cropped_traceback(ERR)
+            else:
+                raise
+        self.stat("duration", time.time() - time0)
+
+    cls.assimilate = functools.wraps(_assimilate)(assimilate)
+
+    def stat(self, name, value):
+        register_stat(self.stats, name, value)
+
+    cls.stat = stat
+    cls.da_method = cls.__name__
 
 
 @dataclass_transform()
-def da_method(*default_dataclasses: type) -> Callable[[_C], _C]:
-    """Turn a dataclass-style class into a DA method for DAPPER (`xp`).
+@dataclass
+class da_method:
+    """Base class for all DA methods (xp objects, short for "experiment").
 
-    This decorator applies to classes that define DA methods.
-    An instances of the resulting class is referred to (in DAPPER)
-    as an `xp` (short for experiment).
+    Inheriting from this class makes the subclass a dataclass
+    (auto-generating `__init__`, `__repr__`, `__eq__`)
+    and also endows it with the following
 
-    The decorated classes are defined like a `dataclass`,
-    but are decorated by `@da_method()` instead of `@dataclass`.
+    - `.stats` (`Stats`): initialised when `assimilate()` is called.
+    - `.avrgs` (`Avrgs`): populated by `stats.average_in_time()`.
 
-    !!! note
-        The classes must define a method called `assimilate`.
-        This method gets slightly enhanced by this wrapper which provides:
+    It also wraps subclass' (mandatory) `assimilate(self, HMM, xx, yy)
+    so as to set up stats, times execution, and `fail_gently`.
 
-        - Initialisation of the `Stats` object, accessible by `self.stats`.
-        - `fail_gently` functionality.
-        - Duration timing
-        - Progressbar naming magic.
+    Example::
 
-    Examples
-    --------
-    >>> @da_method()
-    ... class Sleeper():
-    ...     "Do nothing."
-    ...     seconds : int  = 10
-    ...     success : bool = True
-    ...     def assimilate(self, *args, **kwargs):
-    ...         for k in range(self.seconds):
-    ...             time.sleep(1)
-    ...         if not self.success:
-    ...             raise RuntimeError("Sleep over. Failing as intended.")
+        class MyMethod(da_method):
+            param: float = 1.0
 
-    Internally, `da_method` is just like `dataclass`,
-    except that adds an outer layer
-    (hence the empty parantheses in the above)
-    which enables defining default parameters which can be inherited,
-    similar to subclassing.
+            def assimilate(self, HMM, xx, yy):
+                ...
 
-    >>> class ens_defaults:
-    ...     infl : float = 1.0
-    ...     rot  : bool  = False
+    To share default parameters across methods, define a
+    ``@dataclass(kw_only=True)`` base and inherit from both::
 
-    >>> @da_method(ens_defaults)
-    ... class EnKF:
-    ...     N     : int
-    ...     upd_a : str = "Sqrt"
-    ...
-    ...     def assimilate(self, HMM, xx, yy):
-    ...         ...
+        @dataclass(kw_only=True)
+        class ens_defaults:
+            infl: float = 1.0
+            rot:  bool  = False
 
-    !!! note
-        Apart from what's listed in the above `Note`, there is nothing special to the
-        resulting `xp`.  That is, just like any Python object, it can serve as a data
-        container, and you can write any number of attributes to it (at creation-time,
-        or later).  For example, you can set attributes that are not used by the
-        `assimilate` method, but are instead used to customize other aspects of the
-        experiments (see [`xp_launch.run_experiment`][]).
+        class EnKF(da_method, ens_defaults):
+            N: int
+
+            def assimilate(self, HMM, xx, yy): ...
     """
-    import dataclasses
-    import functools
-    import time
-    from dataclasses import dataclass
 
-    import dapper.stats
+    stats: Stats = field(init=False, repr=False, default=None)
+    avrgs: Avrgs = field(init=False, repr=False, default=None)
 
-    def dataclass_with_defaults(cls):
-        """Like `dataclass`, but add some DAPPER-specific things.
-
-        This adds `__init__`, `__repr__`, `__eq__`, ...,
-        but also includes inherited defaults,
-        ref https://stackoverflow.com/a/58130805,
-        and enhances the `assimilate` method.
-        """
-
-        def set_field(name, type_, val):
-            """Set the inherited (i.e. default, i.e. has value) field."""
-            # Ensure annotations
-            cls.__annotations__ = getattr(cls, "__annotations__", {})
-            # Set annotation
-            cls.__annotations__[name] = type_
-            # Set value
-            setattr(cls, name, val)
-
-        # APPend default fields without overwriting.
-        # NB: Don't implement (by PREpending?) non-default args -- to messy!
-        for default_params in default_dataclasses:
-            # NB: Calling dataclass twice always makes repr=True
-            for field in dataclasses.fields(dataclass(default_params)):
-                if field.name not in cls.__annotations__:
-                    set_field(field.name, field.type, field)
-
-        # Create new class (NB: old/new classes have same id)
-        cls = dataclass(cls)
-
-        # Define the new assimilate method (has bells and whistles)
-        def assimilate(self, HMM, xx, yy, desc=None, fail_gently=False, **stat_kwargs):
-            # Progressbar name
-            pb_name_hook = self.da_method if desc is None else desc  # noqa
-
-            # Init stats
-            self.stats = dapper.stats.Stats(self, HMM, xx, yy, **stat_kwargs)
-
-            # Assimilate
-            time0 = time.time()
-            try:
-                _assimilate(self, HMM, xx, yy)
-            except Exception as ERR:
-                if fail_gently:
-                    self.crashed = True
-                    if fail_gently not in ["silent", "quiet"]:
-                        _print_cropped_traceback(ERR)
-                else:
-                    # Don't use _print_cropped_traceback here -- It would
-                    # crop out errors in the DAPPER infrastructure itself.
-                    raise
-            self.stat("duration", time.time() - time0)
-
-        # Overwrite the assimilate method with the new one
-        try:
-            _assimilate = cls.assimilate
-        except AttributeError as error:
+    def __init_subclass__(cls, **kwargs: object) -> None:
+        super().__init_subclass__(**kwargs)
+        if "assimilate" not in cls.__dict__:
             raise AttributeError(
-                "Classes decorated by da_method()"
-                " must define a method called 'assimilate'."
-            ) from error
-        cls.assimilate = functools.wraps(_assimilate)(assimilate)
-
-        # Shortcut for register_stat
-        def stat(self, name, value):
-            dapper.stats.register_stat(self.stats, name, value)
-
-        cls.stat = stat
-
-        # Make self.__class__.__name__ an attrib.
-        # Used by xpList.table_prep().
-        cls.da_method = cls.__name__
-
-        return cls
-
-    return dataclass_with_defaults
+                f"{cls.__name__!r} inherits from `da_method`"
+                " but does not define assimilate()."
+            )
+        _setup_da_method(cls)
 
 
 def _print_cropped_traceback(ERR):
