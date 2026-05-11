@@ -96,7 +96,7 @@ You can preview the rendered html docs by running
 mkdocs serve
 ```
 
-- Temporarily disable `mkdocs-jupyter` in `mkdocs.yml` to speed up build reloads.
+- Temporarily disable `mkdocs-jupyter` in `properdocs.yml` to speed up build reloads.
 - Set `validation: unrecognized_links: warn` to get warnings about linking issues.
 - Filter [spurious pandoc/version warnings](https://github.com/danielfrg/mkdocs-jupyter/issues/231):
   (TODO 4: checkup on bug resolved?):
@@ -127,7 +127,7 @@ The following works, but does not get validated! `[link label](../sibling-page)`
     then they would **work** (locally with `mkdocs serve` and with GitHub hosting).
     Since [#3485](https://github.com/mkdocs/mkdocs/pull/3485) you can instead use `[label](/references)`
     i.e. omitting `DAPPER` (or whatever domain sub-dir is applied in `site_url`)
-    by setting `mkdocs.yml: validation: absolute_links: relative_to_docs`.
+    by setting `properdocs.yml: validation: absolute_links: relative_to_docs`.
     A different workaround is the [`mkdocs-site-url` plugin](https://github.com/OctoPrint/mkdocs-site-urls).
 
     !!! tip "Either way"

@@ -21,6 +21,6 @@ jobs:
         uses: mhausenblas/mkdocs-deploy-gh-pages@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CONFIG_FILE: mkdocs.yml
+          CONFIG_FILE: properdocs.yml
           REQUIREMENTS: .github/workflows/requirements.txt
           # CUSTOM_DOMAIN: optionaldomain.com
