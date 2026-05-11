@@ -172,19 +172,27 @@ class DACycleSeries(StatPrint):
         If a series only pertains to analysis times, pass `store_f=False`.
     """
 
-    # Array subscripts. .a and .i are always present;
-    # .f is absent when store_f=False; .s when store_s=False.
     f: np.ndarray
+    """Forecast — shape `(Ko+1,)+item_shape`. Absent when `store_f=False`."""
     a: np.ndarray
+    """Analysis — shape `(Ko+1,)+item_shape`. Always present."""
     s: np.ndarray
+    """Smoothed — shape `(Ko+1,)+item_shape`. Absent when `store_s=False`."""
     i: np.ndarray
+    """Integrational — shape `(K+1,)+item_shape`. Always present
+    (ring buffer of 1 when `store_i=False`)."""
 
     # Field-summary children, present on vector stats (populated by Stats.new_series).
     m: DACycleSeries
+    """Mean-field scalar time series."""
     ms: DACycleSeries
+    """Mean-square scalar time series."""
     rms: DACycleSeries
+    """Root-mean-square scalar time series."""
     ma: DACycleSeries
+    """Mean-absolute scalar time series."""
     gm: DACycleSeries
+    """Geometric-mean scalar time series."""
 
     def __init__(self, K, Ko, item_shape, store_i, store_s, store_f=True, **kwargs):
         """Construct object.
