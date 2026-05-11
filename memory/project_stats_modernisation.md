@@ -11,5 +11,5 @@ Completed modernisation of `dapper/stats.py` and `dapper/tools/series.py` on bra
 - `DACycleSeries` now declares field-summary children (`m`, `ms`, `rms`, `ma`, `gm`) and array subscripts (`f`, `s`) as class-level annotations → enables `xp.stats.err.rms.a` completion.
 - Three new typed classes in `stats.py`:
   - `_StatBuffer(DotDict)` — internal scratch dict used in `Stats.assess` (replaces `Avrgs()` there)
-  - `StatAvrg(StatPrint, DotDict)` — leaf level, holds `f/a/s/i: UncertainQtty`
-  - `FieldStatAvrg(StatPrint, DotDict)` — intermediate level, holds `m/ms/rms/ma/gm: StatAvrg`
+  - `DACycleAvrgs(StatPrint, DotDict)` — leaf level, holds `f/a/s/i: UncertainQtty`
+  - `FieldAvrgs(StatPrint, DotDict)` — intermediate level, holds `m/ms/rms/ma/gm: DACycleAvrgs`

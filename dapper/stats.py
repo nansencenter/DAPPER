@@ -31,16 +31,7 @@ from dapper.tools.progressbar import progbar
 from dapper.tools.rounding import UncertainQtty
 
 
-class _StatBuffer(struct_tools.DotDict):
-    """Internal mutable scratch dict for stats computed at a single time step.
-
-    Used inside `Stats.assess` to accumulate values before writing them to
-    the persistent `DACycleSeries` time series.  It is intentionally
-    untyped — its keys are strings like `"err"`, `"err.rms"`, etc.
-    """
-
-
-class StatAvrg(series.StatPrint, struct_tools.DotDict):
+class DACycleAvrgs(series.StatPrint, struct_tools.DotDict):
     """Time-averaged scalar stat: one [`UncertainQtty`][] per subscript.
 
     Only subscripts for which finite data exist are set as attributes.
@@ -55,8 +46,8 @@ class StatAvrg(series.StatPrint, struct_tools.DotDict):
     i: UncertainQtty
 
 
-class FieldStatAvrg(series.StatPrint, struct_tools.DotDict):
-    """Time-averaged vector stat: one [`StatAvrg`][] per field summary.
+class FieldAvrgs(series.StatPrint, struct_tools.DotDict):
+    """Time-averaged vector stat: one [`DACycleAvrgs`][] per field summary.
 
     Only the field summaries that were actually computed are set as attributes.
     Inherits [`DotDict`][struct_tools.DotDict] so the object is iterable
@@ -64,28 +55,18 @@ class FieldStatAvrg(series.StatPrint, struct_tools.DotDict):
     """
 
     # Declared for static analysis; populated by Stats.average_in_time().
-    m: StatAvrg
-    ms: StatAvrg
-    rms: StatAvrg
-    ma: StatAvrg
-    gm: StatAvrg
+    m: DACycleAvrgs
+    ms: DACycleAvrgs
+    rms: DACycleAvrgs
+    ma: DACycleAvrgs
+    gm: DACycleAvrgs
 
 
 class Stats(series.StatPrint):
     """Records and computes per-timestep statistics for a DA method.
 
-    Standard vector stats (each a [`DACycleSeries`][tools.series.DACycleSeries]
-    with scalar field-summary children `.rms`, `.m`, `.ma`, …):
-    `err`, `spread`, `mu`, `gscore`, `crps`
-
-    Standard scalar stats: `mad`, `skew`, `kurt`
-
-    Ensemble-only stats: `w`, `rh`, `svals`, `umisf`
-
-    Analysis-only scalar stats: `trHK`, `infl`, `iters`,
-    `N_eff`, `wroot`, `resmpl`
-
-    DA methods may register additional stats via `self.stat(name, value)`.
+    DA methods may register additional stats via `self.stat(name, value)`
+    for the purpose of automatic plotting and averaging.
     """
 
     # Declared for static analysis; created dynamically via new_series() in __init__.
@@ -303,7 +284,7 @@ class Stats(series.StatPrint):
                 np.seterrcall(warn_zero_variance)
 
                 # Assess
-                stats_now = _StatBuffer()
+                stats_now = struct_tools.DotDict()
                 if self._is_ens:
                     self.assess_ens(stats_now, self.xx[k], E, w)
                 else:
@@ -498,7 +479,7 @@ class Stats(series.StatPrint):
             # Average DACycleSeries.f/a/s/i
             if tseries.item_shape == ():
                 # Is a scalar (univariate) time series
-                result = StatAvrg()
+                result = DACycleAvrgs()
                 for sub in "fasi":
                     arr = getattr(tseries, sub, None)
                     if arr is None:
@@ -512,7 +493,7 @@ class Stats(series.StatPrint):
                 # Is a vector (multivariate) time series: don't average because usually
                 # not very interesting (user can do themselves if stats not "free"d),
                 # but init the namespace for the sake of its children (field summaries).
-                result: FieldStatAvrg = FieldStatAvrg()
+                result: FieldAvrgs = FieldAvrgs()
 
             # Recurse into children (field summaries and sector sub-stats).
             for name in getattr(tseries, "_stat_names", []):
@@ -600,9 +581,12 @@ def register_stat(self, name, value):
 class Avrgs(series.StatPrint, struct_tools.DotDict):
     """Time-averaged statistics produced by [`Stats.average_in_time`][].
 
-    Attributes are populated by `Stats.average_in_time()`.  Standard vector
-    stats (e.g. `err`, `spread`) are [`FieldStatAvrg`][] objects; scalar stats
-    (e.g. `mad`, `trHK`) are [`StatAvrg`][] objects.
+    Attributes get populated by `Stats.average_in_time()`.
+
+    Vector stats time series (e.g. `err`, `spread`) first get reduced to
+    scalar time series ([`FieldAvrgs`][] objects).
+    Scalar time series (including those inherently so, e.g. `mad`, `trHK`)
+    get reduced to [`DACycleAvrgs`][] objects.
 
     Supports:
 
@@ -615,23 +599,23 @@ class Avrgs(series.StatPrint, struct_tools.DotDict):
     """
 
     # Declared for static analysis; populated by Stats.average_in_time().
-    err: FieldStatAvrg
-    spread: FieldStatAvrg
-    mu: FieldStatAvrg
-    gscore: FieldStatAvrg
-    crps: FieldStatAvrg
-    mad: StatAvrg
-    skew: StatAvrg
-    kurt: StatAvrg
-    w: FieldStatAvrg
-    svals: FieldStatAvrg
-    umisf: FieldStatAvrg
-    trHK: StatAvrg
-    infl: StatAvrg
-    iters: StatAvrg
-    N_eff: StatAvrg
-    wroot: StatAvrg
-    resmpl: StatAvrg
+    err: FieldAvrgs
+    spread: FieldAvrgs
+    mu: FieldAvrgs
+    gscore: FieldAvrgs
+    crps: FieldAvrgs
+    mad: DACycleAvrgs
+    skew: DACycleAvrgs
+    kurt: DACycleAvrgs
+    w: FieldAvrgs
+    svals: FieldAvrgs
+    umisf: FieldAvrgs
+    trHK: DACycleAvrgs
+    infl: DACycleAvrgs
+    iters: DACycleAvrgs
+    N_eff: DACycleAvrgs
+    wroot: DACycleAvrgs
+    resmpl: DACycleAvrgs
     duration: float
 
     def __getattr__(self, key: str):
