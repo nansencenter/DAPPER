@@ -36,7 +36,7 @@ class _StatBuffer(struct_tools.DotDict):
 
     Used inside `Stats.assess` to accumulate values before writing them to
     the persistent `DACycleSeries` time series.  It is intentionally
-    untyped — its keys are strings like ``"err"``, ``"err.rms"``, etc.
+    untyped — its keys are strings like `"err"`, `"err.rms"`, etc.
     """
 
 
@@ -45,7 +45,7 @@ class StatAvrg(series.StatPrint, struct_tools.DotDict):
 
     Only subscripts for which finite data exist are set as attributes.
     Inherits [`DotDict`][struct_tools.DotDict] so the object is iterable
-    and supports ``in`` tests.
+    and supports `in` tests.
     """
 
     # Declared for static analysis; populated by Stats.average_in_time().
@@ -60,7 +60,7 @@ class FieldStatAvrg(series.StatPrint, struct_tools.DotDict):
 
     Only the field summaries that were actually computed are set as attributes.
     Inherits [`DotDict`][struct_tools.DotDict] so the object is iterable
-    and supports ``in`` tests.
+    and supports `in` tests.
     """
 
     # Declared for static analysis; populated by Stats.average_in_time().
@@ -76,16 +76,16 @@ class Stats(series.StatPrint):
 
     Standard vector stats (each a [`DACycleSeries`][tools.series.DACycleSeries]
     with scalar field-summary children `.rms`, `.m`, `.ma`, …):
-    ``err``, ``spread``, ``mu``, ``gscore``, ``crps``
+    `err`, `spread`, `mu`, `gscore`, `crps`
 
-    Standard scalar stats: ``mad``, ``skew``, ``kurt``
+    Standard scalar stats: `mad`, `skew`, `kurt`
 
-    Ensemble-only stats: ``w``, ``rh``, ``svals``, ``umisf``
+    Ensemble-only stats: `w`, `rh`, `svals`, `umisf`
 
-    Analysis-only scalar stats: ``trHK``, ``infl``, ``iters``,
-    ``N_eff``, ``wroot``, ``resmpl``
+    Analysis-only scalar stats: `trHK`, `infl`, `iters`,
+    `N_eff`, `wroot`, `resmpl`
 
-    DA methods may register additional stats via ``self.stat(name, value)``.
+    DA methods may register additional stats via `self.stat(name, value)`.
     """
 
     # Declared for static analysis; created dynamically via new_series() in __init__.
@@ -603,11 +603,11 @@ class Avrgs(series.StatPrint, struct_tools.DotDict):
 
     Supports:
 
-    - Deep attribute access: ``avrgs.err.rms.a``
-    - Dotted-key ``getattr``: ``getattr(avrgs, "err.rms.a")``
-    - Named abbreviations (as properties): ``avrgs.rmse``  →  ``avrgs.err.rms``
-    - Tabulation: ``avrgs.tabulate(["rmse.a", "rmv.a"])``
-    - Dict-like iteration and ``in`` tests (inherited from
+    - Deep attribute access: `avrgs.err.rms.a`
+    - Dotted-key `getattr`: `getattr(avrgs, "err.rms.a")`
+    - Named abbreviations (as properties): `avrgs.rmse`  →  `avrgs.err.rms`
+    - Tabulation: `avrgs.tabulate(["rmse.a", "rmv.a"])`
+    - Dict-like iteration and `in` tests (inherited from
       [`DotDict`][struct_tools.DotDict]).
     """
 
@@ -632,7 +632,7 @@ class Avrgs(series.StatPrint, struct_tools.DotDict):
     duration: float
 
     def __getattr__(self, key: str):
-        """Forward dotted-key lookups such as ``getattr(avrgs, "err.rms.a")``.
+        """Forward dotted-key lookups such as `getattr(avrgs, "err.rms.a")`.
 
         Called only when normal lookup fails.  If `key` contains a dot,
         resolve it as a chain of attribute accesses (which lets the
