@@ -1,5 +1,7 @@
 """Time series management and processing."""
 
+from __future__ import annotations
+
 import numpy as np
 from numpy import nan
 from patlib.std import find_1st_ind
@@ -169,6 +171,20 @@ class DACycleSeries(StatPrint):
     !!! note
         If a series only pertains to analysis times, pass `store_f=False`.
     """
+
+    # Array subscripts. .a and .i are always present;
+    # .f is absent when store_f=False; .s when store_s=False.
+    f: np.ndarray
+    a: np.ndarray
+    s: np.ndarray
+    i: np.ndarray
+
+    # Field-summary children, present on vector stats (populated by Stats.new_series).
+    m: DACycleSeries
+    ms: DACycleSeries
+    rms: DACycleSeries
+    ma: DACycleSeries
+    gm: DACycleSeries
 
     def __init__(self, K, Ko, item_shape, store_i, store_s, store_f=True, **kwargs):
         """Construct object.
