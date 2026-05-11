@@ -1,16 +1,27 @@
 """Statistics for the assessment of DA methods.
 
-[`Stats`][stats.Stats] is a data container for ([mostly] time series of) statistics.
-It comes with a battery of methods to compute the default statistics.
+[`Stats`][stats.Stats] records per-timestep statistics during assimilation and
+exposes them as [`DACycleSeries`][tools.series.DACycleSeries] attributes.
+The default statistics form a two-level hierarchy:
 
-[`Avrgs`][stats.Avrgs] is a data container *for the same statistics*,
-but after they have been averaged in time (after the assimilation has finished).
+- **Vector stats** (`err`, `spread`, `mu`, …) — one value per state dim.
+  Each has child scalar **field-summary** (`.rms`, `.m`, `.ma`, …)
+- **Scalar stats** (`mad`, `skew`, `kurt`, `trHK`, …) — inherently scalar.
 
-Instances of these objects are created by [`da_methods.da_method`][]
-(i.e. "`xp`") objects and written to their `.stats` and `.avrgs` attributes.
+[`Avrgs`][stats.Avrgs] holds the same hierarchy *after time-averaging:*
+
+- `avrgs.err.rms` → [`StatAvrg`][stats.StatAvrg] (one
+  [`UncertainQtty`][tools.rounding.UncertainQtty] per subscript f/a/s/i)
+- `avrgs.mad` → [`StatAvrg`][stats.StatAvrg]
+- `avrgs.rmse` → property alias for `avrgs.err.rms`
+
+Both objects are created by [`da_methods.da_method`][] and attached to the `xp`
+as `xp.stats` and `xp.avrgs`.
 
 --8<-- "dapper/stats_etc.md"
 """
+
+from __future__ import annotations
 
 import warnings
 
@@ -27,10 +38,89 @@ import dapper.tools.series as series
 from dapper.dpr_config import rc
 from dapper.tools.matrices import CovMat
 from dapper.tools.progressbar import progbar
+from dapper.tools.rounding import UncertainQtty
+
+
+class _StatBuffer(struct_tools.DotDict):
+    """Internal mutable scratch dict for stats computed at a single time step.
+
+    Used inside `Stats.assess` to accumulate values before writing them to
+    the persistent `DACycleSeries` time series.  It is intentionally
+    untyped — its keys are strings like ``"err"``, ``"err.rms"``, etc.
+    """
+
+
+class StatAvrg(series.StatPrint, struct_tools.DotDict):
+    """Time-averaged scalar stat: one [`UncertainQtty`][] per subscript.
+
+    Only subscripts for which finite data exist are set as attributes.
+    Inherits [`DotDict`][struct_tools.DotDict] so the object is iterable
+    and supports ``in`` tests.
+    """
+
+    # Declared for static analysis; populated by Stats.average_in_time().
+    f: UncertainQtty
+    a: UncertainQtty
+    s: UncertainQtty
+    i: UncertainQtty
+
+
+class FieldStatAvrg(series.StatPrint, struct_tools.DotDict):
+    """Time-averaged vector stat: one [`StatAvrg`][] per field summary.
+
+    Only the field summaries that were actually computed are set as attributes.
+    Inherits [`DotDict`][struct_tools.DotDict] so the object is iterable
+    and supports ``in`` tests.
+    """
+
+    # Declared for static analysis; populated by Stats.average_in_time().
+    m: StatAvrg
+    ms: StatAvrg
+    rms: StatAvrg
+    ma: StatAvrg
+    gm: StatAvrg
 
 
 class Stats(series.StatPrint):
-    """Contains and computes statistics of the DA methods."""
+    """Records and computes per-timestep statistics for a DA method.
+
+    Standard vector stats (each a [`DACycleSeries`][tools.series.DACycleSeries]
+    with scalar field-summary children `.rms`, `.m`, `.ma`, …):
+    ``err``, ``spread``, ``mu``, ``gscore``, ``crps``
+
+    Standard scalar stats: ``mad``, ``skew``, ``kurt``
+
+    Ensemble-only stats: ``w``, ``rh``, ``svals``, ``umisf``
+
+    Analysis-only scalar stats: ``trHK``, ``infl``, ``iters``,
+    ``N_eff``, ``wroot``, ``resmpl``
+
+    DA methods may register additional stats via ``self.stat(name, value)``.
+    """
+
+    # Declared for static analysis; created dynamically via new_series() in __init__.
+    mu: series.DACycleSeries
+    spread: series.DACycleSeries
+    err: series.DACycleSeries
+    gscore: series.DACycleSeries
+    crps: series.DACycleSeries
+    mad: series.DACycleSeries
+    skew: series.DACycleSeries
+    kurt: series.DACycleSeries
+    # Ensemble-only (created only when xp has N):
+    w: series.DACycleSeries
+    rh: series.DACycleSeries
+    svals: series.DACycleSeries
+    umisf: series.DACycleSeries
+    # Analysis-only:
+    trHK: series.DACycleSeries
+    infl: series.DACycleSeries
+    iters: series.DACycleSeries
+    N_eff: series.DACycleSeries
+    wroot: series.DACycleSeries
+    resmpl: series.DACycleSeries
+    # Added by da_method wrapper after assimilate() returns:
+    duration: float
 
     def __init__(self, xp, HMM, xx, yy, liveplots=False, store_i=rc.store_i):
         """Init the default statistics."""
@@ -44,9 +134,8 @@ class Stats(series.StatPrint):
         self.liveplots = liveplots
         self.store_i = store_i
         self._stat_names: list[str] = []
-        self.store_s = any(
-            key in xp.__dict__ for key in ["Lag", "DeCorr"]
-        )  # prms used by smoothers
+        # True for smoothers, which write to the 's' (smoothed) subscript.
+        self.store_s = any(hasattr(xp, key) for key in ("Lag", "DeCorr"))
 
         # Shapes
         K = xx.shape[0] - 1
@@ -224,7 +313,7 @@ class Stats(series.StatPrint):
                 np.seterrcall(warn_zero_variance)
 
                 # Assess
-                stats_now = Avrgs()
+                stats_now = _StatBuffer()
                 if self._is_ens:
                     self.assess_ens(stats_now, self.xx[k], E, w)
                 else:
@@ -391,54 +480,59 @@ class Stats(series.StatPrint):
         kko: np.ndarray | None = None,
         free: bool = False,
     ) -> None:
-        """Avarage all univariate (scalar) time series.
+        """Average all scalar time series, producing `xp.avrgs`.
 
-        - `kk`    time inds for averaging
-        - `kko` time inds for averaging obs
+        Parameters
+        ----------
+        kk:
+            Model-step indices to include when averaging the `i` (integrational)
+            subscript.  Defaults to `tseq.mask` (post-burnin).
+        kko:
+            Obs-time indices for the `f`/`a`/`s` subscripts.
+            Defaults to `tseq.masko`.
+        free:
+            If `True`, delete `xp.stats` after averaging to free memory.
         """
         tseq = self.HMM.tseq
-        if kk is None:
-            kk = tseq.mask
-        if kko is None:
-            kko = tseq.masko
+        kk = kk if kk is not None else tseq.mask
+        kko = kko if kko is not None else tseq.masko
 
-        def average1(tseries):
-            avrgs = Avrgs()
-
-            def average_multivariate():
-                # Plain averages of nd-series are rarely interesting.
-                # => Shortcircuit => Leave for manual computations
-                return avrgs
-
+        def avg(tseries):
+            """Recursively average a DACycleSeries (or copy a scalar)."""
             if isinstance(tseries, series.DACycleSeries):
-                # Average series for each subscript
                 if tseries.item_shape != ():
-                    return average_multivariate()
-                for sub in [ch for ch in "fas" if hasattr(tseries, ch)]:
-                    avrgs[sub] = series.mean_with_conf(getattr(tseries, sub)[kko])
-                if tseries.store_i:
-                    avrgs["i"] = series.mean_with_conf(tseries.i[kk])
-
+                    # Vector stat: don't average directly; collect field summaries.
+                    result: FieldStatAvrg | StatAvrg = FieldStatAvrg()
+                else:
+                    result = StatAvrg()
+                    for sub in "fasi":
+                        arr = getattr(tseries, sub, None)
+                        if arr is None:
+                            continue
+                        inds = kk if sub == "i" else kko
+                        if sub == "i" and not tseries.store_i:
+                            continue  # ring buffer — not stored over time
+                        vals = arr[inds]
+                        if np.any(np.isfinite(vals)):
+                            setattr(result, sub, series.mean_with_conf(vals))
+                # Recurse into children (field summaries and sector sub-stats).
+                for name in getattr(tseries, "_stat_names", []):
+                    child = getattr(tseries, name, None)
+                    if child is not None:
+                        setattr(result, name, avg(child))
+                return result
             elif np.isscalar(tseries):
-                avrgs = tseries  # Eg. just copy over "duration" from stats
-
+                return tseries  # e.g. duration — copy directly
             else:
-                raise TypeError(f"Don't know how to average {tseries}")
-
-            return avrgs
-
-        def recurse_average(stat_parent, avrgs_parent):
-            for key in getattr(stat_parent, "_stat_names", []):
-                try:
-                    tseries = getattr(stat_parent, key)
-                except AttributeError:
-                    continue  # Eg assess_ens() deletes .weights if None
-                avrgs = average1(tseries)
-                recurse_average(tseries, avrgs)
-                avrgs_parent[key] = avrgs
+                raise TypeError(f"Don't know how to average {tseries!r}")
 
         avrgs = Avrgs()
-        recurse_average(self, avrgs)
+        for name in self._stat_names:
+            tseries = getattr(self, name, None)
+            if tseries is None:
+                continue  # e.g. assess_ens() deletes .w when weights are uniform
+            avrgs[name] = avg(tseries)
+
         self.xp.avrgs = avrgs
         if free:
             delattr(self.xp, "stats")
@@ -508,32 +602,66 @@ def register_stat(self, name, value):
 
 
 class Avrgs(series.StatPrint, struct_tools.DotDict):
-    """A `dict` specialized for the averages of statistics.
+    """Time-averaged statistics produced by [`Stats.average_in_time`][].
 
-    Embellishments:
+    Attributes are populated by `Stats.average_in_time()`.  Standard vector
+    stats (e.g. `err`, `spread`) are [`FieldStatAvrg`][] objects; scalar stats
+    (e.g. `mad`, `trHK`) are [`StatAvrg`][] objects.
 
-    - [`tools.series.StatPrint`][]
-    - [`Avrgs.tabulate`][stats.Avrgs.tabulate]
-    - `getattr` that supports abbreviations.
+    Supports:
+
+    - Deep attribute access: ``avrgs.err.rms.a``
+    - Dotted-key ``getattr``: ``getattr(avrgs, "err.rms.a")``
+    - Named abbreviations (as properties): ``avrgs.rmse``  →  ``avrgs.err.rms``
+    - Tabulation: ``avrgs.tabulate(["rmse.a", "rmv.a"])``
+    - Dict-like iteration and ``in`` tests (inherited from
+      [`DotDict`][struct_tools.DotDict]).
     """
 
+    # Declared for static analysis; populated by Stats.average_in_time().
+    err: FieldStatAvrg
+    spread: FieldStatAvrg
+    mu: FieldStatAvrg
+    gscore: FieldStatAvrg
+    crps: FieldStatAvrg
+    mad: StatAvrg
+    skew: StatAvrg
+    kurt: StatAvrg
+    w: FieldStatAvrg
+    svals: FieldStatAvrg
+    umisf: FieldStatAvrg
+    trHK: StatAvrg
+    infl: StatAvrg
+    iters: StatAvrg
+    N_eff: StatAvrg
+    wroot: StatAvrg
+    resmpl: StatAvrg
+    duration: float
+
+    def __getattr__(self, key: str):
+        """Forward dotted-key lookups such as ``getattr(avrgs, "err.rms.a")``.
+
+        Called only when normal lookup fails.  If `key` contains a dot,
+        resolve it as a chain of attribute accesses (which lets the
+        abbreviation properties — `rmse`, etc. — participate naturally).
+        Plain missing keys raise `AttributeError` immediately to avoid
+        infinite recursion.
+        """
+        if "." not in key:
+            raise AttributeError(f"'Avrgs' object has no attribute {key!r}")
+        try:
+            return struct_tools.deep_getattr(self, key)
+        except AttributeError:
+            raise AttributeError(f"'Avrgs' object has no attribute {key!r}") from None
+
+    rmse = property(lambda self: self.err.rms, doc="Alias for `err.rms`")
+    rmss = property(lambda self: self.spread.rms, doc="Alias for `spread.rms`.")
+    rmv = property(lambda self: self.spread.rms, doc="Alias for `spread.rms`.")
+
     def tabulate(self, statkeys=(), decimals=None):
-        """Tabulate using [`tabulate_avrgs`][stats.tabulate_avrgs]"""
+        """Tabulate using [`tabulate_avrgs`][stats.tabulate_avrgs]."""
         columns = tabulate_avrgs([self], statkeys, decimals=decimals)
         return tabulate(columns, headers="keys").replace("␣", " ")
-
-    abbrevs = {"rmse": "err.rms", "rmss": "spread.rms", "rmv": "spread.rms"}
-
-    # Use getattribute coz it gets called before getattr.
-    def __getattribute__(self, key):
-        """Support deep and abbreviated lookup."""
-        # key = abbrevs[key] # Instead of this, also support rmse.a:
-        key = ".".join(Avrgs.abbrevs.get(seg, seg) for seg in key.split("."))
-
-        if "." in key:
-            return struct_tools.deep_getattr(self, key)
-        else:
-            return super().__getattribute__(key)
 
 
 # In case of degeneracy, variance might be 0, causing warnings
