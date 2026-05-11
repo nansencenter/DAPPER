@@ -71,7 +71,7 @@ class da_method:
                 ...
 
     To share default parameters across methods, define a
-    ``@dataclass(kw_only=True)`` base and inherit from both::
+    `@dataclass(kw_only=True)` base and inherit from both::
 
         @dataclass(kw_only=True)
         class ens_defaults:
