@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import shutil
+
 import numpy as np
+import rich.pretty
 from numpy import nan
 from patlib.std import find_1st_ind
-from struct_tools import NicePrint
 
 from dapper.tools.rounding import UncertainQtty
 
@@ -114,34 +116,37 @@ def mean_with_conf(xx):
     return uq
 
 
-class StatPrint(NicePrint):
-    """Set `NicePrint` options suitable for stats."""
+class StatPrint:
+    """Mixin that pretty-prints stats objects via rich."""
 
-    printopts = dict(
-        excluded=NicePrint.printopts["excluded"] + ["HMM", "LP_instance"],
-        ordering="linenumber",
-        reverse=True,
-        indent=2,
-        aliases={
-            "f": "Forecast (.f)",
-            "a": "Analysis (.a)",
-            "s": "Smoothed (.s)",
-            "i": "Integral (.i)",
-            "m": "Field mean (.m)",
-            "ma": "Field mean-abs (.ma)",
-            "rms": "Field root-mean-square (.rms)",
-            "gm": "Field geometric-mean (.gm)",
-        },
-    )
+    _print_excluded: frozenset = frozenset(["HMM", "LP_instance"])
+    _print_aliases: dict = {
+        "f": "Forecast (.f)",
+        "a": "Analysis (.a)",
+        "s": "Smoothed (.s)",
+        "i": "Integral (.i)",
+        "m": "Field mean (.m)",
+        "ma": "Field mean-abs (.ma)",
+        "rms": "Field root-mean-square (.rms)",
+        "gm": "Field geometric-mean (.gm)",
+    }
 
-    # Adjust np.printoptions before NicePrint
+    def __rich_repr__(self):
+        for k, v in vars(self).items():
+            if k not in self._print_excluded and not k.startswith("_"):
+                yield self._print_aliases.get(k, k), v
+
     def __repr__(self):
         with np.printoptions(threshold=10, precision=3):
-            return super().__repr__()
+            return rich.pretty.pretty_repr(
+                self, max_width=shutil.get_terminal_size().columns
+            )
 
     def __str__(self):
         with np.printoptions(threshold=10, precision=3):
-            return super().__str__()
+            return rich.pretty.pretty_repr(
+                self, max_width=shutil.get_terminal_size().columns
+            )
 
 
 class DACycleSeries(StatPrint):
