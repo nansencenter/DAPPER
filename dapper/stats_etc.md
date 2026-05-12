@@ -64,13 +64,13 @@ self.stats.err.rms.a = np.sqrt(np.mean(error_time_series_a**2, axis=-1))
 ```
 
 To register a scalar (non-series) custom statistic so it appears in `xp.avrgs`,
-use `self.stat`:
+use `self.stats.register`:
 
 ```python
-self.stat("your_custom_stat", value)
+self.stats.register("your_custom_stat", value)
 ```
 
-This calls [`register_stat`][stats.register_stat] internally, which sets the
+This calls [`register`][stats.register] internally, which sets the
 attribute and records `"your_custom_stat"` so that
 [`xp_launch.run_experiment`][] (which deletes `.stats` after assimilation to
 save memory) can still copy it into `xp.avrgs`.
