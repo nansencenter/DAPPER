@@ -67,7 +67,7 @@ class da_method:
         Parameters
         ----------
         HMM:
-            The `HiddenMarkovModel` defining the twin experiment.
+            The [`mods.HiddenMarkovModel`][] defining the twin experiment.
         xx:
             True states, shape `(K+1, Nx)`.
         yy:
