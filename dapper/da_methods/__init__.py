@@ -3,64 +3,23 @@
 --8<-- "dapper/da_methods/README.md"
 """
 
-import functools
 import time
 from dataclasses import dataclass, field
 from typing import dataclass_transform
 
-from dapper.stats import Avrgs, Stats, register_stat
-
-
-def _setup_da_method(cls: type) -> None:
-    """Apply dataclass and enhance `assimilate()` so that it includes
-
-    - timing
-    - gentle failure handling
-    - progress bar naming
-    - stats (see `dapper.stats.Stats`) init.
-    """
-    dataclass(cls)
-
-    _assimilate = cls.assimilate
-
-    def assimilate(self, HMM, xx, yy, desc=None, fail_gently=False, **stat_kwargs):
-        pb_name_hook = self.da_method if desc is None else desc  # noqa
-        self.stats = Stats(self, HMM, xx, yy, **stat_kwargs)
-        time0 = time.time()
-        try:
-            _assimilate(self, HMM, xx, yy)
-        except Exception as ERR:
-            if fail_gently:
-                self.crashed = True
-                if fail_gently not in ["silent", "quiet"]:
-                    _print_cropped_traceback(ERR)
-            else:
-                raise
-        self.stat("duration", time.time() - time0)
-
-    cls.assimilate = functools.wraps(_assimilate)(assimilate)
-
-    def stat(self, name, value):
-        register_stat(self.stats, name, value)
-
-    cls.stat = stat
-    cls.da_method = cls.__name__
+from dapper.stats import Avrgs, Stats
 
 
 @dataclass_transform()
 @dataclass
 class da_method:
-    """Base class for all DA methods (xp objects, short for "experiment").
+    """Base class for all DA methods.
+
+    Objects hereof are often called `xp`, short for "experiment".
 
     Inheriting from this class makes the subclass a dataclass
     (auto-generating `__init__`, `__repr__`, `__eq__`)
-    and also endows it with the following
-
-    - `.stats` (`Stats`): initialised when `assimilate()` is called.
-    - `.avrgs` (`Avrgs`): populated by `stats.average_in_time()`.
-
-    It also wraps subclass' (mandatory) `assimilate(self, HMM, xx, yy)
-    so as to set up stats, times execution, and `fail_gently`.
+    and also endows it `.stats`, `.avrgs`, and an enhanced `.assimilate()`.
 
     Example::
 
@@ -85,7 +44,56 @@ class da_method:
     """
 
     stats: Stats = field(init=False, repr=False, default=None)
+    """[`stats.Stats`][] object of time series recorded during `assimilate()`."""
     avrgs: Avrgs = field(init=False, repr=False, default=None)
+    """[`stats.Avrgs`][] object of time-averaged statistics.
+
+    Populated by `stats.average_in_time()` from [`stats`][da_methods.da_method.stats].
+    """
+
+    def assimilate(
+        self,
+        HMM,
+        xx,
+        yy,
+        desc: str | None = None,
+        fail_gently: bool | str = False,
+        **stat_kwargs,
+    ) -> None:
+        """Wraps subclasses `.assimilate()` method to add the extra parameters below,
+
+        as well as initialise `self.stats` and measure wall-clock time.
+
+        Parameters
+        ----------
+        HMM:
+            The `HiddenMarkovModel` defining the twin experiment.
+        xx:
+            True states, shape `(K+1, Nx)`.
+        yy:
+            Observations, shape `(Ko+1, Ny)`.
+        desc:
+            Label for the progress bar. Defaults to the class name.
+        fail_gently:
+            If truthy, catch exceptions and print a cropped traceback instead
+            of re-raising. Pass `"silent"` or `"quiet"` to suppress even that.
+        **stat_kwargs:
+            Forwarded to [`stats.Stats.__init__`][]
+            (e.g. `liveplots=True`, `store_i=False`).
+        """
+        pb_name_hook = self.da_method if desc is None else desc  # noqa
+        self.stats = Stats(self, HMM, xx, yy, **stat_kwargs)
+        time0 = time.time()
+        try:
+            self._assimilate(HMM, xx, yy)
+        except Exception as ERR:
+            if fail_gently:
+                self.crashed = True
+                if fail_gently not in ["silent", "quiet"]:
+                    _print_cropped_traceback(ERR)
+            else:
+                raise
+        self.stats.register("duration", time.time() - time0)
 
     def __init_subclass__(cls, **kwargs: object) -> None:
         super().__init_subclass__(**kwargs)
@@ -94,7 +102,11 @@ class da_method:
                 f"{cls.__name__!r} inherits from `da_method`"
                 " but does not define assimilate()."
             )
-        _setup_da_method(cls)
+        # Apply dataclass and wire subclass `assimilate()` to the base-class wrapper.
+        dataclass(cls)
+        cls._assimilate = cls.__dict__["assimilate"]
+        del cls.assimilate  # inherit da_method.assimilate (the wrapper) via MRO
+        cls.da_method = cls.__name__
 
 
 def _print_cropped_traceback(ERR):
@@ -139,15 +151,6 @@ def _print_cropped_traceback(ERR):
     print(msg, file=sys.stderr)
 
 
-# Import all da_methods
-# for _mod in Path(__file__).parent.glob("*.py"):
-#     if _mod != Path(__file__) and not _mod.stem.startswith("_"):
-#         _mod = __import__(__package__ + "." + _mod.stem, fromlist=['*'])
-#         del globals()[_mod.__name__.split(".")[-1]]  # rm module itself
-#         globals().update({k: v for k, v in vars(_mod).items()
-#                           if isinstance(v, type) and hasattr(v, "da_method")})
-
-# The above does not allow for go-to-definition, so
 from .baseline import Climatology, OptInterp, Persistence, PreProg, Var3D
 from .ensemble import LETKF, SL_EAKF, EnKF, EnKF_N, EnKS, EnRTS
 from .extended import ExtKF, ExtRTS

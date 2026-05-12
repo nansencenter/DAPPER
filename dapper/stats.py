@@ -72,7 +72,7 @@ class FieldAvrgs(series.StatPrint, struct_tools.DotDict):
 class Stats(series.StatPrint):
     """Records and computes per-timestep statistics for a DA method.
 
-    DA methods may register additional stats via `self.stat(name, value)`
+    DA methods may register additional stats via `self.stats.register(name, value)`
     for the purpose of automatic plotting and averaging.
     """
 
@@ -239,7 +239,7 @@ class Stats(series.StatPrint):
                 store_f=not analysis_only,
                 **kws,
             )
-            register_stat(parent, name, tseries)
+            register(parent, name, tseries)
 
         # Principal series
         make_series(self, name, shape)
@@ -592,7 +592,7 @@ class Stats(series.StatPrint):
                     plt.pause(0.01)
 
 
-def register_stat(self, name, value):
+def register(self, name, value):
     """Do `self.name = value` and register `name` in `self._stat_names`.
 
     Note: `self` is not always a `Stats` object, but could be a "child" of it
@@ -602,6 +602,9 @@ def register_stat(self, name, value):
     if not hasattr(self, "_stat_names"):
         self._stat_names: list[str] = []
     self._stat_names.append(name)
+
+
+Stats.register = register
 
 
 class Avrgs(series.StatPrint, struct_tools.DotDict):
