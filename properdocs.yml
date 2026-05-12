@@ -106,6 +106,7 @@ plugins:
                 attributes: false
                 functions: false # class methods
             show_labels: false
+            show_attribute_values: false
 
 # Mostly from
 # https://squidfunk.github.io/mkdocs-material/setup/extensions/#recommended-configuration
