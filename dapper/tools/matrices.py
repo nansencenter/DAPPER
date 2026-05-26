@@ -428,6 +428,9 @@ class CovMat:
         else:
             yield "rk", f"<={self.Right.shape[0]}"
 
+        # TODO: numpy array continuation lines are not re-indented to align with
+        # their opening bracket when nested inside a rich repr. Awaiting upstream
+        # fix: https://github.com/Textualize/rich/issues/2073
         K = np.get_printoptions()["edgeitems"]
         if hasattr(self, "_C") or np.get_printoptions()["threshold"] > self.M**2:
             yield "full", self.full
