@@ -5,11 +5,12 @@
 
 import copy as cp
 import inspect
+import shutil
 from collections.abc import Callable
 from pathlib import Path
 
 import numpy as np
-import struct_tools
+import rich.pretty
 
 # Imports used to set up HMMs
 import dapper.tools.progressbar as pb
@@ -25,7 +26,7 @@ from .integration import with_recursion, with_rk4
 from .utils import Id_Obs, ens_compatible, linspace_int, partial_Id_Obs
 
 
-class HiddenMarkovModel(struct_tools.NicePrint):
+class HiddenMarkovModel:
     """Container class (with some embellishments) for a Hidden Markov Model (HMM).
 
     Should contain the details necessary to run synthetic DA experiments,
@@ -113,7 +114,15 @@ class HiddenMarkovModel(struct_tools.NicePrint):
     def Nx(self):
         return self.Dyn.M
 
-    printopts = {"ordering": ["Dyn", "Obs", "tseq", "X0"], "indent": 4}
+    def __rich_repr__(self):
+        for k, v in vars(self).items():
+            if not k.startswith("_"):
+                yield k, v
+
+    def __repr__(self):
+        return rich.pretty.pretty_repr(
+            self, max_width=shutil.get_terminal_size().columns
+        )
 
     def simulate(self, desc="Truth & Obs"):
         """Generate synthetic truth and observations."""
@@ -180,7 +189,7 @@ class TimeDependentOperator:
         return repr(self(0))
 
 
-class Operator(struct_tools.NicePrint):
+class Operator:
     """Container for the dynamical and the observational maps.
 
     Parameters
@@ -247,4 +256,18 @@ class Operator(struct_tools.NicePrint):
     def __call__(self, *args, **kwargs):
         return self.model(*args, **kwargs)
 
-    printopts = {"ordering": ["M", "model", "noise"], "indent": 4}
+    _print_order = ["M", "model", "noise"]
+
+    def __rich_repr__(self):
+        attrs = vars(self)
+        for k in self._print_order:
+            if k in attrs:
+                yield k, attrs[k]
+        for k, v in attrs.items():
+            if k not in self._print_order and not k.startswith("_"):
+                yield k, v
+
+    def __repr__(self):
+        return rich.pretty.pretty_repr(
+            self, max_width=shutil.get_terminal_size().columns
+        )
