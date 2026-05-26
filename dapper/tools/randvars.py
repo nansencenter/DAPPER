@@ -1,22 +1,19 @@
 """Classes of random variables."""
 
+import shutil
 from collections.abc import Callable
 from pathlib import Path
 
 import numpy as np
+import rich.pretty
 from numpy import sqrt
-from struct_tools import NicePrint
 
 from dapper.tools.matrices import CovMat
 from dapper.tools.seeding import rng
 
 
-class RV(NicePrint):
+class RV:
     """Class to represent random variables."""
-
-    printopts = NicePrint.printopts.copy()
-    printopts["ordering"] = "linenumber"
-    printopts["reverse"] = True
 
     def __init__(
         self,
@@ -96,6 +93,16 @@ class RV(NicePrint):
                 " got E.shape[1]={E.shape[1]}"
             )
         return E
+
+    def __rich_repr__(self):
+        for k, v in vars(self).items():
+            if not k.startswith("_"):
+                yield k, v
+
+    def __repr__(self):
+        return rich.pretty.pretty_repr(
+            self, max_width=shutil.get_terminal_size().columns
+        )
 
 
 # TODO 4: improve constructor (treatment of arg cases is too fragile).
