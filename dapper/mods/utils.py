@@ -1,8 +1,10 @@
 """Utilities to help define hidden Markov models."""
 
 import functools
+import shutil
 
 import numpy as np
+import rich.pretty
 import scipy.linalg as sla
 
 from dapper.tools.rounding import is_whole
@@ -13,9 +15,10 @@ from dapper.tools.rounding import is_whole
 class NamedFunc:
     "Provides custom repr for functions."
 
-    def __init__(self, func, name):
+    def __init__(self, func, name, data=None):
         self._function = func
         self._new_name = name
+        self._data = data
         functools.update_wrapper(self, func)
 
     def __call__(self, *args, **kwargs):
@@ -25,14 +28,21 @@ class NamedFunc:
         return self._new_name
 
     def __repr__(self):
-        return str(self) + "\n" + repr(self._function)
+        return rich.pretty.pretty_repr(
+            self, max_width=shutil.get_terminal_size().columns
+        )
+
+    def __rich_repr__(self):
+        yield self._new_name
+        if self._data is not None:
+            yield self._data
 
 
-def name_func(name):
+def name_func(name, data=None):
     """Decorator for creating NamedFunc."""
 
     def namer(func):
-        return NamedFunc(func, name)
+        return NamedFunc(func, name, data=data)
 
     return namer
 
@@ -162,7 +172,7 @@ def partial_Id_Obs(Nx, obs_inds):
     def model(x):
         return x[obs_inds]
 
-    @name_func(f"Constant matrix\n{H}")
+    @name_func("Constant matrix", data=H)
     def linear(x):
         return H
 
