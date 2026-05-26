@@ -243,12 +243,17 @@ class Chronology:
             dt = t - self.tt[k - 1]
             yield k, t, dt
 
+    _print_fields = ["K", "Ko", "T", "BurnIn", "dto", "dt"]
+
+    def __rich_repr__(self):
+        for k in self._print_fields:
+            yield k, getattr(self, k)
+
     def __str__(self):
-        printable = ["K", "Ko", "T", "BurnIn", "dto", "dt"]
-        return rich.pretty.pretty_repr({k: getattr(self, k) for k in printable})
+        return rich.pretty.pretty_repr(self)
 
     def __repr__(self):
-        return "<" + type(self).__name__ + ">" + "\n" + str(self)
+        return rich.pretty.pretty_repr(self)
 
     ######################################
     # Utilities

@@ -185,8 +185,13 @@ class TimeDependentOperator:
     def __call__(self, ko: int) -> "Operator":
         return self._op if self._op is not None else self._func(ko)
 
+    def __rich_repr__(self):
+        yield from self(0).__rich_repr__()
+
     def __repr__(self):
-        return repr(self(0))
+        return rich.pretty.pretty_repr(
+            self, max_width=shutil.get_terminal_size().columns
+        )
 
 
 class Operator:
