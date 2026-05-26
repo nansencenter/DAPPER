@@ -1,14 +1,13 @@
 """Covariance matrix tools."""
 
 import functools
-import shutil
 
 import numpy as np
-import rich.pretty
 import scipy.linalg as sla
 from numpy import ones, sqrt, zeros
 
 from dapper.tools.linalg import mrdiv, svd0, truncate_rank
+from dapper.tools.repr_util import YamlRepr
 from dapper.tools.seeding import rng
 
 
@@ -167,7 +166,7 @@ def chol_reduce(Right):
     return R
 
 
-class CovMat:
+class CovMat(YamlRepr):
     """Covariance matrix class.
 
     Main tasks:
@@ -418,22 +417,17 @@ class CovMat:
     ##################################
     # __repr__
     ##################################
-    def __rich_repr__(self):
-        yield "M", self.M
-        yield "kind", self.kind
-        yield "trunc", self.trunc, 1.0  # omitted when default
-
+    def _repr_fields(self):
+        fields = {"M": self.M, "kind": self.kind}
+        if self.trunc != 1.0:
+            fields["trunc"] = self.trunc
         if self.has_done_EVD():
-            yield "rk", self.rk
+            fields["rk"] = self.rk
         else:
-            yield "rk", f"<={self.Right.shape[0]}"
-
-        # TODO: numpy array continuation lines are not re-indented to align with
-        # their opening bracket when nested inside a rich repr. Awaiting upstream
-        # fix: https://github.com/Textualize/rich/issues/2073
+            fields["rk"] = f"<={self.Right.shape[0]}"
         K = np.get_printoptions()["edgeitems"]
         if hasattr(self, "_C") or np.get_printoptions()["threshold"] > self.M**2:
-            yield "full", self.full
+            fields["full"] = np.round(self.full, 3)
         else:
             if hasattr(self, "_R"):
                 U, L = self.Left[:K, :], self.Left[-K:, :]
@@ -442,15 +436,10 @@ class CovMat:
                 L = self.V[-K:, :] * sqrt(self.ews)
             N = np.hstack([U @ U.T, np.nan * ones((K, 1)), U @ L.T])
             S = np.hstack([L @ U.T, np.nan * ones((K, 1)), L @ L.T])
-            yield "full (corners)", np.vstack([N, np.nan * ones(2 * K + 1), S])
-
-        yield "diag", self.diag
-
-    def __repr__(self):
-        with np.printoptions(threshold=10, precision=3):
-            return rich.pretty.pretty_repr(
-                self, max_width=shutil.get_terminal_size().columns
-            )
+            corners = np.vstack([N, np.nan * ones(2 * K + 1), S])
+            fields["full (corners)"] = np.round(corners, 3)
+        fields["diag"] = np.round(self.diag, 3)
+        return fields
 
 
 # Note: The diagonal representation is NOT memory-efficient.

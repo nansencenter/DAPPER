@@ -2,12 +2,12 @@
 
 import colorama
 import numpy as np
-import rich.pretty
 
 from dapper.tools.colors import color_text
+from dapper.tools.repr_util import YamlRepr
 
 
-class Chronology:
+class Chronology(YamlRepr):
     """Time schedules with consistency checks.
 
     - Uses int records, so `tt[k] == k*dt`.
@@ -245,15 +245,8 @@ class Chronology:
 
     _print_fields = ["K", "Ko", "T", "BurnIn", "dto", "dt"]
 
-    def __rich_repr__(self):
-        for k in self._print_fields:
-            yield k, getattr(self, k)
-
-    def __str__(self):
-        return rich.pretty.pretty_repr(self)
-
-    def __repr__(self):
-        return rich.pretty.pretty_repr(self)
+    def _repr_fields(self):
+        return {k: getattr(self, k) for k in self._print_fields}
 
     ######################################
     # Utilities

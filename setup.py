@@ -43,7 +43,6 @@ INSTALL_REQUIRES = [
     "pathos~=0.3",
     "dill==0.3.8",  # NB: must be same on remote computing servers
     "patlib==0.3.7",
-    "rich>=13",
     "threadpoolctl>=3.0.0,<4.0.0",
 ]
 
