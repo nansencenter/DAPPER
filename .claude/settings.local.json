@@ -26,7 +26,9 @@
       "Bash(~/.local/share/nvim/mason/bin/pyright *)",
       "Bash(python -m pytest *)",
       "Bash(mkdocs build *)",
-      "Bash(pip show *)"
+      "Bash(pip show *)",
+      "Bash(ruff check *)",
+      "Bash(ruff format *)"
     ]
   }
 }
