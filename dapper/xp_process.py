@@ -6,14 +6,15 @@ import warnings
 
 import colorama
 import numpy as np
+import rich.pretty
 from mpl_tools import place
 from patlib.std import nonchalance
-from struct_tools import AlignedDict, complement, intersect, transps
 from tabulate import tabulate
 
 from dapper.dpr_config import rc
 from dapper.stats import align_col, np2builtin, unpack_uqs
 from dapper.tools.colors import color_text, stripe
+from dapper.tools.dict_tools import complement, intersect, transps
 from dapper.tools.rounding import UncertainQtty
 from dapper.tools.viz import NoneDict, default_styles
 from dapper.xp_launch import xpList
@@ -211,7 +212,7 @@ class SparseSpace(dict):
         txt = f"<{self.__class__.__name__}>"
         txt += " with Coord/dims: "
         try:
-            txt += "(and ticks): " + str(AlignedDict(self.ticks))
+            txt += "(and ticks): " + rich.pretty.pretty_repr(self.ticks)
         except AttributeError:
             txt += str(self.dims) + "\n"
 

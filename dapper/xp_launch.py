@@ -15,7 +15,7 @@ from textwrap import dedent
 
 import dill
 import numpy as np
-import struct_tools
+import rich.pretty
 import tabulate as _tabulate
 from tabulate import tabulate
 from tqdm.auto import tqdm
@@ -24,6 +24,7 @@ import dapper.stats
 import dapper.tools.progressbar as pb
 from dapper.tools.colors import stripe
 from dapper.tools.datafiles import create_run_dir
+from dapper.tools.dict_tools import complement, flexcomp, intersect, prodct
 from dapper.tools.remote.uplink import submit_job_GCP
 from dapper.tools.seeding import set_seed
 from dapper.tools.viz import collapse_str
@@ -337,7 +338,7 @@ class xpList(list):
 
             # Remove unwanted
             excluded = [re.compile("^_"), "avrgs", "stats", "HMM", "duration"]
-            aggregate = struct_tools.complement(aggregate, excluded)
+            aggregate = complement(aggregate, excluded)
             return aggregate
 
         def _getattr_safe(xp, key):
@@ -384,7 +385,7 @@ class xpList(list):
         for key in _aggregate_keys():
             vals = [_getattr_safe(xp, key) for xp in self]
 
-            if struct_tools.flexcomp(key, *nomerge):
+            if flexcomp(key, *nomerge):
                 dct, vals = distinct, vals
 
             elif all(vals[0] == v for v in vals):
@@ -407,7 +408,7 @@ class xpList(list):
         s = f"<xpList> of length {len(self)} with attributes:\n"
         s += tabulate(distinct, headers="keys", showindex=True)
         s += "\nOther attributes:\n"
-        s += str(struct_tools.AlignedDict({**redundant, **common}))
+        s += rich.pretty.pretty_repr({**redundant, **common})
         return s
 
     def gen_names(self, abbrev=6, tab=False):
@@ -644,16 +645,16 @@ def combinator(param_dict, **glob_dict):
 
     def for_params(method, **fixed_params):
         dc_fields = [f.name for f in dcs.fields(method)]
-        params = struct_tools.intersect(param_dict, dc_fields)
-        params = struct_tools.complement(params, fixed_params)
+        params = intersect(param_dict, dc_fields)
+        params = complement(params, fixed_params)
         params = {**glob_dict, **params}  # glob_dict 1st
 
         def xp1(dct):
-            xp = method(**struct_tools.intersect(dct, dc_fields), **fixed_params)
-            for key, v in struct_tools.intersect(dct, glob_dict).items():
+            xp = method(**intersect(dct, dc_fields), **fixed_params)
+            for key, v in intersect(dct, glob_dict).items():
                 setattr(xp, key, v)
             return xp
 
-        return [xp1(dct) for dct in struct_tools.prodct(params)]
+        return [xp1(dct) for dct in prodct(params)]
 
     return for_params
