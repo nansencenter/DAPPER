@@ -15,8 +15,8 @@ from patlib.std import find_1st_ind
 from scipy.interpolate import interp1d
 
 import dapper.tools.series as series
-from dapper.tools.dict_tools import DotDict
 from dapper.tools.rounding import round2sigfig
+from dapper.tools.struct import DotDict
 
 
 def setup_wrapping(M, periodicity=None):

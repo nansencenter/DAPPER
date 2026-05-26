@@ -25,10 +25,10 @@ from tabulate import tabulate
 import dapper.tools.liveplotting as liveplotting
 import dapper.tools.series as series
 from dapper.dpr_config import rc
-from dapper.tools.dict_tools import DotDict, deep_getattr, deep_hasattr, intersect
 from dapper.tools.matrices import CovMat
 from dapper.tools.progressbar import progbar
 from dapper.tools.rounding import UncertainQtty
+from dapper.tools.struct import DotDict, deep_getattr, deep_hasattr, intersect
 
 
 class DACycleAvrgs(series.StatPrint, DotDict):

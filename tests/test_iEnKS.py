@@ -11,7 +11,7 @@ import pytest
 
 import dapper as dpr
 import dapper.da_methods as da
-from dapper.tools.dict_tools import deep_getattr
+from dapper.tools.struct import deep_getattr
 
 
 @pytest.fixture(scope="module")
