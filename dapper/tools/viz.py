@@ -13,9 +13,9 @@ from mpl_tools import place
 from numpy import arange, array
 from patlib.std import find_1st_ind
 from scipy.interpolate import interp1d
-from struct_tools import DotDict
 
 import dapper.tools.series as series
+from dapper.tools.dict_tools import DotDict
 from dapper.tools.rounding import round2sigfig
 
 

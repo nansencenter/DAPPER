@@ -8,10 +8,10 @@ These are very useful for testing boundary cases of the iEnKS (e.g. nIter=1, Lag
 ##############################
 import numpy as np
 import pytest
-from struct_tools import deep_getattr
 
 import dapper as dpr
 import dapper.da_methods as da
+from dapper.tools.dict_tools import deep_getattr
 
 
 @pytest.fixture(scope="module")
