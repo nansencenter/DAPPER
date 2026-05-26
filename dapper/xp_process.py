@@ -13,9 +13,9 @@ from tabulate import tabulate
 from dapper.dpr_config import rc
 from dapper.stats import align_col, np2builtin, unpack_uqs
 from dapper.tools.colors import color_text, stripe
-from dapper.tools.dict_tools import complement, intersect, transps
 from dapper.tools.repr_util import yaml_repr
 from dapper.tools.rounding import UncertainQtty
+from dapper.tools.struct import complement, intersect, transps
 from dapper.tools.viz import NoneDict, default_styles
 from dapper.xp_launch import xpList
 

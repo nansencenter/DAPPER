@@ -34,10 +34,10 @@ import dapper.tools.viz as viz
 from dapper.dpr_config import rc
 from dapper.mods.utils import linspace_int
 from dapper.tools.chronos import format_time
-from dapper.tools.dict_tools import DotDict, deep_getattr
 from dapper.tools.matrices import CovMat
 from dapper.tools.progressbar import read1
 from dapper.tools.series import DACycleSeries, RollingArray
+from dapper.tools.struct import DotDict, deep_getattr
 from dapper.tools.viz import not_available_text, plot_pause
 
 

@@ -18,7 +18,7 @@ import matplotlib as mpl
 import yaml
 from mpl_tools import is_using_interactive_backend
 
-from dapper.tools.dict_tools import DotDict
+from dapper.tools.struct import DotDict
 
 ##################################
 # Load configurations

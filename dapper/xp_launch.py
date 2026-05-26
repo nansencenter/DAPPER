@@ -23,10 +23,10 @@ import dapper.stats
 import dapper.tools.progressbar as pb
 from dapper.tools.colors import stripe
 from dapper.tools.datafiles import create_run_dir
-from dapper.tools.dict_tools import complement, flexcomp, intersect, prodct
 from dapper.tools.remote.uplink import submit_job_GCP
 from dapper.tools.repr_util import yaml_repr
 from dapper.tools.seeding import set_seed
+from dapper.tools.struct import complement, flexcomp, intersect, prodct
 from dapper.tools.viz import collapse_str
 
 _tabulate.MIN_PADDING = 0
