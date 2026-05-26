@@ -2,7 +2,7 @@
 
 import colorama
 import numpy as np
-from struct_tools import AlignedDict
+import rich.pretty
 
 from dapper.tools.colors import color_text
 
@@ -108,7 +108,8 @@ class Chronology:
 
         if len(self.kko) != self.Ko + 1:
             raise ValueError(
-                f"Internal inconsistency: len(kko)={len(self.kko)} != Ko+1={self.Ko+1}"
+                f"Internal inconsistency: len(kko)={len(self.kko)}"
+                f" != Ko+1={self.Ko + 1}"
             )
 
     ######################################
@@ -244,7 +245,7 @@ class Chronology:
 
     def __str__(self):
         printable = ["K", "Ko", "T", "BurnIn", "dto", "dt"]
-        return str(AlignedDict([(k, getattr(self, k)) for k in printable]))
+        return rich.pretty.pretty_repr({k: getattr(self, k) for k in printable})
 
     def __repr__(self):
         return "<" + type(self).__name__ + ">" + "\n" + str(self)
