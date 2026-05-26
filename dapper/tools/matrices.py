@@ -1,8 +1,10 @@
 """Covariance matrix tools."""
 
 import functools
+import shutil
 
 import numpy as np
+import rich.pretty
 import scipy.linalg as sla
 from numpy import ones, sqrt, zeros
 
@@ -416,57 +418,36 @@ class CovMat:
     ##################################
     # __repr__
     ##################################
-    def __repr__(self):
-        s = "\n    M: " + str(self.M)
-        s += "\n kind: " + repr(self.kind)
-        s += "\ntrunc: " + str(self.trunc)
+    def __rich_repr__(self):
+        yield "M", self.M
+        yield "kind", self.kind
+        yield "trunc", self.trunc, 1.0  # omitted when default
 
-        # Rank
-        s += "\n   rk: "
         if self.has_done_EVD():
-            s += str(self.rk)
+            yield "rk", self.rk
         else:
-            s += "<=" + str(self.Right.shape[0])
+            yield "rk", f"<={self.Right.shape[0]}"
 
-        # Full (as affordable)
-        s += "\n full:"
+        K = np.get_printoptions()["edgeitems"]
         if hasattr(self, "_C") or np.get_printoptions()["threshold"] > self.M**2:
-            # We can afford to compute full matrix
-            t = "\n" + str(self.full)
+            yield "full", self.full
         else:
-            # Only compute corners of full matrix
-            K = np.get_printoptions()["edgeitems"]
-            s += " (only computing/printing corners)"
             if hasattr(self, "_R"):
-                U = self.Left[:K, :]  # Upper
-                L = self.Left[-K:, :]  # Lower
+                U, L = self.Left[:K, :], self.Left[-K:, :]
             else:
                 U = self.V[:K, :] * sqrt(self.ews)
                 L = self.V[-K:, :] * sqrt(self.ews)
+            N = np.hstack([U @ U.T, np.nan * ones((K, 1)), U @ L.T])
+            S = np.hstack([L @ U.T, np.nan * ones((K, 1)), L @ L.T])
+            yield "full (corners)", np.vstack([N, np.nan * ones(2 * K + 1), S])
 
-            # Corners
-            NW = U @ U.T
-            NE = U @ L.T
-            SW = L @ U.T
-            SE = L @ L.T
+        yield "diag", self.diag
 
-            # Concatenate corners. Fill "cross" between them with nan's
-            N = np.hstack([NW, np.nan * ones((K, 1)), NE])
-            S = np.hstack([SW, np.nan * ones((K, 1)), SE])
-            All = np.vstack([N, np.nan * ones(2 * K + 1), S])
-
-            with np.printoptions(threshold=0):
-                t = "\n" + str(All)
-
-        # Indent all of cov array, and add to s
-        s += t.replace("\n", "\n   ")
-
-        # Add diag. Indent array +1 vs cov array
-        with np.printoptions(threshold=0):
-            s += "\n diag:\n   " + " " + str(self.diag)
-
-        s = "<" + type(self).__name__ + ">" + s.replace("\n", "\n  ")
-        return s
+    def __repr__(self):
+        with np.printoptions(threshold=10, precision=3):
+            return rich.pretty.pretty_repr(
+                self, max_width=shutil.get_terminal_size().columns
+            )
 
 
 # Note: The diagonal representation is NOT memory-efficient.
