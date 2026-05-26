@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-import shutil
-
 import numpy as np
-import rich.pretty
 from numpy import nan
 from patlib.std import find_1st_ind
 
+from dapper.tools.repr_util import YamlRepr
 from dapper.tools.rounding import UncertainQtty
 
 
@@ -116,8 +114,8 @@ def mean_with_conf(xx):
     return uq
 
 
-class StatPrint:
-    """Mixin that pretty-prints stats objects via rich."""
+class StatPrint(YamlRepr):
+    """Mixin that pretty-prints stats objects via YAML."""
 
     _print_excluded: frozenset = frozenset(["HMM", "LP_instance"])
     _print_aliases: dict = {
@@ -131,22 +129,13 @@ class StatPrint:
         "gm": "Field geometric-mean (.gm)",
     }
 
-    def __rich_repr__(self):
-        for k, v in vars(self).items():
-            if k not in self._print_excluded and not k.startswith("_"):
-                yield self._print_aliases.get(k, k), v
-
-    def __repr__(self):
+    def _repr_fields(self):
         with np.printoptions(threshold=10, precision=3):
-            return rich.pretty.pretty_repr(
-                self, max_width=shutil.get_terminal_size().columns
-            )
-
-    def __str__(self):
-        with np.printoptions(threshold=10, precision=3):
-            return rich.pretty.pretty_repr(
-                self, max_width=shutil.get_terminal_size().columns
-            )
+            return {
+                self._print_aliases.get(k, k): v
+                for k, v in vars(self).items()
+                if k not in self._print_excluded and not k.startswith("_")
+            }
 
 
 class DACycleSeries(StatPrint):

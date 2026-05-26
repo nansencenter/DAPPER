@@ -1,18 +1,17 @@
 """Utilities to help define hidden Markov models."""
 
 import functools
-import shutil
 
 import numpy as np
-import rich.pretty
 import scipy.linalg as sla
 
+from dapper.tools.repr_util import YamlRepr
 from dapper.tools.rounding import is_whole
 
 
 # https://stackoverflow.com/q/22797580
 # https://stackoverflow.com/q/10875442
-class NamedFunc:
+class NamedFunc(YamlRepr):
     "Provides custom repr for functions."
 
     def __init__(self, func, name, data=None):
@@ -27,15 +26,10 @@ class NamedFunc:
     def __str__(self):
         return self._new_name
 
-    def __repr__(self):
-        return rich.pretty.pretty_repr(
-            self, max_width=shutil.get_terminal_size().columns
-        )
-
-    def __rich_repr__(self):
-        yield self._new_name
-        if self._data is not None:
-            yield self._data
+    def _repr_fields(self):
+        if self._data is None:
+            return self._new_name
+        return {"name": self._new_name, "data": self._data}
 
 
 def name_func(name, data=None):

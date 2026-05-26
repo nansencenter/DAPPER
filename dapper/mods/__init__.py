@@ -5,12 +5,10 @@
 
 import copy as cp
 import inspect
-import shutil
 from collections.abc import Callable
 from pathlib import Path
 
 import numpy as np
-import rich.pretty
 
 # Imports used to set up HMMs
 import dapper.tools.progressbar as pb
@@ -20,13 +18,14 @@ from dapper.tools.chronos import Chronology
 from dapper.tools.localization import no_localization
 from dapper.tools.matrices import CovMat
 from dapper.tools.randvars import RV, GaussRV
+from dapper.tools.repr_util import YamlRepr, _ReprDumper
 from dapper.tools.seeding import set_seed
 
 from .integration import with_recursion, with_rk4
 from .utils import Id_Obs, ens_compatible, linspace_int, partial_Id_Obs
 
 
-class HiddenMarkovModel:
+class HiddenMarkovModel(YamlRepr):
     """Container class (with some embellishments) for a Hidden Markov Model (HMM).
 
     Should contain the details necessary to run synthetic DA experiments,
@@ -114,15 +113,12 @@ class HiddenMarkovModel:
     def Nx(self):
         return self.Dyn.M
 
-    def __rich_repr__(self):
-        for k, v in vars(self).items():
-            if not k.startswith("_"):
-                yield k, v
-
-    def __repr__(self):
-        return rich.pretty.pretty_repr(
-            self, max_width=shutil.get_terminal_size().columns
-        )
+    def _repr_fields(self):
+        fields = {"Dyn": self.Dyn, "Obs": self.Obs, "tseq": self.tseq, "X0": self.X0}
+        if self.sectors:
+            fields["sectors"] = self.sectors
+        fields["name"] = self.name
+        return fields
 
     def simulate(self, desc="Truth & Obs"):
         """Generate synthetic truth and observations."""
@@ -185,16 +181,17 @@ class TimeDependentOperator:
     def __call__(self, ko: int) -> "Operator":
         return self._op if self._op is not None else self._func(ko)
 
-    def __rich_repr__(self):
-        yield from self(0).__rich_repr__()
-
     def __repr__(self):
-        return rich.pretty.pretty_repr(
-            self, max_width=shutil.get_terminal_size().columns
-        )
+        return repr(self(0))
 
 
-class Operator:
+_ReprDumper.add_representer(
+    TimeDependentOperator,
+    lambda d, obj: d.represent_data(obj(0)),
+)
+
+
+class Operator(YamlRepr):
     """Container for the dynamical and the observational maps.
 
     Parameters
@@ -263,16 +260,12 @@ class Operator:
 
     _print_order = ["M", "model", "noise"]
 
-    def __rich_repr__(self):
+    def _repr_fields(self):
         attrs = vars(self)
-        for k in self._print_order:
-            if k in attrs:
-                yield k, attrs[k]
-        for k, v in attrs.items():
-            if k not in self._print_order and not k.startswith("_"):
-                yield k, v
-
-    def __repr__(self):
-        return rich.pretty.pretty_repr(
-            self, max_width=shutil.get_terminal_size().columns
-        )
+        ordered = {k: attrs[k] for k in self._print_order if k in attrs}
+        rest = {
+            k: v
+            for k, v in attrs.items()
+            if k not in self._print_order and not k.startswith("_")
+        }
+        return {**ordered, **rest}

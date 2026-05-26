@@ -15,7 +15,6 @@ from textwrap import dedent
 
 import dill
 import numpy as np
-import rich.pretty
 import tabulate as _tabulate
 from tabulate import tabulate
 from tqdm.auto import tqdm
@@ -26,6 +25,7 @@ from dapper.tools.colors import stripe
 from dapper.tools.datafiles import create_run_dir
 from dapper.tools.dict_tools import complement, flexcomp, intersect, prodct
 from dapper.tools.remote.uplink import submit_job_GCP
+from dapper.tools.repr_util import yaml_repr
 from dapper.tools.seeding import set_seed
 from dapper.tools.viz import collapse_str
 
@@ -408,7 +408,7 @@ class xpList(list):
         s = f"<xpList> of length {len(self)} with attributes:\n"
         s += tabulate(distinct, headers="keys", showindex=True)
         s += "\nOther attributes:\n"
-        s += rich.pretty.pretty_repr({**redundant, **common})
+        s += yaml_repr({**redundant, **common})
         return s
 
     def gen_names(self, abbrev=6, tab=False):

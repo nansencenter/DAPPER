@@ -6,7 +6,6 @@ import warnings
 
 import colorama
 import numpy as np
-import rich.pretty
 from mpl_tools import place
 from patlib.std import nonchalance
 from tabulate import tabulate
@@ -15,6 +14,7 @@ from dapper.dpr_config import rc
 from dapper.stats import align_col, np2builtin, unpack_uqs
 from dapper.tools.colors import color_text, stripe
 from dapper.tools.dict_tools import complement, intersect, transps
+from dapper.tools.repr_util import yaml_repr
 from dapper.tools.rounding import UncertainQtty
 from dapper.tools.viz import NoneDict, default_styles
 from dapper.xp_launch import xpList
@@ -210,11 +210,12 @@ class SparseSpace(dict):
 
     def __repr__(self):
         txt = f"<{self.__class__.__name__}>"
-        txt += " with Coord/dims: "
+        txt += " with Coord/dims "
         try:
-            txt += "(and ticks): " + rich.pretty.pretty_repr(self.ticks)
+            txt += "(and ticks):\n" + yaml_repr(self.ticks)
         except AttributeError:
-            txt += str(self.dims) + "\n"
+            txt += str(self.dims)
+        txt += "\n"
 
         # Note: print(xpList(self)) produces a more human-readable table,
         # but requires prep_table(), which we don't really want to call again
@@ -224,7 +225,7 @@ class SparseSpace(dict):
         if 2 * L < len(keys):
             keys = keys[:L] + ["..."] + keys[-L:]
         keys = "[\n  " + ",\n  ".join(keys) + "\n]"
-        return txt + f"populated by {len(self)} items with keys: {keys}"
+        return txt + f"\npopulated by {len(self)} items with keys: {keys}"
 
     def nest(self, inner_dims=None, outer_dims=None):
         """Project along `inner_acces` to yield a new `xpSpace` with dims `outer_dims`

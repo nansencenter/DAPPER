@@ -1,18 +1,17 @@
 """Classes of random variables."""
 
-import shutil
 from collections.abc import Callable
 from pathlib import Path
 
 import numpy as np
-import rich.pretty
 from numpy import sqrt
 
 from dapper.tools.matrices import CovMat
+from dapper.tools.repr_util import YamlRepr
 from dapper.tools.seeding import rng
 
 
-class RV:
+class RV(YamlRepr):
     """Class to represent random variables."""
 
     def __init__(
@@ -93,16 +92,6 @@ class RV:
                 " got E.shape[1]={E.shape[1]}"
             )
         return E
-
-    def __rich_repr__(self):
-        for k, v in vars(self).items():
-            if not k.startswith("_"):
-                yield k, v
-
-    def __repr__(self):
-        return rich.pretty.pretty_repr(
-            self, max_width=shutil.get_terminal_size().columns
-        )
 
 
 # TODO 4: improve constructor (treatment of arg cases is too fragile).
