@@ -17,7 +17,8 @@ from pathlib import Path
 import matplotlib as mpl
 import yaml
 from mpl_tools import is_using_interactive_backend
-from struct_tools import DotDict
+
+from dapper.tools.dict_tools import DotDict
 
 ##################################
 # Load configurations

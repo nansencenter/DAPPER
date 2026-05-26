@@ -17,7 +17,6 @@ import warnings
 
 import numpy as np
 import scipy.linalg as sla
-import struct_tools
 from matplotlib import pyplot as plt
 from patlib.std import do_once
 from scipy import special
@@ -26,12 +25,13 @@ from tabulate import tabulate
 import dapper.tools.liveplotting as liveplotting
 import dapper.tools.series as series
 from dapper.dpr_config import rc
+from dapper.tools.dict_tools import DotDict, deep_getattr, deep_hasattr, intersect
 from dapper.tools.matrices import CovMat
 from dapper.tools.progressbar import progbar
 from dapper.tools.rounding import UncertainQtty
 
 
-class DACycleAvrgs(series.StatPrint, struct_tools.DotDict):
+class DACycleAvrgs(series.StatPrint, DotDict):
     """Time-averaged scalar stat: one [`tools.rounding.UncertainQtty`][] per subscript.
 
     Only subscripts for which finite data exist are set as attributes.
@@ -49,7 +49,7 @@ class DACycleAvrgs(series.StatPrint, struct_tools.DotDict):
     """Integrational (between-obs) time average."""
 
 
-class FieldAvrgs(series.StatPrint, struct_tools.DotDict):
+class FieldAvrgs(series.StatPrint, DotDict):
     """Time-averaged vector stat: one [`stats.DACycleAvrgs`][] per field summary.
 
     Only the field summaries that were actually computed are set as attributes.
@@ -151,9 +151,7 @@ class Stats(series.StatPrint):
             gm=lambda x: np.exp(en_mean(np.log(x))),  # geometric mean
         )
         # Only keep the methods listed in rc
-        self.field_summaries = struct_tools.intersect(
-            self.field_summaries, rc.field_summaries
-        )
+        self.field_summaries = intersect(self.field_summaries, rc.field_summaries)
 
         # Define similar methods, but restricted to sectors
         self.sector_summaries = {}
@@ -253,9 +251,7 @@ class Stats(series.StatPrint):
             if field_mean == "sectors":
                 for ss in self.sector_summaries:
                     suffix, sector = ss.split(".")
-                    make_series(
-                        struct_tools.deep_getattr(self, f"{name}.{suffix}"), sector, ()
-                    )
+                    make_series(deep_getattr(self, f"{name}.{suffix}"), sector, ())
 
     def assess(
         self,
@@ -310,7 +306,7 @@ class Stats(series.StatPrint):
                 np.seterrcall(warn_zero_variance)
 
                 # Assess
-                stats_now = struct_tools.DotDict()
+                stats_now = DotDict()
                 if self._is_ens:
                     self.assess_ens(stats_now, self.xx[k], E, w)
                 else:
@@ -331,7 +327,7 @@ class Stats(series.StatPrint):
     def write(self, stat_dict, k, ko, sub):
         """Write `stat_dict` to series at `(k, ko, sub)`."""
         for name, val in stat_dict.items():
-            stat = struct_tools.deep_getattr(self, name)
+            stat = deep_getattr(self, name)
             if isinstance(stat, series.DACycleSeries):
                 ind = (k if stat.store_i else 0) if sub == "i" else ko
                 if hasattr(stat, sub):
@@ -348,7 +344,7 @@ class Stats(series.StatPrint):
                 field = now[stat]
                 for suffix, formula in formulae.items():
                     statpath = stat + "." + suffix
-                    if struct_tools.deep_hasattr(self, statpath):
+                    if deep_hasattr(self, statpath):
                         now[statpath] = formula(field)
 
     def derivative_stats(self, now):
@@ -607,7 +603,7 @@ def register(self, name, value):
 Stats.register = register
 
 
-class Avrgs(series.StatPrint, struct_tools.DotDict):
+class Avrgs(series.StatPrint, DotDict):
     """Time-averaged statistics produced by [`stats.Stats.average_in_time`][].
 
     Attributes get populated by `Stats.average_in_time()`.
@@ -676,7 +672,7 @@ class Avrgs(series.StatPrint, struct_tools.DotDict):
         if "." not in key:
             raise AttributeError(f"'Avrgs' object has no attribute {key!r}")
         try:
-            return struct_tools.deep_getattr(self, key)
+            return deep_getattr(self, key)
         except AttributeError:
             raise AttributeError(f"'Avrgs' object has no attribute {key!r}") from None
 

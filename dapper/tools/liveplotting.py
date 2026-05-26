@@ -28,13 +28,13 @@ from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.mplot3d.art3d import juggle_axes
 from mpl_tools import is_notebook_or_qt, place, place_ax
 from numpy import arange, nan, ones
-from struct_tools import DotDict, deep_getattr
 
 import dapper.tools.progressbar as pb
 import dapper.tools.viz as viz
 from dapper.dpr_config import rc
 from dapper.mods.utils import linspace_int
 from dapper.tools.chronos import format_time
+from dapper.tools.dict_tools import DotDict, deep_getattr
 from dapper.tools.matrices import CovMat
 from dapper.tools.progressbar import read1
 from dapper.tools.series import DACycleSeries, RollingArray
