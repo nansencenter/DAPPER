@@ -6,13 +6,13 @@ Requires rsync, gcloud and ssh access to the DAPPER cluster.
 # TODO 9: use Fabric? https://www.fabfile.org/
 
 import os
+import re
 import subprocess
 import tempfile
 import time
 from datetime import timedelta, timezone
 
 from dateutil.parser import parse as datetime_parse
-from patlib.std import sorted_human
 from tqdm import tqdm
 
 from dapper.dpr_config import rc
@@ -328,7 +328,11 @@ def _monitor_progress(self):
 
 
 def list_job_dirs(xps_path):
-    dirs = sorted_human(os.listdir(xps_path))
+    # Sort the way a human would (numeric segments by value, not lexically)
+    dirs = sorted(
+        os.listdir(xps_path),
+        key=lambda s: [int(c) if c.isdigit() else c for c in re.split("([0-9]+)", s)],
+    )
     dirs = [xps_path / d for d in dirs]
     dirs = [d for d in dirs if d.is_dir() and d.stem.isnumeric()]
     return dirs

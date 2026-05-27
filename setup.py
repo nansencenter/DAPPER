@@ -42,7 +42,6 @@ INSTALL_REQUIRES = [
     "tabulate~=0.8.3",
     "pathos~=0.3",
     "dill==0.3.8",  # NB: must be same on remote computing servers
-    "patlib==0.3.7",
     "threadpoolctl>=3.0.0,<4.0.0",
 ]
 

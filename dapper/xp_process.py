@@ -1,13 +1,13 @@
 """Tools (notably `xpSpace`) for processing and presenting experiment data."""
 
 import collections
+import contextlib
 import copy
 import warnings
 
 import colorama
 import numpy as np
 from mpl_tools import place
-from patlib.std import nonchalance
 from tabulate import tabulate
 
 from dapper.dpr_config import rc
@@ -937,7 +937,8 @@ class xpSpace(SparseSpace):
         if title1 is not None:
             fig_title += ". " + title1
         if title2 is not None:
-            with nonchalance():
+            # Make path relative for brevity; ignore if it's not under data dir
+            with contextlib.suppress(Exception):
                 title2 = title2.relative_to(rc.dirs["data"])
             fig_title += "\n" + str(title2)
         fig.suptitle(fig_title)

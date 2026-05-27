@@ -11,7 +11,6 @@ from matplotlib.animation import FuncAnimation
 from matplotlib.ticker import MaxNLocator
 from mpl_tools import place
 from numpy import arange, array
-from patlib.std import find_1st_ind
 from scipy.interpolate import interp1d
 
 import dapper.tools.series as series
@@ -242,7 +241,8 @@ def estimate_good_plot_length(xx, tseq=None, mult=100):
         tseq = tseq
         K = int(min(max(K, tseq.dko), tseq.K))
         T = round2sigfig(tseq.tt[K], 2)  # Could return T; T>tt[-1]
-        K = find_1st_ind(tseq.tt >= T)
+        # Find the first time index at or past T
+        K = np.flatnonzero(tseq.tt >= T)[0]
         if K:
             return K
         else:

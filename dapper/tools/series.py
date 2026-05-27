@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import numpy as np
 from numpy import nan
-from patlib.std import find_1st_ind
 
 from dapper.tools.repr_util import YamlRepr
 from dapper.tools.rounding import UncertainQtty
@@ -52,9 +51,10 @@ def fit_acf_by_AR1(acf_empir, nlags=None):
     def mean_ratio(xx):
         return geometric_mean([xx[i] / xx[i - 1] for i in range(1, len(xx))])
 
-    # Negative correlation => Truncate ACF
-    neg_ind = find_1st_ind(np.array(acf_empir) <= 0)
-    acf_empir = acf_empir[:neg_ind]
+    # Truncate ACF at first non-positive lag (negative correlation)
+    negatives = np.flatnonzero(np.array(acf_empir) <= 0)
+    neg0 = negatives[0] if len(negatives) else None
+    acf_empir = acf_empir[:neg0]
 
     if len(acf_empir) == 0:
         return 0
