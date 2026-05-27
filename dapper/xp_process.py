@@ -939,7 +939,7 @@ class xpSpace(SparseSpace):
         if title2 is not None:
             # Make path relative for brevity; ignore if it's not under data dir
             with contextlib.suppress(Exception):
-                title2 = title2.relative_to(rc.dirs["data"])
+                title2 = title2.relative_to(rc.dirs.data)
             fig_title += "\n" + str(title2)
         fig.suptitle(fig_title)
 

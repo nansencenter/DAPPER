@@ -1,81 +1,91 @@
-"""Load default and user configurations into the `rc` dict.
+"""Runtime configuration for DAPPER.
 
-The `rc` dict can be updated (after startup) as any normal dict.
+Defaults are set below. Override at runtime::
 
-The config file should reside in your `$HOME/`, or `$HOME/.config/` or `$PWD/`.
-If several exist, the last one found (from the above ordering) is used.
-The default configuration is given below.
+    import dapper
+    dapper.rc.liveplotting = False
 
-```yaml
---8<-- "dapper/dpr_config.yaml"
-```
+Or use environment variables: `DAPPER_DATA_ROOT`, `DAPPER_LIVEPLOTTING`
+(these in particular are useful for remote jobs).
 """
 
 import os
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import matplotlib as mpl
-import yaml
 from mpl_tools import is_using_interactive_backend
 
-from dapper.tools.struct import DotDict
+
+@dataclass
+class Comps:
+    """Curtail heavy computations."""
+
+    error_only: bool = False
+    max_spectral: int = 51
+
+
+@dataclass
+class DirPaths:
+    dapper: Path = field(default_factory=Path)
+    DAPPER: Path = field(default_factory=Path)
+    data: Path = field(default_factory=Path)
+    samples: Path = field(default_factory=Path)
+
+
+@dataclass
+class RC:
+    # Methods used to average multivariate ("field") stats.
+    # PS: If the model is computationally trivial, the stats computations take
+    # up most time. Therefore, not all of these are activated by default.
+    field_summaries: list[str] = field(
+        default_factory=lambda: [
+            "m",  # plain mean
+            # "ms",   # mean-square
+            "rms",  # root-mean-square
+            "ma",  # mean-absolute
+            # "gm",   # geometric mean
+        ]
+    )
+    store_i: bool = False  # Store stats between analysis times?
+    sigfig: int = 4  # Default significant figures
+    liveplotting: bool = True  # Enable liveplotting?
+    place_figs: bool = False  # Place (certain) figures automatically (experimental)?
+    comps: Comps = field(default_factory=Comps)
+    dirs: DirPaths = field(default_factory=DirPaths)
+
+
+rc = RC()
 
 ##################################
-# Load configurations
+# Apply environment variable overrides
 ##################################
-dapper_dir = Path(__file__).absolute().parent
-rc = DotDict()
-rc.loaded_from = []
-for d in [dapper_dir, "~", "~/.config", "."]:
-    d = Path(d).expanduser().absolute()
-    for prefix in [".", ""]:
-        f = d / (prefix + "dpr_config.yaml")
-        if f.is_file():
-            dct = yaml.load(open(f), Loader=yaml.SafeLoader)
-            rc.loaded_from.append(str(f))
-            if dct:
-                if d == dapper_dir:
-                    rc.update(dct)
-                else:
-                    for k in dct:
-                        if k in rc:
-                            rc[k] = dct[k]
-                        else:
-                            print(f"Warning: invalid key '{k}' in '{f}'")
+# Where to store experimental settings and results
+# (e.g. you don't want this to be in your Dropbox).
+_data_root: str | Path = os.environ.get("DAPPER_DATA_ROOT", "~")
 
+if (_liveplotting := os.environ.get("DAPPER_LIVEPLOTTING")) is not None:
+    rc.liveplotting = _liveplotting.lower() not in ("no", "false", "0")
 
 ##################################
 # Setup dir paths
 ##################################
-rc.dirs = DotDict()
-rc.dirs.dapper = dapper_dir
-rc.dirs.DAPPER = rc.dirs.dapper.parent
-# Data path
-x = rc.pop("data_root")
-if x.lower() in ["$cwd", "$pwd"]:
-    x = Path.cwd()
-elif x.lower() == "$dapper":
-    x = rc.dirs.DAPPER
-else:
-    x = Path(x)
-rc.dirs.data = x / "dpr_data"
+_dapper_dir = Path(__file__).absolute().parent
+rc.dirs.dapper = _dapper_dir
+rc.dirs.DAPPER = _dapper_dir.parent
+rc.dirs.data = Path(_data_root).expanduser() / "dpr_data"
 rc.dirs.samples = rc.dirs.data / "samples"
 
-# Expanduser, create dir
-for d in rc.dirs:
-    rc.dirs[d] = rc.dirs[d].expanduser()
-    os.makedirs(rc.dirs[d], exist_ok=True)
-
+for _name, _path in vars(rc.dirs).items():
+    setattr(rc.dirs, _name, Path(_path).expanduser())
+    os.makedirs(getattr(rc.dirs, _name), exist_ok=True)
 
 ##################################
-# Disable rc.liveplotting in case of non-interactive backends
+# Disable liveplotting if non-interactive
 ##################################
-# Otherwise, warnings are thrown on every occurence of plt.pause (not plot_pause),
-# and assimilate() slows down, even though nothing is shown.
 if rc.liveplotting and not is_using_interactive_backend():
     print(
-        "\nWarning: You have not disableed interactive/live plotting",
-        "in your dpr_config.yaml,",
+        "\nWarning: You have not disabled interactive/live plotting,",
         "but this is not supported by the current matplotlib backend:",
         f"{mpl.get_backend()}. To enable it, try using another backend.\n",
     )

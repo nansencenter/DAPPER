@@ -184,11 +184,11 @@ class Stats(series.StatPrint):
 
             self._is_ens = True
             minN = min(Nx, N)
-            self.do_spectral = np.sqrt(Nx * N) <= rc.comps["max_spectral"]
+            self.do_spectral = np.sqrt(Nx * N) <= rc.comps.max_spectral
         else:
             self._is_ens = False
             minN = Nx
-            self.do_spectral = Nx <= rc.comps["max_spectral"]
+            self.do_spectral = Nx <= rc.comps.max_spectral
 
         if self.do_spectral:
             # Note: the mean-field and RMS time-series of
@@ -351,7 +351,7 @@ class Stats(series.StatPrint):
         try:
             now.gscore = 2 * np.log(now.spread) + (now.err / now.spread) ** 2
         except AttributeError:
-            # happens in case rc.comps['error_only']
+            # happens in case rc.comps.error_only
             pass
 
     def assess_ens(self, now, x, E, w):
@@ -364,7 +364,7 @@ class Stats(series.StatPrint):
             if hasattr(self, "w"):
                 delattr(self, "w")
             # Use non-weight formula (since w=None) for mu computations.
-            # The savings are noticeable when rc.comps['error_only'] is noticeable.
+            # The savings are noticeable when rc.comps.error_only is noticeable.
             now.mu = E.mean(0)
         else:
             now.w = w
@@ -380,7 +380,7 @@ class Stats(series.StatPrint):
 
         # Compute errors
         now.err = now.mu - x
-        if rc.comps["error_only"]:
+        if rc.comps.error_only:
             return
 
         now.crps = crps_ens(x, E, w)
@@ -439,7 +439,7 @@ class Stats(series.StatPrint):
         # Compute errors
         now.mu = mu
         now.err = now.mu - x
-        if rc.comps["error_only"]:
+        if rc.comps.error_only:
             return
 
         # Get diag(P)

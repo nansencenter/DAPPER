@@ -585,13 +585,6 @@ class xpList(list):
                 except OSError:
                     shutil.copy2(path, dst)  # file
 
-            with open(extra_files / "dpr_config.yaml", "w") as f:
-                f.write(
-                    "\n".join(
-                        ["data_root: '$cwd'", "liveplotting: no", "welcome_message: no"]
-                    )
-                )
-
             # Loads PWD/xp_{var,com} and calls run_experiment()
             with open(extra_files / "load_and_run.py", "w") as f:
                 f.write(
