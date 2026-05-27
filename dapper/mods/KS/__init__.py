@@ -12,8 +12,8 @@ import functools
 
 import numpy as np
 
-from dapper.dpr_config import DotDict
 from dapper.mods.integration import integrate_TLM, with_rk4
+from dapper.tools.struct import DotDict
 
 
 # To & from time/Fourier domain -- use reals-only fft
