@@ -49,7 +49,7 @@ dependencies = [
 Qt    = ["PyQt5", "qtpy"]
 debug = ["line_profiler", "pre-commit"]
 test  = [
-    "tox",
+    "tox-uv",
     "coverage>=5.1",
     "pytest",
     "pytest-cov",
@@ -136,12 +136,10 @@ exclude_lines = [
 [tool.tox]
 legacy_tox_ini = """
 [tox]
-envlist = py3{7,8,9}
-toxworkdir={homedir}/.tox
+envlist = py3{12,13}
+runner = uv-venv-runner
 
 [testenv]
-platform = linux|darwindeps
-deps = {toxinidir}
 extras = test
 setenv =
     IS_TOX = true
