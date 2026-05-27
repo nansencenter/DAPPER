@@ -18,7 +18,6 @@ import warnings
 import numpy as np
 import scipy.linalg as sla
 from matplotlib import pyplot as plt
-from patlib.std import do_once
 from scipy import special
 from tabulate import tabulate
 
@@ -696,6 +695,19 @@ class Avrgs(series.StatPrint, DotDict):
 # with np.errstate(divide='warn',invalid='warn'), warnings.catch_warnings():
 # warnings.simplefilter("once",category=RuntimeWarning)
 # ...
+
+
+# Decorator to ensure a function runs at most once; subsequent calls are no-ops.
+def do_once(fun):
+    done = False
+
+    def wrapper(*args, **kwargs):
+        nonlocal done
+        if not done:
+            done = True
+            return fun(*args, **kwargs)
+
+    return wrapper
 
 
 @do_once
