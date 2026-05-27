@@ -86,56 +86,36 @@ Also see its [drawbacks](#similar-projects).
 
 ## Installation
 
-Successfully tested on Linux/Mac/Windows.
+Successfully tested on Linux/Mac/Windows. Also see: [developer guide](https://nansencenter.github.io/DAPPER/dev_guide).
 
-### Prerequisite: Python>=3.12
+### Prerequisite: Python ≥ 3.12 and a virtual environment
 
-If you're an expert, setup a python environment however you like.
-Otherwise:
-Install [Anaconda](https://www.anaconda.com/download), then
-open the [Anaconda terminal](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#starting-conda)
-and run the following commands:
+Can be installed from [python.org/downloads](https://www.python.org/downloads/)
+but [Miniconda](https://docs.conda.io/en/latest/miniconda.html)
+or [uv](https://docs.astral.sh/uv/) will give you more options.
 
-```sh
-conda create --yes --name dapper-env python=3.12
-conda activate dapper-env
-python --version
-```
+Either way, check your current python by [opening a terminal](https://www.google.com/search?q=open+terminal+on+windows),
+and typing `python --version`
 
-Ensure the printed version is as desired.
-*Keep using the same terminal for the commands below.*
+Create and activate (and keep using!) a virtual environment using your chosen tool.
 
 ### Install
 
-#### *Either*: Install for development (recommended)
-
-*Do you want the DAPPER code available to play around with?* Then
-
 - Download and unzip (or `git clone`) DAPPER.
-- Move the resulting folder wherever you like,  
-  and `cd` into it *(ensure you're in the folder with a `setup.py` file)*.
-- `pip install -e '.'`  
+- Move the resulting folder wherever you like.
+- In the terminal, navigate (`cd`) into that "DAPPER" folder and enter
+- `pip install -e .`
 
-#### *Or*: Install as library
+PS: If all you need is to use (but not modify and play around with) DAPPER as a library package,
+then all of the above can be replaced simply by `pip install dapper`.
 
-*Do you just want to run a script that requires DAPPER?* Then
+### Try out
 
-- If the script comes with a `requirements.txt` file that lists DAPPER, then do  
-  `pip install -r path/to/requirements.txt`.
-- If not, hopefully you know the version of DAPPER needed. Run  
-  `pip install dapper==1.6.0` to get version `1.6.0` (as an example).
+Assuming you are in the DAPPER dir, do
 
-#### *Finally*: Test the installation
-
-You should now be able to do run your script with
-`python path/to/script.py`.  
-For example, if you are in the DAPPER dir,
-
-    python docs/examples/basic_1.py
-
-**PS**: If you closed the terminal (or shut down your computer),
-you'll first need to run `conda activate dapper-env`
-
+```sh
+python docs/examples/basic_1.py
+```
 
 ## DA methods
 

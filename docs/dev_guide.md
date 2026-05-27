@@ -37,7 +37,10 @@ hide:
 
 ## Install for development
 
-Include the dev tools as part of the installation (detailed in the README):
+!!! note We recommend using [`uv`](https://docs.astral.sh/uv/).
+    It enables reproducible installs, strong dependency resolution,
+    and a streamlined workflow for building and publishing to PyPI.
+    However, most of the following guide simply relies on an activated venv and `pip`.
 
 ```sh
 pip install -e '.[dev]'
@@ -208,69 +211,34 @@ creates an artefact that is deployed to Github Pages.
 
 `cd DAPPER`
 
-Bump version number in `__init__.py`
-
-Merge `dev1` into `master`
-
-```sh
-git checkout master
-git merge --no-commit --no-ff dev1
-# Fix conflicts, e.g
-# git rm <unwanted-file>
-git commit
-```
+Bump version number in `dapper/__init__.py`
 
 Tag
 
 ```sh
-git tag -a v$(python setup.py --version) -m 'My description'
+git tag -a v$(python -c "import dapper; print(dapper.__version__)") -m 'My description'
 git push origin --tags
 ```
-
-Clean
-
-```sh
-rm -rf build/ dist *.egg-info .eggs
-```
-
-Add new files to `package_data` and `packages` in `setup.py`
 
 Build
 
 ```sh
-./setup.py sdist bdist_wheel
+python -m build
 ```
 
 Upload to PyPI
 
 ```sh
-twine upload --repository pypi dist/*
+uv publish dist/*
 ```
-
 
 Upload to Test.PyPI
 
 ```sh
-twine upload --repository testpypi dist/*
+uv publish --publish-url https://test.pypi.org/legacy/ dist/*
 ```
 
-where `~/.pypirc` contains
-
-```ini
-[distutils]
-index-servers=
-                pypi
-                testpypi
-
-[pypi]
-username: myuser
-password: mypass
-
-[testpypi]
-repository: https://test.pypi.org/legacy/
-username: myuser
-password: mypass
-```
+Credentials are read from `~/.pypirc` or passed via `--token`.
 
 Upload to `Test.PyPI`
 
