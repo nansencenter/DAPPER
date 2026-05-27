@@ -65,6 +65,10 @@ pytest tests
 You can also append `test_plotting.py` for example,
 which is otherwise ignored for being slow.
 
+To test across multiple Python versions, either rely on CI (already in place),
+or do `uv run --isolated --python 3.13 --extra test pytest tests`  
+(no need for `tox`!). It of course combines nicely with a task runner, e.g. `mise`.
+
 If the test with the `QG` model in `test_HMM.py` fails
 (simply because you have not compiled it) that is fine
 (that test does not run in CI either).

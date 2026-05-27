@@ -16,7 +16,9 @@ jobs:
     strategy:
       matrix:
         os: ["ubuntu-latest"]
-        python-version: ["3.12"] # NB: also see versions for 'conda'
+        # NB: also see versions for 'conda'
+        # as well as those specified in mise.toml
+        python-version: ["3.12"]
         jobtype: ["test"]
         include:
           - os: "ubuntu-latest"

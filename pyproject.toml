@@ -49,7 +49,6 @@ dependencies = [
 Qt    = ["PyQt5", "qtpy"]
 debug = ["line_profiler", "pre-commit"]
 test  = [
-    "tox-uv",
     "coverage>=5.1",
     "pytest",
     "pytest-cov",
@@ -133,21 +132,6 @@ exclude_lines = [
     "if __name__ == .__main__.:"
 ]
 
-[tool.tox]
-legacy_tox_ini = """
-[tox]
-envlist = py3{12,13}
-runner = uv-venv-runner
-
-[testenv]
-extras = test
-setenv =
-    IS_TOX = true
-commands =
-    pytest {posargs}
-"""
-
-
 # ╔══════╗
 # ║ ruff ║
 # ╚══════╝
@@ -161,7 +145,6 @@ exclude = [
     ".pytest_cache",
     ".ruff_cache",
     ".svn",
-    ".tox",
     ".venv",
     ".vscode",
     "__pypackages__",
