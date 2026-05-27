@@ -28,7 +28,9 @@
       "Bash(mkdocs build *)",
       "Bash(pip show *)",
       "Bash(ruff check *)",
-      "Bash(ruff format *)"
+      "Bash(ruff format *)",
+      "Bash(python *)",
+      "Bash(uv run *)"
     ]
   }
 }

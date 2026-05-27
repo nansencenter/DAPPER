@@ -8,6 +8,14 @@ DAPPER (Data Assimilation with Python: a Package for Experimental Research) is a
 
 ## Commands
 
+The `venv` for the project resides in `/Users/para/.cache/venvs/DAPPER`.
+
+Install with:
+
+```bash
+uv pip install -e ".[dev]"
+```
+
 ```bash
 # Run all tests (includes doctests)
 pytest tests
@@ -53,14 +61,45 @@ xp.avrgs.tabulate(["rmse.a", "rmv.a"])
 
 **`dapper/tools/`** — Supporting utilities: `chronos.py` (time sequences), `randvars.py` (`GaussRV`), `matrices.py` (`CovMat`), `localization.py`, `liveplotting.py`, `series.py`.
 
+**`dapper/dpr_config.py`** — Runtime config object `dapper.rc`. Override at runtime (`dapper.rc.liveplotting = False`) or via env vars `DAPPER_DATA_ROOT`, `DAPPER_LIVEPLOTTING`. Useful for suppressing plots in scripts/tests.
+
+**scripts/** — Ignore (already in `gitignore`)
+
 ## Key Conventions
 
 - **Ensemble matrices** are shaped `(N, Nx)` — N members × Nx state dims. Never `(Nx, N)`.
 - **Double-letter variables** (`xx`, `yy`, `EE`) are time series; single/abbreviated are current-timestep values.
 - **`xp`** = experiment = a DA method instance with specific hyperparameters.
 - **`HMM`** = Hidden Markov Model = the full twin-experiment setup.
-- Docstrings follow NumPy style.
+- Docstrings follow NumPy style. Use single backticks when referencing objects and writing code.
 - `ruff` enforces style (line length 88, isort, pyupgrade, bugbear). `docs/examples/` and `scripts/` are excluded from ruff.
+
+## Adding a New Model
+
+Models live in `dapper/mods/<ModelName>/`. The typical pattern:
+
+```python
+import numpy as np
+import dapper.mods as modelling
+
+@modelling.ens_compatible   # vectorises over ensemble: x shape (N, Nx) → (N, Nx)
+def dxdt(x):
+    return ...              # return dx/dt
+
+step = modelling.with_rk4(dxdt, autonom=True)   # or with_recursion for discrete maps
+```
+
+Then in a config file (e.g. `sakov2012.py`):
+
+```python
+tseq = modelling.Chronology(dt, dko=12, Ko=1000, Tplot=4.0, BurnIn=10.0)
+Dyn  = modelling.Operator(M=Nx, model=step, linear=dstep_dx, noise=0)
+Obs  = modelling.Operator(**modelling.partial_Id_Obs(Nx, obs_inds), noise=1.0)
+X0   = modelling.GaussRV(C=2, mu=x0)
+HMM  = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0)
+```
+
+`docs/examples/basic_1.py` is the best starting point for understanding end-to-end usage.
 
 ## Adding a New DA Method
 
