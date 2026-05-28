@@ -57,7 +57,7 @@ class YamlRepr:
 _ReprDumper.add_multi_representer(YamlRepr, _yaml_representer)
 
 # Fallback: anything without a representer → use its __repr__ string
-_ReprDumper.add_representer(None, lambda d, v: d.represent_str(repr(v)))
+_ReprDumper.add_representer(None, lambda d, v: d.represent_str(repr(v)))  # type: ignore[arg-type]
 
 
 def yaml_repr(obj):

@@ -26,7 +26,7 @@ def create_run_dir(save_as, mp):
 
         # Parallelization w/o storing is possible, especially w/ threads.
         # But it involves more complicated communication set-up.
-        def xpi_dir(*args):
+        def xpi_dir(*args):  # type: ignore[reportRedeclaration]
             return None
 
     else:
@@ -35,7 +35,7 @@ def create_run_dir(save_as, mp):
         os.makedirs(save_as)
         print(f"Experiment gets stored at {save_as}")
 
-        def xpi_dir(i):
+        def xpi_dir(i):  # type: ignore[reportRedeclaration]
             path = save_as / str(i)
             os.mkdir(path)
             return path

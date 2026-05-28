@@ -76,8 +76,8 @@ class RV(YamlRepr):
                 from scipy.optimize import fsolve
 
                 cdf = self.cdf
-                (Left,) = fsolve(lambda x: cdf(x) - 1e-9, 0.1)  # noqa
-                (Right,) = fsolve(lambda x: cdf(x) - (1 - 1e-9), 0.1)  # noqa
+                Left = fsolve(lambda x: cdf(x) - 1e-9, 0.1)[0]
+                Right = fsolve(lambda x: cdf(x) - (1 - 1e-9), 0.1)[0]
                 xx = np.linspace(Left, Right, 1001)
                 uu = np.vectorize(cdf)(xx)
                 icdf = interp1d(uu, xx)
@@ -136,6 +136,7 @@ class RV_with_mean_and_cov(RV):
             else:
                 if np.isscalar(C):
                     M = len(mu)
+                    assert isinstance(C, (int, float))
                     C = CovMat(C * np.ones(M), "diag")
                 else:
                     C = CovMat(C)
@@ -147,11 +148,8 @@ class RV_with_mean_and_cov(RV):
             raise TypeError("Inconsistent shapes of (M,mu,C)")
         if M is None:
             raise TypeError("Could not deduce the value of M")
-        try:
-            if M != C.M:
-                raise TypeError("Inconsistent shapes of (M,mu,C)")
-        except AttributeError:
-            pass
+        if isinstance(C, CovMat) and M != C.M:
+            raise TypeError("Inconsistent shapes of (M,mu,C)")
 
         # Assign
         self.M = M
@@ -168,18 +166,19 @@ class RV_with_mean_and_cov(RV):
         if self.C == 0:
             D = np.zeros((N, self.M))
         else:
-            D = self._sample(N)
+            assert isinstance(self.C, CovMat)
+            D = self._sample(N, self.C)
         return self.mu + D
 
-    def _sample(self, N: int) -> np.ndarray:
+    def _sample(self, N: int, C: CovMat) -> np.ndarray:
         raise NotImplementedError("Must be implemented in subclass")
 
 
 class GaussRV(RV_with_mean_and_cov):
     """Gaussian (Normal) multivariate random variable."""
 
-    def _sample(self, N):
-        R = self.C.Right
+    def _sample(self, N, C):
+        R = C.Right
         D = rng.standard_normal((N, len(R))) @ R
         return D
 
@@ -191,8 +190,8 @@ class LaplaceRV(RV_with_mean_and_cov):
     Eltoft (2006) "On the Multivariate Laplace Distribution".
     """
 
-    def _sample(self, N):
-        R = self.C.Right
+    def _sample(self, N, C):
+        R = C.Right
         z = rng.exponential(1, N)
         D = rng.standard_normal((N, len(R)))
         D = z[:, None] * D
@@ -202,9 +201,9 @@ class LaplaceRV(RV_with_mean_and_cov):
 class LaplaceParallelRV(RV_with_mean_and_cov):
     """A NON-elliptical multivariate version of Laplace (double exponential) RV."""
 
-    def _sample(self, N):
-        # R = self.C.Right   # contour: sheared rectangle
-        R = self.C.sym_sqrt  # contour: rotated rectangle
+    def _sample(self, N, C):
+        # R = C.Right   # contour: sheared rectangle
+        R = C.sym_sqrt  # contour: rotated rectangle
         D = rng.laplace(0, 1, (N, len(R)))
         return D @ R / sqrt(2)
 
@@ -222,8 +221,8 @@ class StudRV(RV_with_mean_and_cov):
         super().__init__(*args, **kwargs)
         self.dof = dof
 
-    def _sample(self, N):
-        R = self.C.Right
+    def _sample(self, N, C):
+        R = C.Right
         nu = self.dof
         r = nu / np.sum(rng.standard_normal((N, nu)) ** 2, axis=1)  # InvChi2
         D = sqrt(r)[:, None] * rng.standard_normal((N, len(R)))
@@ -238,8 +237,8 @@ class UniRV(RV_with_mean_and_cov):
     vectors and coordinates from the n-sphere and n-ball"
     """
 
-    def _sample(self, N):
-        R = self.C.Right
+    def _sample(self, N, C):
+        R = C.Right
         D = rng.standard_normal((N, len(R)))
         r = rng.random(N) ** (1 / len(R)) / np.sqrt(np.sum(D**2, axis=1))
         D = r[:, None] * D
@@ -253,7 +252,7 @@ class UniParallelRV(RV_with_mean_and_cov):
     applied to the (corners of) the hypercube.
     """
 
-    def _sample(self, N):
-        R = self.C.Right
+    def _sample(self, N, C):
+        R = C.Right
         D = rng.random((N, len(R))) - 0.5
         return D @ R * sqrt(12)

@@ -43,9 +43,9 @@ class da_method:
             def assimilate(self, HMM, xx, yy): ...
     """
 
-    stats: Stats = field(init=False, repr=False, default=None)
+    stats: Stats = field(init=False, repr=False, default=None)  # type: ignore[assignment]
     """[`stats.Stats`][] object of time series recorded during `assimilate()`."""
-    avrgs: Avrgs = field(init=False, repr=False, default=None)
+    avrgs: Avrgs = field(init=False, repr=False, default=None)  # type: ignore[assignment]
     """[`stats.Avrgs`][] object of time-averaged statistics.
 
     Populated by `stats.average_in_time()` from [`stats`][da_methods.da_method.stats].
@@ -134,7 +134,7 @@ def _print_cropped_traceback(ERR):
             keep = False
             for frame in traceback.walk_tb(ERR.__traceback__):
                 if keep:
-                    msg += pdb_instance.format_stack_entry(frame, context=3)
+                    msg += pdb_instance.format_stack_entry(frame, context=3)  # type: ignore[call-arg]
                 elif frame[0].f_code.co_filename == dapper.da_methods.__file__:
                     keep = True
                     msg += "   ⋮ [cropped] \n"

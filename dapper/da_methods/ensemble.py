@@ -164,8 +164,8 @@ def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats=None, ko=None):
                         # v = Zj - Yj (from paper) requires Y==HX.
                         # Instead: mult` should be c*ones(Nx) so we can
                         # project v into ker(A) such that v@A is null.
-                        mult = (v @ A) / (Yj @ A)  # noqa
-                        v = v - mult[0] * Yj  # noqa
+                        mult = (v @ A) / (Yj @ A)  # noqa  # type: ignore[reportPossiblyUnbound]
+                        v = v - mult[0] * Yj  # noqa  # type: ignore[reportPossiblyUnbound]
                         v /= sqrt(v @ v)
                     Zj = v * sqrt(N1)  # Standardized perturbation along v
                     Zj *= np.sign(rng.standard_normal() - 0.5)  # Random sign
@@ -224,14 +224,14 @@ def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats=None, ko=None):
     # Diagnostic: relative influence of observations
     if stats is not None:
         if "trHK" in locals():
-            stats.trHK.a[ko] = trHK / hnoise.M
+            stats.trHK.a[ko] = trHK / hnoise.M  # type: ignore[reportPossiblyUnbound]
         elif "HK" in locals():
-            stats.trHK.a[ko] = HK.trace() / hnoise.M
+            stats.trHK.a[ko] = HK.trace() / hnoise.M  # type: ignore[reportPossiblyUnbound]
 
     return E
 
 
-def post_process(E, infl, rot):
+def post_process(E, infl: float, rot):
     """Inflate, Rotate.
 
     To avoid recomputing/recombining anomalies,
@@ -623,7 +623,7 @@ class LETKF(da_method, ens_method):
     N: int
     loc_rad: float
     taper: str = "GC"
-    xN: float = None
+    xN: float | None = None
     g: int = 0
     mp: bool = False
 
@@ -648,7 +648,7 @@ class LETKF(da_method, ens_method):
                         yy[ko],
                         batch,
                         taper,
-                        pool.map,
+                        pool.map,  # type: ignore[arg-type]
                         self.xN,
                         self.g,
                     )
@@ -909,7 +909,7 @@ class EnKF_N(da_method, ens_method):
                 # Adjust hyper-prior
                 # xN_ = noise_level(self.xN, self.stats, HMM.tseq, N1, ko, A,
                 #                   locals().get('A_old', None))
-                eN, cL = hyperprior_coeffs(s, N, self.xN, self.g)
+                eN, cL = hyperprior_coeffs(s, N, self.xN, self.g)  # type: ignore[arg-type]
 
                 if self.dual:
                     # Make dual cost function (in terms of l1)
@@ -919,14 +919,14 @@ class EnKF_N(da_method, ens_method):
                     def dgn_rk(l1):
                         return pad_rk((l1 * s) ** 2) + N1
 
-                    def J(l1):
+                    def J(l1):  # type: ignore[reportRedeclaration]
                         val = (
                             np.sum(du**2 / dgn_rk(l1)) + eN / l1**2 + cL * np.log(l1**2)
                         )
                         return val
 
                     # Derivatives (not required with minimize_scalar):
-                    def Jp(l1):
+                    def Jp(l1):  # type: ignore[reportRedeclaration]
                         val = (
                             -2 * l1 * np.sum(pad_rk(s**2) * du**2 / dgn_rk(l1) ** 2)
                             + -2 * eN / l1**3

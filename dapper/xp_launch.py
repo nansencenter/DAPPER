@@ -59,7 +59,7 @@ def seed_and_simulate(HMM, xp):
     tuple (xx, yy)
         The simulated truth and observations.
     """
-    set_seed(getattr(xp, "seed", False))
+    set_seed(getattr(xp, "seed", False))  # type: ignore[arg-type]
     xx, yy = HMM.simulate()
     return HMM, xx, yy
 
@@ -330,7 +330,7 @@ class xpList(list):
                     if k not in aggregate:
                         # If dataclass, check repr:
                         if k in dc_names:
-                            if dc_fields[dc_names.index(k)].repr:
+                            if dc_fields[dc_names.index(k)].repr:  # type: ignore[reportPossiblyUnbound]
                                 aggregate.append(k)
                         # Else, just append
                         else:
@@ -517,7 +517,7 @@ class xpList(list):
                 run_experiment(xp, label, xpi_dir(ixp), **kwargs)
 
         # Local multiprocessing
-        elif mp["server"].lower() == "local":
+        elif mp["server"].lower() == "local":  # type: ignore[union-attr]
 
             def run_with_kwargs(arg):
                 xp, ixp = arg
@@ -533,7 +533,7 @@ class xpList(list):
             with Pool(NPROC) as pool:
                 list(
                     tqdm(
-                        pool.imap(run_with_kwargs, args),
+                        pool.imap(run_with_kwargs, args),  # type: ignore[attr-defined]
                         total=len(self),
                         desc="Parallel experim's",
                         smoothing=0.1,
@@ -545,18 +545,18 @@ class xpList(list):
         # Google cloud platform, multiprocessing
         elif mp["server"] == "GCP":
             for ixp, xp in enumerate(self):
-                with open(xpi_dir(ixp) / "xp.var", "wb") as f:
+                with open(xpi_dir(ixp) / "xp.var", "wb") as f:  # type: ignore[operator]
                     dill.dump(dict(xp=xp), f)
 
-            with open(save_as / "xp.com", "wb") as f:
+            with open(save_as / "xp.com", "wb") as f:  # type: ignore[operator]
                 dill.dump(kwargs, f)
 
             # mkdir extra_files
-            extra_files = save_as / "extra_files"
+            extra_files = save_as / "extra_files"  # type: ignore[operator]
             os.mkdir(extra_files)
             # Default extra_files: .py files in sys.path[0] (main script's path)
             if not mp.get("files", []):
-                mp["files"] = [
+                mp["files"] = [  # type: ignore[assignment]
                     f.relative_to(sys.path[0])
                     for f in Path(sys.path[0]).glob("**/*.py")
                 ]
@@ -569,7 +569,7 @@ class xpList(list):
                 )
 
             # Copy into extra_files
-            for f in mp["files"]:
+            for f in mp["files"]:  # type: ignore[union-attr]
                 if isinstance(f, (str, Path)):
                     # Example: f = "A.py"
                     path = Path(sys.path[0]) / f
@@ -610,7 +610,7 @@ class xpList(list):
                     raise
                 """
                     )
-                    % dedent(mp["code"])
+                    % dedent(mp["code"])  # type: ignore[arg-type]
                 )
 
             submit_job_GCP(save_as)

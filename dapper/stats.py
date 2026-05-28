@@ -75,6 +75,9 @@ class Stats(series.StatPrint):
     for the purpose of automatic plotting and averaging.
     """
 
+    # Declared for static analysis; attached dynamically at module level below.
+    def register(self, name: str, value: object) -> None: ...
+
     # Declared for static analysis; created dynamically via new_series() in __init__.
     mu: series.DACycleSeries
     """Mean estimate (ensemble mean, or Kalman/variational estimate)."""
@@ -227,7 +230,9 @@ class Stats(series.StatPrint):
         self.new_series("wroot", 1, analysis_only=True)
         self.new_series("resmpl", 1, analysis_only=True)
 
-    def new_series(self, name, shape, analysis_only=False, field_mean=False, **kws):
+    def new_series(
+        self, name, shape, analysis_only=False, field_mean: bool | str = False, **kws
+    ):
         """Create (and register) a statistics time series, initialized with `nan`s.
 
         Creates a [tools.series.DACycleSeries][]. If `analysis_only=True`, the
@@ -532,7 +537,7 @@ class Stats(series.StatPrint):
                 # Is a vector (multivariate) time series: don't average because usually
                 # not very interesting (user can do themselves if stats not "free"d),
                 # but init the namespace for the sake of its children (field summaries).
-                result: FieldAvrgs = FieldAvrgs()
+                result = FieldAvrgs()
 
             # Recurse into children (field summaries and sector sub-stats).
             for name in getattr(tseries, "_stat_names", []):
@@ -613,11 +618,11 @@ def register(self, name, value):
     """
     setattr(self, name, value)
     if not hasattr(self, "_stat_names"):
-        self._stat_names: list[str] = []
+        self._stat_names = []
     self._stat_names.append(name)
 
 
-Stats.register = register
+Stats.register = register  # type: ignore[attr-defined]
 
 
 class Avrgs(series.StatPrint, DotDict):
@@ -1016,6 +1021,7 @@ def unbias_var(w=None, N_eff=None, avoid_pathological=False):
     [Wikipedia](https://wikipedia.org/wiki/Weighted_arithmetic_mean#Reliability_weights)
     """
     if N_eff is None:
+        assert w is not None
         N_eff = 1 / (w @ w)
 
     if avoid_pathological and weight_degeneracy(w):
