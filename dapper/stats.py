@@ -118,8 +118,21 @@ class Stats(series.StatPrint):
     duration: float
     """Wall-clock time (seconds) for the full `assimilate()` call."""
 
-    def __init__(self, xp, HMM, xx, yy, liveplots=False, store_i=rc.store_i):
-        """Init the default statistics."""
+    def __init__(
+        self,
+        xp,
+        HMM,
+        xx,
+        yy,
+        liveplots=False,
+        store_i=rc.store_i,
+        LP_kwargs: dict[str, float] | None = None,
+    ):
+        """Init the default statistics.
+
+        `LP_kwargs` overrides `LivePlot` pause timings (seconds; `0` disables).
+        Per-experiment `xp.LP_kwargs` takes priority over this batch value.
+        """
         ######################################
         # Preamble
         ######################################
@@ -129,6 +142,11 @@ class Stats(series.StatPrint):
         self.yy = yy
         self.liveplots = liveplots
         self.store_i = store_i
+        # Merge batch LP_kwargs with per-xp LP_kwargs; per-xp wins.
+        self._LP_kwargs: dict[str, float] = {
+            **(LP_kwargs or {}),
+            **getattr(xp, "LP_kwargs", {}),
+        }
         self._stat_names: list[str] = []
         # True for smoothers, which write to the 's' (smoothed) subscript.
         self.store_s = any(hasattr(xp, key) for key in ("Lag", "DeCorr"))

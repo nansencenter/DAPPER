@@ -62,7 +62,7 @@ To run the main tests, do this:
 pytest tests
 ```
 
-You can also append `test_plotting.py` for example,
+You can also append `test_plotting_interactive.py` for example,
 which is otherwise ignored for being slow.
 
 To test across multiple Python versions, either rely on CI (already in place),
