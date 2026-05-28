@@ -14,72 +14,77 @@ license = { text = "MIT" }
 authors = [{ name = "Patrick N. Raanes", email = "patrick.n.raanes@gmail.com" }]
 requires-python = ">=3.12"
 keywords = [
-    "data-assimilation", "enkf", "kalman-filtering",
-    "state-estimation", "particle-filter", "bayesian-methods",
-    "bayesian-filter", "chaos",
+  "data-assimilation",
+  "enkf",
+  "kalman-filtering",
+  "state-estimation",
+  "particle-filter",
+  "bayesian-methods",
+  "bayesian-filter",
+  "chaos",
 ]
 classifiers = [
-    "Development Status :: 3 - Alpha",
-    "Intended Audience :: Science/Research",
-    "Topic :: Scientific/Engineering :: Mathematics",
-    "Programming Language :: Python :: 3",
-    "Operating System :: OS Independent",
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering :: Mathematics",
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent",
 ]
 dependencies = [
-    # NB: Colab comes with several packages pre-installed; try not to strictly pin.
-    # TODO 4: implement CI with colab environment: https://github.com/googlecolab/backend-info/blob/main/pip-freeze.txt
-    "scipy>=1.14",
-    "numpy~=2.0",
-    "matplotlib>=3.10",
-    "pyyaml>=6.0.2",
-    "ipython>=7.34",
-    "ipdb",
-    "setuptools",        # necessary when installing via uv
-    "notebook<6.5",      # 6.5 fails on Mac/Ubuntu ('Could not open static file'); Colab uses 6.5
-    "mpl-tools==0.4.1",
-    "tqdm~=4.67",
-    "colorama~=0.4.1",
-    "tabulate~=0.8.3",
-    "pathos~=0.3",
-    "dill==0.3.8",       # must be same on remote computing servers
-    "threadpoolctl>=3.0.0,<4.0.0",
+  # NB: Colab comes with several packages pre-installed; try not to strictly pin.
+  # TODO 4: implement CI with colab environment: https://github.com/googlecolab/backend-info/blob/main/pip-freeze.txt
+  "scipy>=1.14",
+  "numpy~=2.0",
+  "matplotlib>=3.10",
+  "pyyaml>=6.0.2",
+  "ipython>=7.34",
+  "ipdb",
+  "setuptools",                  # necessary when installing via uv
+  "notebook<6.5",                # 6.5 fails on Mac/Ubuntu ('Could not open static file'); Colab uses 6.5
+  "mpl-tools==0.4.1",
+  "tqdm~=4.67",
+  "colorama~=0.4.1",
+  "tabulate~=0.8.3",
+  "pathos~=0.3",
+  "dill==0.3.8",                 # must be same on remote computing servers
+  "threadpoolctl>=3.0.0,<4.0.0",
 ]
 
 [project.optional-dependencies]
-Qt    = ["PyQt5", "qtpy"]
+Qt = ["PyQt5", "qtpy"]
 debug = ["line_profiler", "pre-commit"]
-test  = [
-    "coverage>=5.1",
-    "pytest",
-    "pytest-cov",
-    "pytest-sugar",
-    "pytest-benchmark",
-    "pytest-clarity",
-    "pytest-xdist",
-    "pytest-timeout",
+test = [
+  "coverage>=5.1",
+  "pytest",
+  "pytest-cov",
+  "pytest-sugar",
+  "pytest-benchmark",
+  "pytest-clarity",
+  "pytest-xdist",
+  "pytest-timeout",
 ]
-lint  = ["ruff"]
-doc   = [
-    "mkdocs-material",
-    "mkdocstrings",
-    "mkdocstrings-python",
-    "mkdocs-gen-files",
-    "mkdocs-literate-nav",
-    "mkdocs-section-index",
-    "mkdocs-glightbox",
-    "mkdocs-jupyter",
-    "pybtex",
+lint = ["ruff"]
+doc = [
+  "mkdocs-material",
+  "mkdocstrings",
+  "mkdocstrings-python",
+  "mkdocs-gen-files",
+  "mkdocs-literate-nav",
+  "mkdocs-section-index",
+  "mkdocs-glightbox",
+  "mkdocs-jupyter",
+  "pybtex",
 ]
 build = [
-    "build",
-    "jupytext<=1.15",  # menu item disappeared for 1.16
+  "build",
+  "jupytext<=1.15", # menu item disappeared for 1.16
 ]
 dev = ["dapper[debug,test,lint,build,doc]"]
 
 [project.urls]
 Documentation = "https://nansencenter.github.io/DAPPER/"
-Source        = "https://github.com/nansencenter/DAPPER"
-Tracker       = "https://github.com/nansencenter/DAPPER/issues"
+Source = "https://github.com/nansencenter/DAPPER"
+Tracker = "https://github.com/nansencenter/DAPPER/issues"
 
 [tool.hatch.version]
 path = "dapper/__init__.py"
@@ -111,25 +116,23 @@ addopts = """
 # mpl uses distutils (deprecated in python>=3.10).
 # The warning only prints via pytest.
 # Silence until mpl is upgraded (when Colab does so).
-filterwarnings = [
-    'ignore:distutils:DeprecationWarning',
-]
+filterwarnings = ['ignore:distutils:DeprecationWarning']
 
 [tool.coverage.run]
-branch = true # stricter
+branch = true       # stricter
 source = ["dapper"]
 #omit = ["bad_file.py"]
 
 [tool.coverage.report]
 ignore_errors = true
 exclude_lines = [
-    "pragma: no cover",
-    "def __repr__",
-    "if self.debug",
-    "raise AssertionError",
-    "raise NotImplementedError",
-    "if 0:",
-    "if __name__ == .__main__.:"
+  "pragma: no cover",
+  "def __repr__",
+  "if self.debug",
+  "raise AssertionError",
+  "raise NotImplementedError",
+  "if 0:",
+  "if __name__ == .__main__.:",
 ]
 
 # ╔══════╗
@@ -138,21 +141,24 @@ exclude_lines = [
 [tool.ruff]
 # Exclude a variety of commonly ignored directories.
 exclude = [
-    "scripts",
-    ".git",
-    ".ipynb_checkpoints",
-    ".pyenv",
-    ".pytest_cache",
-    ".ruff_cache",
-    ".svn",
-    ".venv",
-    ".vscode",
-    "__pypackages__",
-    "build",
-    "dist",
-    "site-packages",
-    "venv",
-    ".*", "README.*", "docs/examples/*", "autoscaler.py",
+  "scripts",
+  ".git",
+  ".ipynb_checkpoints",
+  ".pyenv",
+  ".pytest_cache",
+  ".ruff_cache",
+  ".svn",
+  ".venv",
+  ".vscode",
+  "__pypackages__",
+  "build",
+  "dist",
+  "site-packages",
+  "venv",
+  ".*",
+  "README.*",
+  "docs/examples/*",
+  "autoscaler.py",
 ]
 
 # Same as Black.
@@ -164,12 +170,12 @@ target-version = "py39"
 
 [tool.ruff.lint]
 select = [
-    "E",      # pycodestyle
-    "F",      # Pyflakes
-    "UP",     # pyupgrade
-    "B",      # flake8-bugbear
-    # "SIM",  # flake8-simplify
-    "I",      # isort
+  "E",  # pycodestyle
+  "F",  # Pyflakes
+  "UP", # pyupgrade
+  "B",  # flake8-bugbear
+  # "SIM",  # flake8-simplify
+  "I", # isort
 ]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
@@ -180,12 +186,12 @@ unfixable = []
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 ignore = [
-  "B905",  # zip w/o explicit `strict=` (active if target-version>=3.10)
+  "B905", # zip w/o explicit `strict=` (active if target-version>=3.10)
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "dapper/da_methods/{ensemble,variational}.py" = [
-"B023" # Function definition does not bind loop variable
+  "B023", # Function definition does not bind loop variable
 ]
 "tests/test_{example_2,data}.py" = [
   "E501", # "line too long"
