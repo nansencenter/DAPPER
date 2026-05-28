@@ -102,7 +102,7 @@ minversion = "6.0"
 # it means pytest won't discover `test` dir on its own.
 # So to run all tests, do `pytest tests`.
 addopts = """
-    --ignore=tests/test_plotting.py
+    --ignore=tests/test_plotting_interactive.py
     --ignore=tests/test_demos.py
 --doctest-modules dapper
     --ignore-glob=**/QG/*
@@ -196,6 +196,9 @@ ignore = [
 "tests/test_{example_2,data}.py" = [
   "E501", # "line too long"
   "W291", # "trailing whitespace"
+]
+"tests/test_plotting_nonempty.py" = [
+  "E402", # Module level import not at top of file
 ]
 "**/__init__.py" = [
   "F401", # "imported but unused"

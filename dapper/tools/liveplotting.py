@@ -103,7 +103,7 @@ class LivePlot:
             self.params[pause] /= speed
 
         # Write params
-        self.params.update(getattr(stats.xp, "LP_kwargs", {}))
+        self.params.update(getattr(stats, "_LP_kwargs", {}))
         self.params.update(kwargs)
 
         def get_name(init):

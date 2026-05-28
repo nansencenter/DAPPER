@@ -1,5 +1,8 @@
 ## Default statistics
 
+For a tabular overview of all default statistics, see the
+[Statistics section of the README](https://github.com/nansencenter/DAPPER#statistics).
+
 ### `DACycleSeries` subscripts
 
 The time series of statistics (the attributes of `.stats`) are
