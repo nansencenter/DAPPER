@@ -89,8 +89,8 @@ ml_colors = np.array(
 
 # Load into matplotlib color dictionary
 for code, color in zip("boyvgcr", ml_colors):
-    mpl.colors.ColorConverter.colors["ml" + code] = color
-    mpl.colors.colorConverter.cache["ml" + code] = color
+    mpl.colors.ColorConverter.colors["ml" + code] = color  # type: ignore[attr-defined]
+    mpl.colors.colorConverter.cache["ml" + code] = color  # type: ignore[attr-defined]
 
 # Seaborn colors
 sns_colors = np.array(
@@ -107,8 +107,8 @@ sns_colors = np.array(
 )
 # Overwrite default color codes
 for code, color in zip("bgrmyckw", sns_colors):
-    mpl.colors.colorConverter.colors[code] = color
-    mpl.colors.colorConverter.cache[code] = color
+    mpl.colors.colorConverter.colors[code] = color  # type: ignore[attr-defined]
+    mpl.colors.colorConverter.cache[code] = color  # type: ignore[attr-defined]
 
 
 # MPL colors -- cheat sheet:

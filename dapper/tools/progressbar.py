@@ -57,7 +57,7 @@ def pdesc(desc):
     return name
 
 
-def progbar(iterable, desc=None, leave=1, **kwargs):
+def progbar(iterable, desc=None, leave: bool = True, **kwargs):  # pyright: ignore[reportRedeclaration]
     """Prints a nice progress bar in the terminal"""
     if disable_progbar:
         return iterable
@@ -118,7 +118,8 @@ try:
         # Alternative solution: set/restore term settings in assimilate()
         # of the da_method decorator. But that gets bloated, and anyways the logic
         # of user-control of liveplots kindof belongs together with a progressbar.
-        def progbar(iterable, desc=None, leave=1, **kwargs):
+        def progbar(iterable, desc=None, leave: bool = True, **kwargs):
+            TS_old = None
             if not disable_user_interaction:
                 TS_old = new_term_settings()
             try:
@@ -128,7 +129,7 @@ try:
                 # NB: Fails if caller is in a list-comprehesion! Why?
                 pass
             # Restore both for normal termination or exception (propagates).
-            if not disable_user_interaction:
+            if TS_old is not None:
                 set_term_settings(TS_old)
 
         def kbhit():
@@ -139,7 +140,7 @@ try:
         def getch():
             return os.read(sys.stdin.fileno(), 1)
 
-        def _read1():
+        def _read1():  # pyright: ignore[reportRedeclaration]
             if kbhit():
                 return getch()
             else:
@@ -153,9 +154,9 @@ except ImportError:
     try:
         import msvcrt  # noqa
 
-        def _read1():
-            if msvcrt.kbhit():
-                return msvcrt.getch()
+        def _read1():  # pyright: ignore[reportRedeclaration]
+            if msvcrt.kbhit():  # type: ignore[attr-defined]
+                return msvcrt.getch()  # type: ignore[attr-defined]
             else:
                 return None
 

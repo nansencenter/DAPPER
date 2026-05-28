@@ -26,6 +26,6 @@ def set_seed(sd="clock"):
     # Don't set seed if sd==False
     # (but None has already been converted to "clock")
     if sd:
-        rng.bit_generator.state = _rnd.default_rng(sd).bit_generator.state
+        rng.bit_generator.state = _rnd.default_rng(sd).bit_generator.state  # type: ignore[arg-type]
 
     return rng

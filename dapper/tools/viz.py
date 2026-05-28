@@ -47,20 +47,20 @@ def setup_wrapping(M, periodicity=None):
     if periodicity == "+1":
         ii = arange(M + 1)
 
-        def wrap(E):
+        def wrap(E):  # type: ignore[reportRedeclaration]
             return E[..., list(range(M)) + [0]]
 
     elif periodicity == "+/-05":
         ii = np.hstack([-0.5, arange(M), M - 0.5])
 
-        def wrap(E):
+        def wrap(E):  # type: ignore[reportRedeclaration]
             midpoint = (E[..., [0]] + E[..., [-1]]) / 2
             return np.concatenate([midpoint, E, midpoint], axis=-1)
 
     else:
         ii = arange(M)
 
-        def wrap(x):
+        def wrap(x):  # type: ignore[reportRedeclaration]
             return x
 
     return ii, wrap
@@ -119,7 +119,7 @@ def amplitude_animation(
         for n in range(N):
             lines[n].set_ydata(Ek[n])
         if len(lines) > N:
-            lines[-1].set_text(times % (dt * k))
+            lines[-1].set_text(times % (dt * k))  # type: ignore[reportPossiblyUnbound]
         return lines
 
     return FuncAnimation(
@@ -148,7 +148,7 @@ def xtrema(xx, axis=None):
     return a, b
 
 
-def stretch(a, b, factor=1, int_=False):
+def stretch(a, b, factor: float = 1, int_=False):
     """Stretch distance `a-b` by factor.
 
     Parameters
@@ -539,8 +539,8 @@ def axis_scale_by_array(ax, arr, axis="y", nbins=3):
 
     # Make transformation
     xx = arange(len(yy))
-    func = interp1d(xx, yy, fill_value="extrapolate")
-    invf = interp1d(yy, xx, fill_value="extrapolate")
+    func = interp1d(xx, yy, fill_value="extrapolate")  # type: ignore[arg-type]
+    invf = interp1d(yy, xx, fill_value="extrapolate")  # type: ignore[arg-type]
 
     # Set transformation
     set_scale = eval(f"ax.set_{axis}scale")
@@ -548,8 +548,8 @@ def axis_scale_by_array(ax, arr, axis="y", nbins=3):
 
     # Adjust axis ticks
     _axis = getattr(ax, axis + "axis")
-    _axis.set_major_locator(ticker.FixedLocator(yy, nbins=nbins))
-    _axis.set_minor_locator(ticker.FixedLocator(yy))
+    _axis.set_major_locator(ticker.FixedLocator(yy, nbins=nbins))  # type: ignore[arg-type]
+    _axis.set_minor_locator(ticker.FixedLocator(yy))  # type: ignore[arg-type]
     _axis.set_minor_formatter(ticker.NullFormatter())
 
 

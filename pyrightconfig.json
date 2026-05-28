@@ -1,0 +1,12 @@
+{
+  "exclude": [
+    "tests",
+    "build",
+    "docs",
+    "site",
+    "dapper/mods",
+    "scripts"
+  ],
+  "reportIncompatibleMethodOverride": "none",
+  "reportPossiblyUnboundVariable": "none"
+}

@@ -30,10 +30,10 @@ def genOG(M):
     """Generate random orthonormal matrix."""
     # TODO 5: This (using Householder) is (slightly?) wrong,
     # as per section 4 of mezzadri2006generate.
-    Q, R = sla.qr(rng.standard_normal((M, M)))
+    Q, R = sla.qr(rng.standard_normal((M, M)))  # type: ignore[misc]
     for i in range(M):
         if R[i, i] < 0:
-            Q[:, i] = -Q[:, i]
+            Q[:, i] = -Q[:, i]  # type: ignore[index]
     return Q
 
 
@@ -63,7 +63,7 @@ def genOG_modified(M, opts=(0, 1.0)):
         dc = 1 / degree  # = "while"
         # Retrieve/store persistent variable
         counter = getattr(genOG_modified, "counter", 0) + 1
-        genOG_modified.counter = counter
+        genOG_modified.counter = counter  # type: ignore[attr-defined]
         # Compute rot or skip
         if np.mod(counter, dc) < 1:
             Q = genOG(M)
@@ -74,10 +74,10 @@ def genOG_modified(M, opts=(0, 1.0)):
         # https://stackoverflow.com/q/38426349
         # https://en.wikipedia.org/wiki/Orthogonal_matrix
         Q = genOG(M)
-        s, U = sla.eig(Q)
+        s, U = sla.eig(Q)  # type: ignore[misc]
         s2 = np.exp(1j * np.angle(s) * degree)  # reduce angles
         Q = mrdiv(U * s2, U)
-        Q = Q.real
+        Q = Q.real  # type: ignore[union-attr]
     elif ver == 3:
         # Reduce Given's rotations in QR algo
         raise NotImplementedError

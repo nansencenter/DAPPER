@@ -79,7 +79,7 @@ class iEnKS(da_method, var_method):
     MDA: bool = False
     step: bool = False
     bundle: bool = False
-    xN: float = None
+    xN: float | None = None
     infl: float = 1.0
     rot: bool = False
 

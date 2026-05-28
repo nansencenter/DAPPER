@@ -54,6 +54,12 @@ class UncertainQtty:
     0 ±inf
     """
 
+    # Declared for static analysis; set externally by xpSpace.mean() and tune().
+    nTotal: int
+    nFail: int
+    nSuccess: int
+    tuned_coord: tuple
+
     def __init__(self, val, prec=np.nan):
         self.val = val
         self.prec = prec

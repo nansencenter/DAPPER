@@ -157,6 +157,6 @@ def laplace_lklhd(xx):
     """
     logw = -np.sqrt(2) * np.sum(np.abs(xx), axis=1)
     logw -= logw.max()  # Avoid numerical error
-    w = np.np.exp(logw)  # non-log
+    w = np.exp(logw)  # non-log
     w /= w.sum()  # normalize
     return w
