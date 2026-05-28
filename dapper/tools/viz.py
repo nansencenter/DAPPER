@@ -548,8 +548,8 @@ def axis_scale_by_array(ax, arr, axis="y", nbins=3):
 
     # Adjust axis ticks
     _axis = getattr(ax, axis + "axis")
-    _axis.set_major_locator(ticker.FixedLocator(yy, nbins=nbins))  # type: ignore[arg-type]
-    _axis.set_minor_locator(ticker.FixedLocator(yy))  # type: ignore[arg-type]
+    _axis.set_major_locator(ticker.FixedLocator(yy.tolist(), nbins=nbins))
+    _axis.set_minor_locator(ticker.FixedLocator(yy.tolist()))
     _axis.set_minor_formatter(ticker.NullFormatter())
 
 

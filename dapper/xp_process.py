@@ -837,11 +837,11 @@ class xpSpace(SparseSpace):
                         del style["label"]
                     elif label:
                         register.add(style["label"])
-                        pruner.has_labels = True  # type: ignore[attr-defined]
+                        pruner.has_labels = True  # ty: ignore[unresolved-attribute]
                 elif label:
-                    pruner.has_labels = True  # type: ignore[attr-defined]
+                    pruner.has_labels = True  # ty: ignore[unresolved-attribute]
 
-            pruner.has_labels = False  # type: ignore[attr-defined]
+            pruner.has_labels = False  # ty: ignore[unresolved-attribute]
 
             def squeezer(coord):
                 return intersect(coord._asdict(), label_attrs)

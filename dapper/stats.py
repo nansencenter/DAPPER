@@ -283,7 +283,7 @@ class Stats(series.StatPrint):
         E: np.ndarray | None = None,
         w: np.ndarray | None = None,
         mu: np.ndarray | None = None,
-        Cov: np.ndarray | None = None,
+        Cov: np.ndarray | CovMat | None = None,
     ) -> None:
         """Common interface for both [`Stats`.assess_ens][stats.Stats.assess_ens]
         and [`Stats`.assess_ext][stats.Stats.assess_ext].
@@ -622,7 +622,7 @@ def register(self, name, value):
     self._stat_names.append(name)
 
 
-Stats.register = register  # type: ignore[attr-defined]
+Stats.register = register  # ty: ignore[invalid-assignment]
 
 
 class Avrgs(series.StatPrint, DotDict):

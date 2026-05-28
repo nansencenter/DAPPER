@@ -32,7 +32,7 @@ def color_text(text, *color_codes):
     if not cc:
         return text
     else:
-        return "".join(cc) + text + c0
+        return "".join(cc) + text + c0  # ty: ignore[no-matching-overload]
 
 
 @contextlib.contextmanager
@@ -54,7 +54,7 @@ def coloring(*color_codes):
         orig_print(text, end=end, flush=flush, **kwargs)
 
     try:
-        builtins.print = _print
+        builtins.print = _print  # ty: ignore[invalid-assignment]
         yield
     finally:
         builtins.print = orig_print
@@ -90,7 +90,7 @@ ml_colors = np.array(
 # Load into matplotlib color dictionary
 for code, color in zip("boyvgcr", ml_colors):
     mpl.colors.ColorConverter.colors["ml" + code] = color  # type: ignore[attr-defined]
-    mpl.colors.colorConverter.cache["ml" + code] = color  # type: ignore[attr-defined]
+    mpl.colors.colorConverter.cache["ml" + code] = color  # ty: ignore[invalid-assignment]
 
 # Seaborn colors
 sns_colors = np.array(
@@ -108,7 +108,7 @@ sns_colors = np.array(
 # Overwrite default color codes
 for code, color in zip("bgrmyckw", sns_colors):
     mpl.colors.colorConverter.colors[code] = color  # type: ignore[attr-defined]
-    mpl.colors.colorConverter.cache[code] = color  # type: ignore[attr-defined]
+    mpl.colors.colorConverter.cache[code] = color  # ty: ignore[invalid-assignment]
 
 
 # MPL colors -- cheat sheet:

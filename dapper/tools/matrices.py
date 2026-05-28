@@ -63,7 +63,7 @@ def genOG_modified(M, opts=(0, 1.0)):
         dc = 1 / degree  # = "while"
         # Retrieve/store persistent variable
         counter = getattr(genOG_modified, "counter", 0) + 1
-        genOG_modified.counter = counter  # type: ignore[attr-defined]
+        genOG_modified.counter = counter  # ty: ignore[unresolved-attribute]
         # Compute rot or skip
         if np.mod(counter, dc) < 1:
             Q = genOG(M)

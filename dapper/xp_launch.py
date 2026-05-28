@@ -29,7 +29,7 @@ from dapper.tools.seeding import set_seed
 from dapper.tools.struct import complement, flexcomp, intersect, prodct
 from dapper.tools.viz import collapse_str
 
-_tabulate.MIN_PADDING = 0
+_tabulate.MIN_PADDING = 0  # ty: ignore[invalid-assignment]
 
 
 def seed_and_simulate(HMM, xp):
@@ -517,7 +517,7 @@ class xpList(list):
                 run_experiment(xp, label, xpi_dir(ixp), **kwargs)
 
         # Local multiprocessing
-        elif mp["server"].lower() == "local":  # type: ignore[union-attr]
+        elif mp["server"].lower() == "local":  # ty: ignore[unresolved-attribute]
 
             def run_with_kwargs(arg):
                 xp, ixp = arg
@@ -556,7 +556,7 @@ class xpList(list):
             os.mkdir(extra_files)
             # Default extra_files: .py files in sys.path[0] (main script's path)
             if not mp.get("files", []):
-                mp["files"] = [  # type: ignore[assignment]
+                mp["files"] = [  # ty: ignore[invalid-assignment]
                     f.relative_to(sys.path[0])
                     for f in Path(sys.path[0]).glob("**/*.py")
                 ]
@@ -610,7 +610,7 @@ class xpList(list):
                     raise
                 """
                     )
-                    % dedent(mp["code"])  # type: ignore[arg-type]
+                    % dedent(mp["code"])  # ty: ignore[invalid-argument-type]
                 )
 
             submit_job_GCP(save_as)

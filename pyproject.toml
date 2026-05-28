@@ -63,7 +63,7 @@ test = [
   "pytest-xdist",
   "pytest-timeout",
 ]
-lint = ["ruff"]
+lint = ["ruff", "ty"]
 doc = [
   "mkdocs-material",
   "mkdocstrings",
@@ -134,6 +134,25 @@ exclude_lines = [
   "if 0:",
   "if __name__ == .__main__.:",
 ]
+
+# ╔════╗
+# ║ ty ║
+# ╚════╝
+[tool.ty.src]
+exclude = [
+  "tests",
+  "build",
+  "docs",
+  "site",
+  "dapper/mods",
+  "scripts",
+  "dapper/tools/remote/autoscaler.py",
+]
+
+[tool.ty.rules]
+invalid-method-override = "ignore"
+too-many-positional-arguments = "ignore"
+
 
 # ╔══════╗
 # ║ ruff ║

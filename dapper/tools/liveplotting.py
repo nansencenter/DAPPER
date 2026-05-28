@@ -179,7 +179,8 @@ class LivePlot:
                     fig = plt.figure(name)
                     win = fig.canvas
                     ax0 = fig.axes[0]
-                    win.manager.set_window_title(str(name))
+                    if win.manager is not None:
+                        win.manager.set_window_title(str(name))
                     ax0.set_title(ax0.get_title() + post_title)
                     self.update(key0, E, P)  # Call initial update
                     if not (replay and np.isinf(speed)):
@@ -884,7 +885,11 @@ def phase_particles(
         ax.set_title("Phase space trajectories")
         # Tune plot
         for ind, (s, i, t) in enumerate(zip(p.labels, p.dims, "xyz")):
-            viz.set_ilim(ax, ind, *viz.stretch(*viz.xtrema(xx[:, i]), 1 / p.zoom))
+            viz.set_ilim(
+                ax,
+                ind,
+                *viz.stretch(*viz.xtrema(xx[:, i]), 1 / p.zoom),
+            )
             eval(f"ax.set_{t}label('{s!s}')")
 
         # Allocate
@@ -921,7 +926,11 @@ def phase_particles(
             s.mu = ax.scatter(*ones(M), s=8**2, c=[h.mu.get_color()])
         if True:
             s.x = ax.scatter(
-                *ones(M), s=14**2, c=[h.x.get_color()], marker=(5, 1), zorder=99
+                *ones(M),
+                s=14**2,
+                c=[h.x.get_color()],
+                marker=(5, 1),  # ty: ignore[invalid-argument-type]
+                zorder=99,
             )
 
         def update(key, E, P):
@@ -1262,7 +1271,7 @@ def spatial2d(
     square,
     ind2sub,
     obs_inds=(),
-    cm=plt.cm.jet,
+    cm=plt.cm.jet,  # ty: ignore[unresolved-attribute]
     clims=((-40, 40), (-40, 40), (-10, 10), (-10, 10)),
 ):
     def init(fignum, stats, key0, plot_i, E, P, **kwargs):
@@ -1306,8 +1315,14 @@ def spatial2d(
         im_11 = ax_11.imshow(square(mu[key0]), cmap=cm)
         im_12 = ax_12.imshow(square(xx[k]), cmap=cm)
         # hot is better, but needs +1 colorbar
-        im_21 = ax_21.imshow(square(spread[key0]), cmap=plt.cm.bwr)
-        im_22 = ax_22.imshow(square(err[key0]), cmap=plt.cm.bwr)
+        im_21 = ax_21.imshow(
+            square(spread[key0]),
+            cmap=plt.cm.bwr,  # ty: ignore[unresolved-attribute]
+        )
+        im_22 = ax_22.imshow(
+            square(err[key0]),
+            cmap=plt.cm.bwr,  # ty: ignore[unresolved-attribute]
+        )
         ims = (im_11, im_12, im_21, im_22)
         # Obs init -- a list where item 0 is the handle of something invisible.
         lh = list(ax_12.plot(0, 0)[0:1])
@@ -1372,9 +1387,12 @@ def spatial2d(
             #  - ind2sub returns (iy,ix), while plot takes (ix,iy) => reverse.
 
             if ko is not None and not_empty(obs_inds):
-                lh[0] = ax_12.plot(*ind2sub(obs_inds(ko))[::-1], "k.", ms=1, zorder=5)[
-                    0
-                ]
+                lh[0] = ax_12.plot(
+                    *ind2sub(obs_inds(ko))[::-1],
+                    "k.",
+                    ms=1,
+                    zorder=5,  # ty: ignore[call-non-callable]
+                )[0]
 
             text_t.set_text(format_time(k, ko, t))
 
