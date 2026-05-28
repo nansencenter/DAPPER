@@ -461,9 +461,9 @@ def reweight(w, lklhd=None, logL=None, innovs=None):
     If input is 'innovs', then
     $$\text{likelihood} = \mathcal{N}(\text{innovs}|0,I)$$.
     """
-    assert all_but_1_is_None(
-        lklhd, logL, innovs
-    ), "Input error. Only specify one of lklhd, logL, innovs"
+    assert all_but_1_is_None(lklhd, logL, innovs), (
+        "Input error. Only specify one of lklhd, logL, innovs"
+    )
 
     # Get log-values.
     # Use context manager 'errstate' to not warn for log(0) = -inf.

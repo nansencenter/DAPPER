@@ -238,7 +238,7 @@ def _sync_DAPPER(self):
             "--files-from=" + synclist.name,
         )
     except subprocess.SubprocessError as error:
-        print(error.stderr)  # type: ignore[attr-defined]
+        print(error.stderr)  # ty: ignore[unresolved-attribute]
         print("Did you mv/rm files (and not register it with `git`)?")
         raise
 

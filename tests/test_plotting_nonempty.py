@@ -66,9 +66,9 @@ def _check_figures(before):
         finite = ydata[np.isfinite(ydata)]
         # Boundary NaNs are used as line-break separators in phase-space plots.
         assert len(finite) > 0, f"Figure {label!r}: all values are NaN or inf"
-        assert (
-            np.max(np.abs(finite)) < 1e6
-        ), f"Figure {label!r}: implausibly large values"
+        assert np.max(np.abs(finite)) < 1e6, (
+            f"Figure {label!r}: implausibly large values"
+        )
 
 
 # ---------------------------------------------------------------------------

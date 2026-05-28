@@ -155,8 +155,8 @@ except ImportError:
         import msvcrt  # noqa
 
         def _read1():  # pyright: ignore[reportRedeclaration]
-            if msvcrt.kbhit():  # type: ignore[attr-defined]
-                return msvcrt.getch()  # type: ignore[attr-defined]
+            if msvcrt.kbhit():  # ty: ignore[unresolved-attribute]
+                return msvcrt.getch()  # ty: ignore[unresolved-attribute]
             else:
                 return None
 

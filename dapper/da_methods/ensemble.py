@@ -762,7 +762,7 @@ def Newton_m(
     return x0
 
 
-def hyperprior_coeffs(s, N, xN=1, g=0):
+def hyperprior_coeffs(s, N, xN=1, g=0) -> tuple[float, float]:
     r"""Set EnKF-N inflation hyperparams.
 
     The EnKF-N prior may be specified by the constants:

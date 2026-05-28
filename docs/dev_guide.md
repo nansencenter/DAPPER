@@ -40,18 +40,17 @@ hide:
 !!! note We recommend using [`uv`](https://docs.astral.sh/uv/).
     It enables reproducible installs, strong dependency resolution,
     and a streamlined workflow for building and publishing to PyPI.
-    However, most of the following guide simply relies on an activated venv and `pip`.
 
 ```sh
-pip install -e '.[dev]'
+uv pip install -e '.[dev]'
 ```
 
-PS: *If* you want to be able to use static analysis tools (`pyright`) with dapper
-all the while working *from outside its directory*,
-you should also **append** `--config-settings editable_mode=compat` to the above command.
-Ref [pyright doc](https://github.com/microsoft/pyright/blob/main/docs/import-resolution.md#editable-installs)
-and [pyright issue](https://github.com/microsoft/pylance-release/issues/78).
-Alternatively, there is the `extraPaths` setting.
+When **adding or removing a dependency** (i.e. modifying `pyproject.toml`), use `uv add` / `uv remove` instead of editing the file by hand — this keeps `uv.lock` in sync:
+
+```sh
+uv add --optional lint some-tool
+uv remove some-tool
+```
 
 ## Run tests
 
@@ -90,9 +89,11 @@ For detailed linting messages, run
 
 ```sh
 ruff check --output-format=concise
+ty check
 ```
 
 You may also want to display linting issues in your editor as you code.
+Both `ruff` and `ty` ship with language server support for in-editor diagnostics.
 
 ## Writing documentation
 

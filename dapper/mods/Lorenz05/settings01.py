@@ -14,7 +14,10 @@ Dyn = modelling.Operator(M=model.M, model=model.step, noise=0)
 X0 = modelling.GaussRV(mu=model.x0, C=0.001)
 
 jj = np.arange(model.M)  # obs_inds
-Obs = modelling.Operator(**modelling.partial_Id_Obs(model.M, jj), noise=1,
-                          localizer=nd_Id_localization((model.M,), (6,)))
+Obs = modelling.Operator(
+    **modelling.partial_Id_Obs(model.M, jj),
+    noise=1,
+    localizer=nd_Id_localization((model.M,), (6,)),
+)
 
 HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0)
