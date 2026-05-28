@@ -64,7 +64,7 @@ DAPPER demonstrates how to parallelise ensemble forecasts (e.g., the QG model),
 local analyses (e.g., the LETKF), and independent experiments (e.g., `docs/examples/basic_3.py`).
 It includes a battery of diagnostics and statistics,
 which all get averaged over subdomains (e.g., "ocean" and "land") and then in time.
-Confidence intervals are computed, including correction for auto-correlations,
+Confidence intervals are computed, taking into account auto-correlations,
 and used for uncertainty quantification, and significant digits printing.
 Several diagnostics are included in the on-line "liveplotting" illustrated below,
 which may be paused for further interactive inspection.
@@ -204,6 +204,45 @@ along with their expected, average `rmse.a` score for that experiment.
 As mentioned [above](#da-methods), DAPPER reproduces literature results.
 You will also find results that were not reproduced by DAPPER.
 
+
+## Statistics
+
+Each experiment (`xp`) populates `xp.stats` with per-timestep timeseries diagnostics
+and `xp.avrgs` with time-averages and their confidence intervals.
+Most of these carry subscripts `.f`, `.a`, `.s`, `.i`
+corresponding to forecast, analysis, smoothed (smoothers only), and integrational statistics.
+Vector statistics (one value per state dimension) are also summarised spatially
+via `rms`, `m`, `ma`, `ms`, `gm`, and per `HMM.sectors` if defined.
+
+<!-- markdownlint-capture -->
+<!-- markdownlint-disable line-length -->
+| Statistic | Type | Description |
+|-----------|------|-------------|
+| `mu` | vector | Mean estimate (ensemble mean or Kalman/variational estimate) |
+| `spread` | vector | Spread (ensemble std dev or posterior std dev) |
+| `err` | vector | Error of mean estimate vs. truth (`mu − truth`) |
+| `gscore` | vector | Gaussian (log) score: `2·log(spread) + (err/spread)²` |
+| `crps` | vector | Continuous ranked probability score (proper scoring rule) |
+| `mad` | scalar | Mean absolute deviation of ensemble from its mean |
+| `skew` | scalar <sup>e</sup> | Skewness of the ensemble |
+| `kurt` | scalar <sup>e</sup> | Excess kurtosis (0 for Gaussians) |
+| `svals` | vector <sup>e,s</sup> | Singular values of the ensemble anomalies |
+| `umisf` | vector <sup>e,s</sup> | Error projected onto the leading ensemble directions |
+| `w` | vector <sup>p</sup> | Importance weights |
+| `rh` | vector <sup>e</sup> | Rank histogram (rank of truth among sorted ensemble members) |
+| `trHK` | scalar <sup>†</sup> | Trace of the obs-space gain matrix `HK` |
+| `infl` | scalar <sup>†</sup> | Inflation factor applied at this step |
+| `iters` | scalar <sup>†</sup> | Iteration count (iterative methods) |
+| `N_eff` | scalar <sup>p,†</sup> | Effective ensemble size `1 / Σwᵢ²` |
+| `wroot` | scalar <sup>p,†</sup> | Root for optimal weight tempering |
+| `resmpl` | scalar <sup>p,†</sup> | Resampling indicator/count |
+| `duration` | — | Wall-clock time (s) for the full `assimilate()` call |
+<!-- markdownlint-restore -->
+
+<sup>e</sup>: Ensemble methods only.
+<sup>s</sup>: Only computed when √(Nx·N) ≤ `rc.comps.max_spectral`.
+<sup>p</sup>: Particle filter (weighted ensemble) methods only.
+<sup>†</sup>: Analysis-only (no `.f` or `.i` subscript).
 
 ## Similar projects
 
