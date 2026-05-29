@@ -86,7 +86,8 @@ and check whether existing serialised test data needs to be re-saved.
 DAPPER's tutorial notebooks (`basic_1`, `basic_2`) must run on Google Colab.
 The workflow `.github/workflows/colab-compat.yml` tests this against Google's
 [public Colab Docker image](https://us-docker.pkg.dev/colab-images/public/runtime).
-Trigger it manually from the GitHub Actions UI before each teaching session.
+It runs automatically on the 1st of each month, so failures surface well before teaching sessions.
+It can also be triggered manually from the GitHub Actions UI.
 
 To test locally (requires [podman](https://podman.io/)):
 

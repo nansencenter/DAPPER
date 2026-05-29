@@ -2,10 +2,8 @@ name: Colab compatibility
 
 on:
   workflow_dispatch:
-  # Uncomment to also run automatically before typical teaching seasons:
-  # schedule:
-  #   - cron: '0 8 1 8 *'  # Aug 1
-  #   - cron: '0 8 1 1 *'  # Jan 1
+  schedule:
+    - cron: '0 8 1 * *'  # 1st of every month
 
 jobs:
   colab:
