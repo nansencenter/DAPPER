@@ -1386,13 +1386,13 @@ def spatial2d(
             #  - plot() automatically adjusts to direction of y-axis in use.
             #  - ind2sub returns (iy,ix), while plot takes (ix,iy) => reverse.
 
-            if ko is not None and not_empty(obs_inds):
-                lh[0] = ax_12.plot(
-                    *ind2sub(obs_inds(ko))[::-1],
-                    "k.",
-                    ms=1,
-                    zorder=5,  # ty: ignore[call-non-callable]
-                )[0]
+            if ko is not None:
+                if callable(obs_inds):
+                    jj = obs_inds(ko)  # ty:ignore[call-top-callable]
+                else:
+                    jj = obs_inds[ko]
+                if not_empty(jj):
+                    lh[0] = ax_12.plot(*ind2sub(jj)[::-1], "k.", ms=1, zorder=5)[0]
 
             text_t.set_text(format_time(k, ko, t))
 
