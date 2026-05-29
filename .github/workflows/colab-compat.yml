@@ -1,0 +1,32 @@
+name: Colab compatibility
+
+on:
+  workflow_dispatch:
+  # Uncomment to also run automatically before typical teaching seasons:
+  # schedule:
+  #   - cron: '0 8 1 8 *'  # Aug 1
+  #   - cron: '0 8 1 1 *'  # Jan 1
+
+jobs:
+  colab:
+    runs-on: ubuntu-latest
+    container:
+      image: us-docker.pkg.dev/colab-images/public/runtime:latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install DAPPER
+        run: pip install -q .
+
+      - name: Run basic_1
+        env:
+          MPLBACKEND: Agg
+          DAPPER_LIVEPLOTTING: "0"
+        run: python docs/examples/basic_1.py
+
+      - name: Run basic_2
+        env:
+          MPLBACKEND: Agg
+          DAPPER_LIVEPLOTTING: "0"
+        run: python docs/examples/basic_2.py

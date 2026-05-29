@@ -31,8 +31,6 @@ classifiers = [
   "Operating System :: OS Independent",
 ]
 dependencies = [
-  # NB: Colab comes with several packages pre-installed; try not to strictly pin.
-  # TODO 4: implement CI with colab environment: https://github.com/googlecolab/backend-info/blob/main/pip-freeze.txt
   "scipy>=1.14",
   "numpy~=2.0",
   "matplotlib>=3.10",
@@ -40,7 +38,7 @@ dependencies = [
   "ipython>=7.34",
   "ipdb",
   "setuptools",                  # necessary when installing via uv
-  "notebook<6.5",                # 6.5 fails on Mac/Ubuntu ('Could not open static file'); Colab uses 6.5
+  "notebook<6.5",                # 6.5 fails on Mac/Ubuntu ('Could not open static file'); Colab uses 6.4.13
   "mpl-tools==0.4.1",
   "tqdm~=4.67",
   "colorama~=0.4.1",
@@ -118,8 +116,8 @@ addopts = """
 # Silence until mpl is upgraded (when Colab does so).
 # dill 0.3.8 accesses numpy.core (deprecated in numpy>=2.0); pinned for remote server compat.
 filterwarnings = [
-    'ignore:distutils:DeprecationWarning',
-    'ignore:numpy.core is deprecated:DeprecationWarning',
+  'ignore:distutils:DeprecationWarning',
+  'ignore:numpy.core is deprecated:DeprecationWarning',
 ]
 
 [tool.coverage.run]

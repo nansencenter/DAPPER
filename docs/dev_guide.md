@@ -52,6 +52,50 @@ uv add --optional lint some-tool
 uv remove some-tool
 ```
 
+### Dependency pinning philosophy
+
+`uv.lock` is checked in and used by `uv sync` for reproducible developer installs; `pip` ignores it.
+
+In `pyproject.toml`, most dependencies use a minimum version bound (`>=`).
+Upper bounds are only added where a known breakage exists — the main case being
+`notebook<6.5`, because Colab uses notebook 6.4.x and never migrated to `jupyter_server`.
+`dill` is pinned exactly because it must match the version on any remote computing servers
+(mismatched `dill` versions can corrupt serialised objects and require re-saving test data).
+
+`requires-python = ">=3.12"` tracks Colab's runtime version.
+When Colab upgrades its Python, this bound (and the CI workflow below) should be updated together.
+
+Routine upgrades are not necessary — DAPPER is not actively developed and the maintenance burden should stay low.
+Good reasons to upgrade are: a security vulnerability in a direct dependency, a bug fix you need,
+or Colab upgrading its pre-installed packages (which would require updating the minimum bounds here
+to keep the Colab compatibility test meaningful).
+
+To upgrade a dependency, use `uv` so the lockfile stays in sync:
+
+```sh
+uv lock --upgrade-package scipy   # upgrade one package
+uv lock --upgrade                 # upgrade everything
+```
+
+Then run the tests and the Colab compatibility check.
+For `dill` specifically: also upgrade the version on any remote computing servers,
+and check whether existing serialised test data needs to be re-saved.
+
+### Colab compatibility
+
+DAPPER's tutorial notebooks (`basic_1`, `basic_2`) must run on Google Colab.
+The workflow `.github/workflows/colab-compat.yml` tests this against Google's
+[public Colab Docker image](https://us-docker.pkg.dev/colab-images/public/runtime).
+Trigger it manually from the GitHub Actions UI before each teaching session.
+
+To test locally (requires [podman](https://podman.io/)):
+
+```sh
+mise run test:colab
+```
+
+Note: the image is ~5 GB; first pull is slow. Ensure the podman VM has at least 80 GB of virtual disk (`podman machine init --disk-size 80`).
+
 ## Run tests
 
 By default, only `doctests` are run when executing `pytest`.
@@ -65,8 +109,9 @@ You can also append `test_plotting_interactive.py` for example,
 which is otherwise ignored for being slow.
 
 To test across multiple Python versions, either rely on CI (already in place),
-or do `uv run --isolated --python 3.13 --extra test pytest tests`  
-(no need for `tox`!). It of course combines nicely with a task runner, e.g. `mise`.
+or do `uv run --isolated --python 3.13 --extra test pytest tests`.  
+In combination with a task runner, like `mise` (see `mise.toml`),
+this does away with any need for `tox`.
 
 If the test with the `QG` model in `test_HMM.py` fails
 (simply because you have not compiled it) that is fine
