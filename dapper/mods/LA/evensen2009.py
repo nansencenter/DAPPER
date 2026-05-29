@@ -32,12 +32,7 @@ def step(x, t, dt):
     return x @ Fm.T
 
 
-Dyn = {
-    "M": Nx,
-    "model": step,
-    "linear": lambda x, t, dt: Fm,
-    "noise": 0,
-}
+Dyn = modelling.Operator(M=Nx, model=step, linear=lambda x, t, dt: Fm, noise=0)
 
 # In the animation, it can sometimes/somewhat occur
 # that the truth is outside 3*sigma !!!
@@ -47,10 +42,9 @@ wnum = 25
 a = np.sqrt(5) / 10
 X0 = modelling.RV(M=Nx, func=lambda N: a * sinusoidal_sample(Nx, wnum, N))
 
-Obs = modelling.partial_Id_Obs(Nx, jj)
-Obs["noise"] = 0.01
+Obs = modelling.Operator(**modelling.partial_Id_Obs(Nx, jj), noise=0.01)
 
-HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, LP=LPs(jj))
+HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, liveplotters=LPs(jj))
 
 
 ####################

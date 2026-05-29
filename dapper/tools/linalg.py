@@ -51,6 +51,7 @@ def tsvd(A, threshold=0.99999, avoid_pathological=True):
     """
     M, N = A.shape
     full_matrices = False
+    r = None
 
     if isinstance(threshold, int):
         # Assume specific number is requested

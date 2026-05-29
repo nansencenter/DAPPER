@@ -44,7 +44,7 @@ def test_HMM(path):
                 return True
             return False
 
-        for key, HMM in vars(module).items():
+        for key, HMM in list(vars(module).items()):
             if isinstance(HMM, HiddenMarkovModel) and not exclude(key, HMM):
                 HMM.tseq.BurnIn = 0
                 HMM.tseq.Ko = 1

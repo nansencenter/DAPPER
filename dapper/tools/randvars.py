@@ -1,22 +1,30 @@
 """Classes of random variables."""
 
+from collections.abc import Callable
+from pathlib import Path
+
 import numpy as np
 from numpy import sqrt
-from struct_tools import NicePrint
 
 from dapper.tools.matrices import CovMat
+from dapper.tools.repr_util import YamlRepr
 from dapper.tools.seeding import rng
 
 
-class RV(NicePrint):
+class RV(YamlRepr):
     """Class to represent random variables."""
 
-    printopts = NicePrint.printopts.copy()
-    printopts["ordering"] = "linenumber"
-    printopts["reverse"] = True
-
-    def __init__(self, M, **kwargs):
-        """Initalization arguments:
+    def __init__(
+        self,
+        M: int,
+        *,
+        is0: bool = False,
+        func: Callable | None = None,
+        file: str | Path | None = None,
+        icdf: Callable | None = None,
+        cdf: Callable | None = None,
+    ):
+        """Init arguments:
 
         - `M    <int>    ` : ndim
         - `is0  <bool>   ` : if `True`, the random variable is identically 0
@@ -24,29 +32,27 @@ class RV(NicePrint):
                            `RV(M=4,func=lambda N: rng.random((N,4))`
         - `file <str>    ` : draw from file. Example:
                            `RV(M=4,file=dpr.rc.dirs.data/'tmp.npz')`
-
-        The following kwords (versions) are available,
-        but should not be used for anything serious
-        (use instead subclasses, like `GaussRV`).
-
-        - `icdf <func(x)>` : marginal/independent  "inverse transform" sampling.<br>
-                           Example: `RV(M=4,icdf = scipy.stats.norm.ppf)`
-        - `cdf <func(x)>`  : as icdf, but with approximate icdf, from interpolation.<br>
-                           Example: `RV(M=4,cdf = scipy.stats.norm.cdf)`
-        - `pdf  <func(x)>` : "acceptance-rejection" sampling. Not implemented.
+        - `icdf <func(x)>` : marginal/independent "inverse transform" sampling.
+                           Example: `RV(M=4,icdf=scipy.stats.norm.ppf)`
+        - `cdf <func(x)>`  : as icdf, but with approximate icdf from interpolation.
+                           Example: `RV(M=4,cdf=scipy.stats.norm.cdf)`
         """
         self.M = M
-        for key, value in kwargs.items():
-            setattr(self, key, value)
+        self.is0 = is0
+        self.func = func
+        self.file = file
+        self.icdf = icdf
+        self.cdf = cdf
+        self._icdf_interp = None
 
-    def sample(self, N):
-        if getattr(self, "is0", False):
+    def sample(self, N: int) -> np.ndarray:
+        if self.is0:
             # Identically 0
             E = np.zeros((N, self.M))
-        elif hasattr(self, "func"):
+        elif self.func is not None:
             # Provided by function
             E = self.func(N)
-        elif hasattr(self, "file"):
+        elif self.file is not None:
             # Provided by numpy file with sample
             data = np.load(self.file)
             sample = data["sample"]
@@ -57,33 +63,34 @@ class RV(NicePrint):
                 w = np.ones(N0) / N0
             idx = rng.choice(N0, N, replace=True, p=w)
             E = sample[idx]
-        elif hasattr(self, "icdf"):
+        elif self.icdf is not None:
             # Independent "inverse transform" sampling
             icdf = np.vectorize(self.icdf)
             uu = rng.random((N, self.M))
             E = icdf(uu)
-        elif hasattr(self, "cdf"):
+        elif self.cdf is not None:
             # Like above, but with inv-cdf approximate, from interpolation
-            if not hasattr(self, "icdf_interp"):
+            if self._icdf_interp is None:
                 # Define inverse-cdf
                 from scipy.interpolate import interp1d
                 from scipy.optimize import fsolve
 
                 cdf = self.cdf
-                (Left,) = fsolve(lambda x: cdf(x) - 1e-9, 0.1)  # noqa
-                (Right,) = fsolve(lambda x: cdf(x) - (1 - 1e-9), 0.1)  # noqa
+                Left = fsolve(lambda x: cdf(x) - 1e-9, 0.1)[0]
+                Right = fsolve(lambda x: cdf(x) - (1 - 1e-9), 0.1)[0]
                 xx = np.linspace(Left, Right, 1001)
                 uu = np.vectorize(cdf)(xx)
                 icdf = interp1d(uu, xx)
-                self.icdf_interp = np.vectorize(icdf)
+                self._icdf_interp = np.vectorize(icdf)
             uu = rng.random((N, self.M))
-            E = self.icdf_interp(uu)
-        elif hasattr(self, "pdf"):
-            # "acceptance-rejection" sampling
-            raise NotImplementedError
+            E = self._icdf_interp(uu)
         else:
             raise KeyError
-        assert self.M == E.shape[1]
+        if self.M != E.shape[1]:
+            raise ValueError(
+                f"sample shape mismatch: expected M={self.M},"
+                " got E.shape[1]={E.shape[1]}"
+            )
         return E
 
 
@@ -95,7 +102,12 @@ class RV_with_mean_and_cov(RV):
     i.e. its main purpose is provide a common convenience constructor.
     """
 
-    def __init__(self, mu=0, C=0, M=None):
+    def __init__(
+        self,
+        mu: float | np.ndarray = 0,
+        C: float | np.ndarray | CovMat = 0,
+        M: int | None = None,
+    ):
         """Init allowing for shortcut notation."""
         if isinstance(mu, CovMat):
             raise TypeError(
@@ -124,6 +136,7 @@ class RV_with_mean_and_cov(RV):
             else:
                 if np.isscalar(C):
                     M = len(mu)
+                    assert isinstance(C, (int, float))
                     C = CovMat(C * np.ones(M), "diag")
                 else:
                     C = CovMat(C)
@@ -135,18 +148,15 @@ class RV_with_mean_and_cov(RV):
             raise TypeError("Inconsistent shapes of (M,mu,C)")
         if M is None:
             raise TypeError("Could not deduce the value of M")
-        try:
-            if M != C.M:
-                raise TypeError("Inconsistent shapes of (M,mu,C)")
-        except AttributeError:
-            pass
+        if isinstance(C, CovMat) and M != C.M:
+            raise TypeError("Inconsistent shapes of (M,mu,C)")
 
         # Assign
         self.M = M
         self.mu = mu
         self.C = C
 
-    def sample(self, N):
+    def sample(self, N: int) -> np.ndarray:
         """Sample N realizations. Returns N-by-M (ndim) sample matrix.
 
         Examples
@@ -156,18 +166,19 @@ class RV_with_mean_and_cov(RV):
         if self.C == 0:
             D = np.zeros((N, self.M))
         else:
-            D = self._sample(N)
+            assert isinstance(self.C, CovMat)
+            D = self._sample(N, self.C)
         return self.mu + D
 
-    def _sample(self, N):
+    def _sample(self, N: int, C: CovMat) -> np.ndarray:
         raise NotImplementedError("Must be implemented in subclass")
 
 
 class GaussRV(RV_with_mean_and_cov):
     """Gaussian (Normal) multivariate random variable."""
 
-    def _sample(self, N):
-        R = self.C.Right
+    def _sample(self, N, C):
+        R = C.Right
         D = rng.standard_normal((N, len(R))) @ R
         return D
 
@@ -179,8 +190,8 @@ class LaplaceRV(RV_with_mean_and_cov):
     Eltoft (2006) "On the Multivariate Laplace Distribution".
     """
 
-    def _sample(self, N):
-        R = self.C.Right
+    def _sample(self, N, C):
+        R = C.Right
         z = rng.exponential(1, N)
         D = rng.standard_normal((N, len(R)))
         D = z[:, None] * D
@@ -190,9 +201,9 @@ class LaplaceRV(RV_with_mean_and_cov):
 class LaplaceParallelRV(RV_with_mean_and_cov):
     """A NON-elliptical multivariate version of Laplace (double exponential) RV."""
 
-    def _sample(self, N):
-        # R = self.C.Right   # contour: sheared rectangle
-        R = self.C.sym_sqrt  # contour: rotated rectangle
+    def _sample(self, N, C):
+        # R = C.Right   # contour: sheared rectangle
+        R = C.sym_sqrt  # contour: rotated rectangle
         D = rng.laplace(0, 1, (N, len(R)))
         return D @ R / sqrt(2)
 
@@ -210,8 +221,8 @@ class StudRV(RV_with_mean_and_cov):
         super().__init__(*args, **kwargs)
         self.dof = dof
 
-    def _sample(self, N):
-        R = self.C.Right
+    def _sample(self, N, C):
+        R = C.Right
         nu = self.dof
         r = nu / np.sum(rng.standard_normal((N, nu)) ** 2, axis=1)  # InvChi2
         D = sqrt(r)[:, None] * rng.standard_normal((N, len(R)))
@@ -226,8 +237,8 @@ class UniRV(RV_with_mean_and_cov):
     vectors and coordinates from the n-sphere and n-ball"
     """
 
-    def _sample(self, N):
-        R = self.C.Right
+    def _sample(self, N, C):
+        R = C.Right
         D = rng.standard_normal((N, len(R)))
         r = rng.random(N) ** (1 / len(R)) / np.sqrt(np.sum(D**2, axis=1))
         D = r[:, None] * D
@@ -241,7 +252,7 @@ class UniParallelRV(RV_with_mean_and_cov):
     applied to the (corners of) the hypercube.
     """
 
-    def _sample(self, N):
-        R = self.C.Right
+    def _sample(self, N, C):
+        R = C.Right
         D = rng.random((N, len(R))) - 0.5
         return D @ R * sqrt(12)

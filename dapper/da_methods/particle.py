@@ -1,5 +1,7 @@
 """Weight- & resampling-based DA methods."""
 
+from dataclasses import dataclass
+
 import numpy as np
 
 from dapper.stats import unbias_var, weight_degeneracy
@@ -11,16 +13,15 @@ from dapper.tools.seeding import rng
 from . import da_method
 
 
-@da_method
+@dataclass(kw_only=True)
 class particle_method:
-    """Declare default particle arguments."""
+    """Default particle filter arguments (shared via inheritance)."""
 
     NER: float = 1.0
     resampl: str = "Sys"
 
 
-@particle_method
-class PartFilt:
+class PartFilt(da_method, particle_method):
     r"""Particle filter ≡ Sequential importance (re)sampling SIS (SIR).
 
     Refs: [wikle2007][], [van2009][], [chen2003][]
@@ -85,11 +86,10 @@ class PartFilt:
                     #     # Compensate for rroot
                     #     w *= np.exp(-0.5*chi2*(1 - 1/rroot))
                     #     w /= w.sum()
-            self.stats.assess(k, ko, "u", E=E, w=w)
+            self.stats.assess(k, ko, "i", E=E, w=w)
 
 
-@particle_method
-class OptPF:
+class OptPF(da_method, particle_method):
     """'Optimal proposal' particle filter, also known as 'Implicit particle filter'.
 
     Ref: [bocquet2010a][].
@@ -149,11 +149,10 @@ class OptPF:
                     idx, w = resample(w, self.resampl, wroot=self.wroot)
                     E, _ = regularize(C12, E, idx, self.nuj)
 
-            self.stats.assess(k, ko, "u", E=E, w=w)
+            self.stats.assess(k, ko, "i", E=E, w=w)
 
 
-@particle_method
-class PFa:
+class PFa(da_method, particle_method):
     """PF with weight adjustment withOUT compensating for the bias it introduces.
 
     'alpha' sets wroot before resampling such that N_effective becomes >alpha*N.
@@ -216,7 +215,7 @@ class PFa:
                         if 1 / (sw @ sw) < N * self.alpha:
                             wroot += 0.2
                         else:
-                            self.stats.wroot[ko] = wroot
+                            self.stats.wroot.a[ko] = wroot
                             break
                     idx, w = resample(sw, self.resampl, wroot=1)
 
@@ -225,11 +224,10 @@ class PFa:
                     #     Compensate for rroot
                     #     w *= np.exp(-0.5*chi2*(1 - 1/rroot))
                     #     w /= w.sum()
-            self.stats.assess(k, ko, "u", E=E, w=w)
+            self.stats.assess(k, ko, "i", E=E, w=w)
 
 
-@particle_method
-class PFxN_EnKF:
+class PFxN_EnKF(da_method, particle_method):
     """Particle filter with EnKF-based proposal, q.
 
     Also employs xN duplication, as in PFxN.
@@ -349,11 +347,10 @@ class PFxN_EnKF:
                             break
                         else:
                             wroot += 0.1
-            self.stats.assess(k, ko, "u", E=E, w=w)
+            self.stats.assess(k, ko, "i", E=E, w=w)
 
 
-@particle_method
-class PFxN:
+class PFxN(da_method, particle_method):
     """Particle filter with buckshot duplication during analysis.
 
     Idea: sample xN duplicates from each of the N kernels.
@@ -423,7 +420,7 @@ class PFxN:
                             break
                         else:
                             wroot += 0.1
-            self.stats.assess(k, ko, "u", E=E, w=w)
+            self.stats.assess(k, ko, "i", E=E, w=w)
 
 
 def trigger_resampling(w, NER, stat_args):
@@ -434,8 +431,8 @@ def trigger_resampling(w, NER, stat_args):
     # Unpack stat args
     stats, E, k, ko = stat_args
 
-    stats.N_eff[ko] = N_eff
-    stats.resmpl[ko] = 1 if do_resample else 0
+    stats.N_eff.a[ko] = N_eff
+    stats.resmpl.a[ko] = 1 if do_resample else 0
 
     # Why have we put self.stats.assess() here?
     # Because we need to write self.stats.N_eff and self.stats.resmpl before calling
@@ -464,9 +461,9 @@ def reweight(w, lklhd=None, logL=None, innovs=None):
     If input is 'innovs', then
     $$\text{likelihood} = \mathcal{N}(\text{innovs}|0,I)$$.
     """
-    assert all_but_1_is_None(
-        lklhd, logL, innovs
-    ), "Input error. Only specify one of lklhd, logL, innovs"
+    assert all_but_1_is_None(lklhd, logL, innovs), (
+        "Input error. Only specify one of lklhd, logL, innovs"
+    )
 
     # Get log-values.
     # Use context manager 'errstate' to not warn for log(0) = -inf.

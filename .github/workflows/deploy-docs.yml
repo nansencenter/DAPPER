@@ -1,26 +1,30 @@
-# From https://github.com/mhausenblas/mkdocs-deploy-gh-pages
-name: Publish mkDocs via GitHub Pages
-# build the documentation whenever there are new commits on main
+name: Deploy docs
 on:
   push:
-    branches:
-      - master
-    # Alternative: only build for tags.
-    # tags:
-    #   - '*'
+    branches: [master]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
 
 jobs:
-  build:
-    name: Deploy MkDocs
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout main
-        uses: actions/checkout@v2
-
-      - name: Deploy docs
-        uses: mhausenblas/mkdocs-deploy-gh-pages@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CONFIG_FILE: mkdocs.yml
-          REQUIREMENTS: .github/workflows/requirements.txt
-          # CUSTOM_DOMAIN: optionaldomain.com
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv pip install -e '.[doc]' --system
+      - run: mkdocs build -f properdocs.yml
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/
+      - id: deploy
+        uses: actions/deploy-pages@v4

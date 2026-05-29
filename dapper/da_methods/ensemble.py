@@ -1,5 +1,7 @@
 """The EnKF and other ensemble-based methods."""
 
+from dataclasses import dataclass
+
 import numpy as np
 import scipy.linalg as sla
 from numpy import diag, eye, sqrt, zeros
@@ -15,17 +17,16 @@ from dapper.tools.seeding import rng
 from . import da_method
 
 
-@da_method
+@dataclass(kw_only=True)
 class ens_method:
-    """Declare default ensemble arguments."""
+    """Default ensemble arguments (shared via inheritance)."""
 
     infl: float = 1.0
     rot: bool = False
     fnoise_treatm: str = "Stoch"
 
 
-@ens_method
-class EnKF:
+class EnKF(da_method, ens_method):
     """The ensemble Kalman filter.
 
     Refs: [evensen2009a][].
@@ -163,8 +164,8 @@ def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats=None, ko=None):
                         # v = Zj - Yj (from paper) requires Y==HX.
                         # Instead: mult` should be c*ones(Nx) so we can
                         # project v into ker(A) such that v@A is null.
-                        mult = (v @ A) / (Yj @ A)  # noqa
-                        v = v - mult[0] * Yj  # noqa
+                        mult = (v @ A) / (Yj @ A)  # noqa  # type: ignore[reportPossiblyUnbound]
+                        v = v - mult[0] * Yj  # noqa  # type: ignore[reportPossiblyUnbound]
                         v /= sqrt(v @ v)
                     Zj = v * sqrt(N1)  # Standardized perturbation along v
                     Zj *= np.sign(rng.standard_normal() - 0.5)  # Random sign
@@ -223,14 +224,14 @@ def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats=None, ko=None):
     # Diagnostic: relative influence of observations
     if stats is not None:
         if "trHK" in locals():
-            stats.trHK[ko] = trHK / hnoise.M
+            stats.trHK.a[ko] = trHK / hnoise.M  # type: ignore[reportPossiblyUnbound]
         elif "HK" in locals():
-            stats.trHK[ko] = HK.trace() / hnoise.M
+            stats.trHK.a[ko] = HK.trace() / hnoise.M  # type: ignore[reportPossiblyUnbound]
 
     return E
 
 
-def post_process(E, infl, rot):
+def post_process(E, infl: float, rot):
     """Inflate, Rotate.
 
     To avoid recomputing/recombining anomalies,
@@ -350,8 +351,7 @@ def add_noise(E, dt, noise, method):
     return E
 
 
-@ens_method
-class EnKS:
+class EnKS(da_method, ens_method):
     """The ensemble Kalman smoother.
 
     Refs: [evensen2009a][]
@@ -405,13 +405,12 @@ class EnKS:
                 self.stats.assess(k, ko, "a", E=E[k])
 
         for k, ko, _, _ in progbar(HMM.tseq.ticker, desc="Assessing"):
-            self.stats.assess(k, ko, "u", E=E[k])
+            self.stats.assess(k, ko, "i", E=E[k])
             if ko is not None:
                 self.stats.assess(k, ko, "s", E=E[k])
 
 
-@ens_method
-class EnRTS:
+class EnRTS(da_method, ens_method):
     """EnRTS (Rauch-Tung-Striebel) smoother.
 
     Refs: [raanes2016thesis][]
@@ -453,7 +452,7 @@ class EnRTS:
             E[k] += (E[k + 1] - Ef[k + 1]) @ J
 
         for k, ko, _, _ in progbar(HMM.tseq.ticker, desc="Assessing"):
-            self.stats.assess(k, ko, "u", E=E[k])
+            self.stats.assess(k, ko, "i", E=E[k])
             if ko is not None:
                 self.stats.assess(k, ko, "s", E=E[k])
 
@@ -480,8 +479,7 @@ def serial_inds(upd_a, y, cvR, A):
     return inds
 
 
-@ens_method
-class SL_EAKF:
+class SL_EAKF(da_method, ens_method):
     """Serial, covariance-localized EAKF.
 
     Refs: [karspeck2007][].
@@ -610,8 +608,7 @@ def local_analyses(E, Eo, R, y, state_batches, obs_taperer, mp=map, xN=None, g=0
     return E, dict(ad_inf=sqrt(np.mean(np.array(infl1) ** 2)))
 
 
-@ens_method
-class LETKF:
+class LETKF(da_method, ens_method):
     """Same as EnKF (Sqrt), but with localization.
 
     Refs: [hunt2007][].
@@ -626,7 +623,7 @@ class LETKF:
     N: int
     loc_rad: float
     taper: str = "GC"
-    xN: float = None
+    xN: float | None = None
     g: int = 0
     mp: bool = False
 
@@ -651,7 +648,7 @@ class LETKF:
                         yy[ko],
                         batch,
                         taper,
-                        pool.map,
+                        pool.map,  # type: ignore[arg-type]
                         self.xN,
                         self.g,
                     )
@@ -765,7 +762,7 @@ def Newton_m(
     return x0
 
 
-def hyperprior_coeffs(s, N, xN=1, g=0):
+def hyperprior_coeffs(s, N, xN=1, g=0) -> tuple[float, float]:
     r"""Set EnKF-N inflation hyperparams.
 
     The EnKF-N prior may be specified by the constants:
@@ -843,8 +840,7 @@ def zeta_a(eN, cL, w):
     return za
 
 
-@ens_method
-class EnKF_N:
+class EnKF_N(da_method, ens_method):
     """Finite-size EnKF (EnKF-N).
 
     Refs: [bocquet2011][], [bocquet2015][]
@@ -913,7 +909,7 @@ class EnKF_N:
                 # Adjust hyper-prior
                 # xN_ = noise_level(self.xN, self.stats, HMM.tseq, N1, ko, A,
                 #                   locals().get('A_old', None))
-                eN, cL = hyperprior_coeffs(s, N, self.xN, self.g)
+                eN, cL = hyperprior_coeffs(s, N, self.xN, self.g)  # type: ignore[arg-type]
 
                 if self.dual:
                     # Make dual cost function (in terms of l1)
@@ -923,14 +919,14 @@ class EnKF_N:
                     def dgn_rk(l1):
                         return pad_rk((l1 * s) ** 2) + N1
 
-                    def J(l1):
+                    def J(l1):  # type: ignore[reportRedeclaration]
                         val = (
                             np.sum(du**2 / dgn_rk(l1)) + eN / l1**2 + cL * np.log(l1**2)
                         )
                         return val
 
                     # Derivatives (not required with minimize_scalar):
-                    def Jp(l1):
+                    def Jp(l1):  # type: ignore[reportRedeclaration]
                         val = (
                             -2 * l1 * np.sum(pad_rk(s**2) * du**2 / dgn_rk(l1) ** 2)
                             + -2 * eN / l1**3
@@ -1011,8 +1007,8 @@ class EnKF_N:
                 E = mu + w @ A + T @ A
                 E = post_process(E, self.infl, self.rot)
 
-                self.stats.infl[ko] = l1
-                self.stats.trHK[ko] = (
+                self.stats.infl.a[ko] = l1
+                self.stats.trHK.a[ko] = (
                     ((l1 * s) ** 2 + N1) ** (-1.0) * s**2
                 ).sum() / len(y)
 

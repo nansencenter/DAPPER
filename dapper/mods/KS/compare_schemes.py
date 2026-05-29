@@ -65,9 +65,9 @@ if __name__ == "__main__":
         # plt.text  (durations[m][-1], errors[m][-1], 'dt max')
     plt.legend()
     plt.xlabel("Total computation time (s)")
-    plt.ylabel("Max err (vs ref) at T=%d" % T)
+    plt.ylabel(f"Max err (vs ref) at T={T}")
     plt.grid(True, "minor")
-    plt.title("Ens size: %d" % N)
+    plt.title(f"Ens size: {N}")
     plt.show()
 
     # Plot ultimate states -- Not interesting, except for debugging

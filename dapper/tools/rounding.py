@@ -54,6 +54,12 @@ class UncertainQtty:
     0 ±inf
     """
 
+    # Declared for static analysis; set externally by xpSpace.mean() and tune().
+    nTotal: int
+    nFail: int
+    nSuccess: int
+    tuned_coord: tuple
+
     def __init__(self, val, prec=np.nan):
         self.val = val
         self.prec = prec
@@ -64,14 +70,14 @@ class UncertainQtty:
         - `prec` to 1 sig.fig.
         - `val` to `round2(val, prec)`.
         """
-        if np.isnan(self.prec):
+        if np.isnan(self.prec):  # ty: ignore[unresolved-attribute]
             # Fallback to rc.sigfig
-            c = self.prec
-            v = round2sigfig(self.val, rc.sigfig)
+            c = self.prec  # ty: ignore[unresolved-attribute]
+            v = round2sigfig(self.val, rc.sigfig)  # ty: ignore[unresolved-attribute]
         else:
             # Normal/general case
-            c = round2sigfig(self.prec, 1)
-            v = round2(self.val, self.prec)
+            c = round2sigfig(self.prec, 1)  # ty: ignore[unresolved-attribute]
+            v = round2(self.val, self.prec)  # ty: ignore[unresolved-attribute]
         return v, c
 
     def __str__(self):
@@ -94,7 +100,7 @@ class UncertainQtty:
         frmt = "%.f"
         if n < 0:
             # Ensure we get 1.30 ±0.01, NOT 1.3 ±0.01:
-            frmt = "%%0.%df" % -n
+            frmt = f"%0.{-n}f"
         elif np.isfinite(c):
             # if c >= 1.0
             c = int(c)

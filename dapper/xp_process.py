@@ -1,20 +1,21 @@
 """Tools (notably `xpSpace`) for processing and presenting experiment data."""
 
 import collections
+import contextlib
 import copy
 import warnings
 
 import colorama
 import numpy as np
 from mpl_tools import place
-from patlib.std import nonchalance
-from struct_tools import AlignedDict, complement, intersect, transps
 from tabulate import tabulate
 
 from dapper.dpr_config import rc
 from dapper.stats import align_col, np2builtin, unpack_uqs
 from dapper.tools.colors import color_text, stripe
+from dapper.tools.repr_util import yaml_repr
 from dapper.tools.rounding import UncertainQtty
+from dapper.tools.struct import complement, intersect, transps
 from dapper.tools.viz import NoneDict, default_styles
 from dapper.xp_launch import xpList
 
@@ -84,6 +85,9 @@ class SparseSpace(dict):
     - https://stackoverflow.com/q/3387691
     """
 
+    # Set dynamically after __init__; declared here for static analysis.
+    ticks: dict
+
     @property
     def dims(self):
         return self.Coord._fields
@@ -108,7 +112,7 @@ class SparseSpace(dict):
                 lst = [str_or_repr(v) for v in c]
             return "(" + ", ".join(lst) + ")"
 
-        self.Coord.repr2 = repr2
+        self.Coord.repr2 = repr2  # type: ignore[attr-defined]
 
     def update(self, items):
         """Update dict, using the custom `__setitem__` to ensure key conformity.
@@ -209,11 +213,12 @@ class SparseSpace(dict):
 
     def __repr__(self):
         txt = f"<{self.__class__.__name__}>"
-        txt += " with Coord/dims: "
+        txt += " with Coord/dims "
         try:
-            txt += "(and ticks): " + str(AlignedDict(self.ticks))
+            txt += "(and ticks):\n" + yaml_repr(self.ticks)
         except AttributeError:
-            txt += str(self.dims) + "\n"
+            txt += str(self.dims)
+        txt += "\n"
 
         # Note: print(xpList(self)) produces a more human-readable table,
         # but requires prep_table(), which we don't really want to call again
@@ -223,7 +228,7 @@ class SparseSpace(dict):
         if 2 * L < len(keys):
             keys = keys[:L] + ["..."] + keys[-L:]
         keys = "[\n  " + ",\n  ".join(keys) + "\n]"
-        return txt + f"populated by {len(self)} items with keys: {keys}"
+        return txt + f"\npopulated by {len(self)} items with keys: {keys}"
 
     def nest(self, inner_dims=None, outer_dims=None):
         """Project along `inner_acces` to yield a new `xpSpace` with dims `outer_dims`
@@ -260,7 +265,7 @@ class SparseSpace(dict):
                 inner_space = self.__class__(inner_dims)
                 outer_space[outer_coord] = inner_space
             # Add entry to subspace, similar to .fill()
-            inner_space[inner_space.coord_from_attrs(coord)] = entry
+            inner_space[inner_space.coord_from_attrs(coord)] = entry  # type: ignore[index]
 
         return outer_space
 
@@ -321,6 +326,10 @@ DIM_ROLES = dict(outer=None, inner=None, mean=None, optim=None)
 
 class xpSpace(SparseSpace):
     """Functionality to facilitate working with `xps` and their results."""
+
+    # Set dynamically at runtime; declared here for static analysis.
+    created_with: dict
+    fig: object
 
     @classmethod
     def from_list(cls, xps, tick_ordering=None):
@@ -441,17 +450,14 @@ class xpSpace(SparseSpace):
     def tune(self, dims=None, costfun=None):
         """Get (compile/tabulate) a stat. optimised wrt. tuning params (`dims`)."""
         # Define cost-function
-        costfun = (costfun or "increasing").lower()
-        if "increas" in costfun:
-
-            def costfun(x):
-                return x
-        elif "decreas" in costfun:
-
-            def costfun(x):
-                return -x
-        else:
-            assert callable(costfun)  # custom
+        if not callable(costfun):
+            key = (costfun or "increasing").lower()
+            if "increas" in key:
+                costfun = lambda x: x  # noqa: E731
+            elif "decreas" in key:
+                costfun = lambda x: -x  # noqa: E731
+            else:
+                raise ValueError(f"Unknown costfun key: {key!r}")
 
         # Note: The case `dims=()` should work w/o special treatment.
         if dims is None:
@@ -459,19 +465,22 @@ class xpSpace(SparseSpace):
 
         nested = self.nest(dims)
         for coord, space in nested.items():
+            if not space:
+                continue
             # Find optimal value (and coord) within space
             MIN = np.inf
             found_any = False
+            uq_opt = next(iter(space.values()))
             for inner_coord, uq in space.items():
                 cost = costfun(uq.val)
-                if cost <= MIN:
+                if cost <= MIN:  # type: ignore[operator]
                     found_any = True
                     MIN = cost
                     uq_opt = uq
                     uq_opt.tuned_coord = inner_coord
 
             if not found_any:
-                uq_opt = uq  # one is as good as another
+                uq_opt = uq  # type: ignore[reportPossiblyUnbound]  one is as good as another
                 nDim = range(len(space.Coord._fields))
                 uq_opt.tuned_coord = space.Coord(*(None for _ in nDim))
 
@@ -672,12 +681,12 @@ class xpSpace(SparseSpace):
 
                 if subcols:
                     for key in list(col):
-                        if key in templ:
+                        if key in templ:  # type: ignore[reportPossiblyUnbound]
                             subcolmn = [headers.get(key, key)] + col[key]
-                            col[key] = align_col(subcolmn, just=aligns.get(key, ">"))
+                            col[key] = align_col(subcolmn, just=aligns.get(key, ">"))  # type: ignore[reportPossiblyUnbound]
                         else:
                             del col[key]
-                    col = [templ.format(**row) for row in transps(col)]
+                    col = [templ.format(**row) for row in transps(col)]  # type: ignore[reportPossiblyUnbound]
                 else:
                     col = align_col([headers["val"]] + col["val"])
                 return col
@@ -737,7 +746,7 @@ class xpSpace(SparseSpace):
                 print(table_title)
             table = tabulate(rows, headers).replace("␣", " ")
             if colorize:
-                table = stripe(table, slice(2, None))
+                table = stripe(table, slice(2, None))  # type: ignore[arg-type]
             print(table)
 
         return tables
@@ -828,11 +837,11 @@ class xpSpace(SparseSpace):
                         del style["label"]
                     elif label:
                         register.add(style["label"])
-                        pruner.has_labels = True
+                        pruner.has_labels = True  # ty: ignore[unresolved-attribute]
                 elif label:
-                    pruner.has_labels = True
+                    pruner.has_labels = True  # ty: ignore[unresolved-attribute]
 
-            pruner.has_labels = False
+            pruner.has_labels = False  # ty: ignore[unresolved-attribute]
 
             def squeezer(coord):
                 return intersect(coord._asdict(), label_attrs)
@@ -935,8 +944,9 @@ class xpSpace(SparseSpace):
         if title1 is not None:
             fig_title += ". " + title1
         if title2 is not None:
-            with nonchalance():
-                title2 = title2.relative_to(rc.dirs["data"])
+            # Make path relative for brevity; ignore if it's not under data dir
+            with contextlib.suppress(Exception):
+                title2 = title2.relative_to(rc.dirs.data)
             fig_title += "\n" + str(title2)
         fig.suptitle(fig_title)
 
@@ -954,7 +964,7 @@ class xpSpace(SparseSpace):
                 title=(
                     "" if dims["outer"] is None else table_coord.repr2(True).strip("()")
                 ),
-                has_labels=label_prune.has_labels,
+                has_labels=label_prune.has_labels,  # type: ignore[attr-defined]
             )
 
         tables.fig = fig  # add reference to fig

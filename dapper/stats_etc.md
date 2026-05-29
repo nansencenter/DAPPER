@@ -1,21 +1,19 @@
 ## Default statistics
 
-List them using
+For a tabular overview of all default statistics, see the
+[Statistics section of the README](https://github.com/nansencenter/DAPPER#statistics).
 
-```python
-list(vars(xp.stats))
-list(vars(xp.avrgs))
-```
+### `DACycleSeries` subscripts
 
-### The `FAUSt` key/attribute
+The time series of statistics (the attributes of `.stats`) are
+[`DACycleSeries`][tools.series.DACycleSeries] objects.
+They may have sub-arrays `.f`, `.a`, `.s`, `.i`, referring to whether the
+statistic is for a "forecast", "analysis", "smoothed" (smoothers only),
+or "integrational" (forecast including intermediate, non-obs-time step) estimate,
+as determined by the `fais` argument passed to
+[Stats.assess][stats.Stats.assess].
 
-The time series of statistics (the attributes of `.stats`) may have attributes
-`.f`, `.a`, `.s`, `.u`, referring to whether the statistic is for a "forecast",
-"analysis", or "smoothing" estimate (as is decided when the calls to
-[Stats.assess][stats.Stats.assess] is made), or a "universal" (forecast, but at intermediate
-[non-obs.-time]) estimate.
-
-The same applies for the time-averages of `.avrgs`.
+The same subscripts apply for the time-averages stored in `.avrgs`.
 
 ### Field summaries
 
@@ -48,11 +46,17 @@ This also goes for any other (than `rms`) type of field summary method.
 ## Declaring new, custom statistics
 
 Only the time series created with [Stats.new_series][stats.Stats.new_series] will be in the format
-operated on by [Stats.average_in_time][stats.Stats.average_in_time].  For example, create `ndarray` of
-length `Ko+1` to hold the time series of estimated inflation values:
+operated on by [Stats.average_in_time][stats.Stats.average_in_time].  For example, to add a
+full DA-cycle series for estimated inflation values:
 
 ```python
-self.stats.new_series('infl', 1, Ko+1)
+self.stats.new_series('infl', 1)
+```
+
+For a statistic that only exists at analysis times (no `.f` or `.i` sub-arrays):
+
+```python
+self.stats.new_series('infl', 1, analysis_only=True)
 ```
 
 Alternatively you can overwrite a default statistic; for example:
@@ -62,23 +66,14 @@ error_time_series_a = xx - ensemble_time_series_a.mean(axis=1)
 self.stats.err.rms.a = np.sqrt(np.mean(error_time_series_a**2, axis=-1))
 ```
 
-Of course, you could just do this
+To register a scalar (non-series) custom statistic so it appears in `xp.avrgs`,
+use `self.stats.register`:
 
 ```python
-self.stats.my_custom_stat = value
+self.stats.register("your_custom_stat", value)
 ```
 
-However, [`xp_launch.run_experiment`][] (without `free=False`) will delete
-the `Stats` object from `xp` after the assimilation, in order to save memory.
-Therefore, in order to have `my_custom_stat` be available among `xp.avrgs`, it
-must be "registered":
-
-```python
-self.stats.stat_register.append("my_custom_stat")
-```
-
-Alternatively, you can do both at once
-
-```python
-self.stat("my_custom_stat", value)
-```
+This calls [`register`][stats.register] internally, which sets the
+attribute and records `"your_custom_stat"` so that
+[`xp_launch.run_experiment`][] (which deletes `.stats` after assimilation to
+save memory) can still copy it into `xp.avrgs`.

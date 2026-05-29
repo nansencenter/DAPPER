@@ -10,4 +10,4 @@ HMM.tseq = modelling.Chronology(0.01, dko=15, T=4**5, BurnIn=20)
 # xps += EnKS ('Sqrt',N=25,infl=1.08,rot=False,Lag=12)
 # xps += EnRTS('Sqrt',N=25,infl=1.08,rot=False,DeCorr=0.99)
 # ...
-# print_averages(xps,avrgs,[],['rmse.u'])
+# print_averages(xps,avrgs,[],['rmse.i'])

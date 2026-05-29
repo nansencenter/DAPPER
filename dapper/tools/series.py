@@ -1,10 +1,11 @@
 """Time series management and processing."""
 
+from __future__ import annotations
+
 import numpy as np
 from numpy import nan
-from patlib.std import find_1st_ind
-from struct_tools import NicePrint
 
+from dapper.tools.repr_util import YamlRepr
 from dapper.tools.rounding import UncertainQtty
 
 
@@ -50,9 +51,10 @@ def fit_acf_by_AR1(acf_empir, nlags=None):
     def mean_ratio(xx):
         return geometric_mean([xx[i] / xx[i - 1] for i in range(1, len(xx))])
 
-    # Negative correlation => Truncate ACF
-    neg_ind = find_1st_ind(np.array(acf_empir) <= 0)
-    acf_empir = acf_empir[:neg_ind]
+    # Truncate ACF at first non-positive lag (negative correlation)
+    negatives = np.flatnonzero(np.array(acf_empir) <= 0)
+    neg0 = negatives[0] if len(negatives) else None
+    acf_empir = acf_empir[:neg0]
 
     if len(acf_empir) == 0:
         return 0
@@ -112,143 +114,109 @@ def mean_with_conf(xx):
     return uq
 
 
-class StatPrint(NicePrint):
-    """Set `NicePrint` options suitable for stats."""
+class StatPrint(YamlRepr):
+    """Mixin that pretty-prints stats objects via YAML."""
 
-    printopts = dict(
-        excluded=NicePrint.printopts["excluded"] + ["HMM", "LP_instance"],
-        ordering="linenumber",
-        reverse=True,
-        indent=2,
-        aliases={
-            "f": "Forecast  (.f)",
-            "a": "Analysis  (.a)",
-            "s": "Smoothed  (.s)",
-            "u": "Universal (.u)",
-            "m": "Field mean (.m)",
-            "ma": "Field mean-abs (.ma)",
-            "rms": "Field root-mean-square (.rms)",
-            "gm": "Field geometric-mean (.gm)",
-        },
-    )
+    _print_excluded: frozenset = frozenset(["HMM", "LP_instance"])
+    _print_aliases: dict = {
+        "f": "Forecast (.f)",
+        "a": "Analysis (.a)",
+        "s": "Smoothed (.s)",
+        "i": "Integral (.i)",
+        "m": "Field mean (.m)",
+        "ma": "Field mean-abs (.ma)",
+        "rms": "Field root-mean-square (.rms)",
+        "gm": "Field geometric-mean (.gm)",
+    }
 
-    # Adjust np.printoptions before NicePrint
-    def __repr__(self):
+    def _repr_fields(self):
         with np.printoptions(threshold=10, precision=3):
-            return super().__repr__()
-
-    def __str__(self):
-        with np.printoptions(threshold=10, precision=3):
-            return super().__str__()
-
-
-def monitor_setitem(cls):
-    """Modify cls to track of whether its `__setitem__` has been called.
-
-    See sub.py for a sublcass solution (drawback: creates a new class).
-    """
-    orig_setitem = cls.__setitem__
-
-    def setitem(self, key, val):
-        orig_setitem(self, key, val)
-        self.were_changed = True
-
-    cls.__setitem__ = setitem
-
-    # Using class var for were_changed => don't need explicit init
-    cls.were_changed = False
-
-    if issubclass(cls, NicePrint):
-        cls.printopts["excluded"] = cls.printopts.get("excluded", []) + ["were_changed"]
-
-    return cls
+            return {
+                self._print_aliases.get(k, k): v
+                for k, v in vars(self).items()
+                if k not in self._print_excluded and not k.startswith("_")
+            }
 
 
-@monitor_setitem
-class DataSeries(StatPrint):
-    """Basically just an `np.ndarray`. But adds:
+class DACycleSeries(StatPrint):
+    """Container for time series of a statistic across one DA cycle.
 
-    - Possibility of adding attributes.
-    - The class (type) provides way to acertain if an attribute is a series.
+    Four attributes, each an ndarray:
 
-    Note: subclassing `ndarray` is too dirty => We'll just use the
-    `array` attribute, and provide `{s,g}etitem`.
-    """
+    - `.f` for forecast      , shape `(Ko+1,)+item_shape`
+    - `.a` for analysis      , shape `(Ko+1,)+item_shape`
+    - `.s` for smoothed      , shape `(Ko+1,)+item_shape`
+    - `.i` for integrational , shape `(K +1,)+item_shape`
 
-    def __init__(self, shape, **kwargs):
-        self.array = np.full(shape, nan, **kwargs)
+    `.i` covers every model time step, including the ones between observations.
+    The name fits three synonyms: **integrational** (steps taken by the model
+    integrator), **intermediate** (between analysis times), **intervening**
+    (between obs times).
 
-    def __len__(self):
-        return len(self.array)
+    If `store_i=False`, `.i` has shape `(1,)+item_shape` — only the
+    most-recently-written step is kept (ring buffer of size 1).
 
-    def __getitem__(self, key):
-        return self.array[key]
+    Use direct attribute access::
 
-    def __setitem__(self, key, val):
-        self.array[key] = val
-
-
-@monitor_setitem
-class FAUSt(DataSeries, StatPrint):
-    """Container for time series of a statistic from filtering.
-
-    Four attributes, each of which is an ndarray:
-
-    - `.f` for forecast      , `(Ko+1,)+item_shape`
-    - `.a` for analysis      , `(Ko+1,)+item_shape`
-    - `.s` for smoothed      , `(Ko+1,)+item_shape`
-    - `.u` for universial/all, `(K   +1,)+item_shape`
-
-    If `store_u=False`, then `.u` series has shape `(1,)+item_shape`,
-    wherein only the most-recently-written item is stored.
-
-    Series can also be indexed as in
-
-        self[ko,'a']
-        self[whatever,ko,'a']
-        # ... and likewise for 'f' and 's'. For 'u', can use:
-        self[k,'u']
-        self[k,whatever,'u']
+        stat.f[ko] = val
+        stat.a[ko] = val
+        stat.i[k]  = val   # or stat.i[0] when store_i=False
 
     !!! note
-        If a data series only pertains to analysis times, then you should use a plain
-        np.array instead.
+        If a series only pertains to analysis times, pass `store_f=False`.
     """
 
-    def __init__(self, K, Ko, item_shape, store_u, store_s, **kwargs):
+    f: np.ndarray
+    """Forecast — shape `(Ko+1,)+item_shape`. Absent when `store_f=False`."""
+    a: np.ndarray
+    """Analysis — shape `(Ko+1,)+item_shape`. Always present."""
+    s: np.ndarray
+    """Smoothed — shape `(Ko+1,)+item_shape`. Absent when `store_s=False`."""
+    i: np.ndarray
+    """Integrational — shape `(K+1,)+item_shape`. Always present
+    (ring buffer of 1 when `store_i=False`)."""
+
+    # Field-summary children, present on vector stats (populated by Stats.new_series).
+    m: DACycleSeries
+    """Mean-field scalar time series."""
+    ms: DACycleSeries
+    """Mean-square scalar time series."""
+    rms: DACycleSeries
+    """Root-mean-square scalar time series."""
+    ma: DACycleSeries
+    """Mean-absolute scalar time series."""
+    gm: DACycleSeries
+    """Geometric-mean scalar time series."""
+
+    def __init__(self, K, Ko, item_shape, store_i, store_s, store_f=True, **kwargs):
         """Construct object.
 
         - `item_shape` : shape of an item in the series.
-        - `store_u`    : if False: only the current value is stored.
+        - `store_i`    : if False: only the current value is stored in `.i`.
+        - `store_f`    : if False: `.f` is not created (analysis-only stats).
         - `kwargs`     : passed on to ndarrays.
         """
         fill_value = -99 if kwargs.get("dtype", None) is int else nan
-        self.f = np.full((Ko + 1,) + item_shape, fill_value, **kwargs)
+        if store_f:
+            self.f = np.full((Ko + 1,) + item_shape, fill_value, **kwargs)
         self.a = np.full((Ko + 1,) + item_shape, fill_value, **kwargs)
         if store_s:
             self.s = np.full((Ko + 1,) + item_shape, fill_value, **kwargs)
-        if store_u:
-            self.u = np.full((K + 1,) + item_shape, fill_value, **kwargs)
+        if store_i:
+            self.i = np.full((K + 1,) + item_shape, fill_value, **kwargs)
         else:
-            self.u = np.full((1,) + item_shape, fill_value, **kwargs)
+            self.i = np.full((1,) + item_shape, fill_value, **kwargs)
 
-    # We could just store the input values for these attrs, but using
-    # property => Won't be listed in vars(self), and un-writeable.
+    # Using property => won't appear in vars(self), and read-only.
     item_shape = property(lambda self: self.a.shape[1:])
-    store_u = property(lambda self: len(self.u) > 1)
-
-    def _ind(self, key):
-        """Aux function to unpack `key` (`k,ko,faus`)"""
-        if key[-1] == "u":
-            return key[0] if self.store_u else 0
-        else:
-            return key[-2]
-
-    def __setitem__(self, key, item):
-        getattr(self, key[-1])[self._ind(key)] = item
+    store_f = property(lambda self: hasattr(self, "f"))
+    store_i = property(lambda self: len(self.i) > 1)
 
     def __getitem__(self, key):
-        return getattr(self, key[-1])[self._ind(key)]
+        """Read via `(k, ko, sub)` tuple — used internally by liveplotting."""
+        sub = key[-1]
+        ind = (key[0] if self.store_i else 0) if sub == "i" else key[-2]
+        return getattr(self, sub)[ind]
 
 
 class RollingArray:

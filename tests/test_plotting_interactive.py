@@ -23,7 +23,7 @@ def test_L63():
     HMM.tseq.BurnIn = HMM.tseq.dto
     HMM.tseq.Ko = 1
 
-    xps.launch(HMM, free=False, liveplots="all", store_u=False, fail_gently=False)
+    xps.launch(HMM, free=False, liveplots="all", store_i=False, fail_gently=False)
 
     for xp in xps:
         xp.stats.replay("all")
@@ -68,7 +68,7 @@ def test_L96():
         HMM,
         free=False,
         liveplots="all",
-        store_u=False,
+        store_i=False,
         fail_gently=False,
         save_as=False,
     )

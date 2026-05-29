@@ -1,5 +1,6 @@
 """Variational DA methods (iEnKS, 4D-Var, etc)."""
 
+from dataclasses import dataclass
 from typing import Optional
 
 import numpy as np
@@ -15,17 +16,16 @@ from dapper.tools.seeding import rng
 from . import da_method
 
 
-@da_method
+@dataclass(kw_only=True)
 class var_method:
-    """Declare default variational arguments."""
+    """Default variational arguments (shared via inheritance)."""
 
     Lag: int = 1
     nIter: int = 10
     wtol: float = 0
 
 
-@var_method
-class iEnKS:
+class iEnKS(da_method, var_method):
     """Iterative EnKS.
 
     Special cases: EnRML, ES-MDA, iEnKF, EnKF [raanes2019][].
@@ -79,7 +79,7 @@ class iEnKS:
     MDA: bool = False
     step: bool = False
     bundle: bool = False
-    xN: float = None
+    xN: float | None = None
     infl: float = 1.0
     rot: bool = False
 
@@ -98,7 +98,7 @@ class iEnKS:
         Ko = HMM.tseq.Ko
 
         assert HMM.Dyn.noise.C == 0, (
-            "Q>0 not yet supported." " See Sakov et al 2017: 'An iEnKF with mod. error'"
+            "Q>0 not yet supported. See Sakov et al 2017: 'An iEnKF with mod. error'"
         )
 
         if self.bundle:
@@ -114,7 +114,7 @@ class iEnKS:
         k = 0
         if self.Lag == 0:
             for k, t, dt in HMM.tseq.cycle(ko=0):
-                self.stats.assess(k - 1, None, "u", E=E)
+                self.stats.assess(k - 1, None, "i", E=E)
                 E = HMM.Dyn(E, t - dt, dt)
 
         # Loop over DA windows (DAW).
@@ -149,10 +149,10 @@ class iEnKS:
 
             for kCycle in cycle_window:
                 for k, t, dt in HMM.tseq.cycle(kCycle):
-                    self.stats.assess(k - 1, None, "u", E=E)
+                    self.stats.assess(k - 1, None, "i", E=E)
                     E = HMM.Dyn(E, t - dt, dt)
 
-        self.stats.assess(k, Ko, "us", E=E)
+        self.stats.assess(k, Ko, "is", E=E)
 
 
 def iEnKS_update(upd_a, E, DAW, HMM, stats, EPS, y, time, Rm12, xN, MDA, threshold):
@@ -266,9 +266,9 @@ def iEnKS_update(upd_a, E, DAW, HMM, stats, EPS, y, time, Rm12, xN, MDA, thresho
     final_increment = (dw + T - T_old) @ Xf
     # See docs/images/snippets/iEnKS_Ea.jpg.
     stats.assess(k, ko, "a", E=E + final_increment)
-    stats.iters[ko] = iteration + 1
+    stats.iters.a[ko] = iteration + 1
     if xN:
-        stats.infl[ko] = np.sqrt(N1 / za)
+        stats.infl.a[ko] = np.sqrt(N1 / za)
 
     # Final (smoothed) estimate of E at [kLag].
     E = x0 + (w + T) @ X0
@@ -276,8 +276,7 @@ def iEnKS_update(upd_a, E, DAW, HMM, stats, EPS, y, time, Rm12, xN, MDA, thresho
     return E
 
 
-@var_method
-class Var4D:
+class Var4D(da_method, var_method):
     """4D-Var.
 
     Cycling scheme is same as in iEnKS (i.e. the shift is always 1*ko).
@@ -372,7 +371,7 @@ class Var4D:
                 self.stats.assess(
                     k, ko, "a", mu=x + final_increment, Cov=X @ Cow1 @ X.T
                 )
-                self.stats.iters[ko] = iteration + 1
+                self.stats.iters.a[ko] = iteration + 1
 
                 # Final (smoothed) estimate at [kLag].
                 x = x0 + B12 @ w
@@ -385,8 +384,8 @@ class Var4D:
                         HMM.tseq.kko[kLag], kLag, "s", mu=x, Cov=X @ Cow1 @ X.T
                     )
                 for k, t, dt in HMM.tseq.cycle(kLag + 1):
-                    self.stats.assess(k - 1, None, "u", mu=x, Cov=Y @ Y.T)
+                    self.stats.assess(k - 1, None, "i", mu=x, Cov=Y @ Y.T)
                     X = HMM.Dyn.linear(x, t - dt, dt) @ X
                     x = HMM.Dyn(x, t - dt, dt)
 
-        self.stats.assess(k, Ko, "us", mu=x, Cov=X @ Cow1 @ X.T)
+        self.stats.assess(k, Ko, "is", mu=x, Cov=X @ Cow1 @ X.T)

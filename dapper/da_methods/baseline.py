@@ -16,8 +16,7 @@ from dapper.tools.progressbar import progbar
 from . import da_method
 
 
-@da_method()
-class Climatology:
+class Climatology(da_method):
     """A baseline/reference method.
 
     Note that the "climatology" is computed from truth, which might be
@@ -30,15 +29,14 @@ class Climatology:
         PC = CovMat(AC, "A")
 
         self.stats.assess(0, mu=muC, Cov=PC)
-        self.stats.trHK[:] = 0
+        self.stats.trHK.a[:] = 0
 
         for k, ko, _, _ in progbar(HMM.tseq.ticker):
-            fau = "u" if ko is None else "fau"
-            self.stats.assess(k, ko, fau, mu=muC, Cov=PC)
+            fai = "i" if ko is None else "fai"
+            self.stats.assess(k, ko, fai, mu=muC, Cov=PC)
 
 
-@da_method()
-class OptInterp:
+class OptInterp(da_method):
     """Optimal Interpolation -- a baseline/reference method.
 
     Uses the Kalman filter equations,
@@ -79,8 +77,7 @@ class OptInterp:
             self.stats.assess(k, ko, mu=mu, Cov=2 * PC * SM(k))
 
 
-@da_method()
-class Var3D:
+class Var3D(da_method):
     """3D-Var -- a baseline/reference method.
 
     This implementation is not "Var"-ish: there is no *iterative* optimzt.
@@ -172,12 +169,11 @@ def fit_sigmoid(Sb, L, kb):
     return S
 
 
-@da_method()
-class Persistence:
+class Persistence(da_method):
     """Sets estimate to the **true state** at the previous time index.
 
     The analysis (`.a`) stat uses the previous obs. time.
-    The forecast and universal (`.f` and `.u`) stats use previous integration time
+    The forecast and integrational (`.f` and `.i`) stats use previous integration time
     index.
     """
 
@@ -185,14 +181,13 @@ class Persistence:
         prev = xx[0]
         self.stats.assess(0, mu=prev)
         for k, ko, _t, _dt in progbar(HMM.tseq.ticker):
-            self.stats.assess(k, ko, "fu", mu=xx[k - 1])
+            self.stats.assess(k, ko, "fi", mu=xx[k - 1])
             if ko is not None:
                 self.stats.assess(k, ko, "a", mu=prev)
                 prev = xx[k]
 
 
-@da_method()
-class PreProg:
+class PreProg(da_method):
     """Simply look-up the estimates in user-specified function (`schedule`).
 
     For example, with `schedule` given by `lambda k, xx, yy: xx[k]`
@@ -200,11 +195,11 @@ class PreProg:
     """
 
     schedule: Callable
-    tag: str = None
+    tag: str | None = None
 
     def assimilate(self, HMM, xx, yy):
         self.stats.assess(0, mu=self.schedule(0, xx, yy))
         for k, ko, _t, _dt in progbar(HMM.tseq.ticker):
-            self.stats.assess(k, ko, "fu", mu=self.schedule(k, xx, yy))
+            self.stats.assess(k, ko, "fi", mu=self.schedule(k, xx, yy))
             if ko is not None:
                 self.stats.assess(k, ko, "a", mu=self.schedule(k, xx, yy))

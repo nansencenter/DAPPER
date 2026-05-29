@@ -15,7 +15,6 @@ from textwrap import dedent
 
 import dill
 import numpy as np
-import struct_tools
 import tabulate as _tabulate
 from tabulate import tabulate
 from tqdm.auto import tqdm
@@ -25,10 +24,12 @@ import dapper.tools.progressbar as pb
 from dapper.tools.colors import stripe
 from dapper.tools.datafiles import create_run_dir
 from dapper.tools.remote.uplink import submit_job_GCP
+from dapper.tools.repr_util import yaml_repr
 from dapper.tools.seeding import set_seed
+from dapper.tools.struct import complement, flexcomp, intersect, prodct
 from dapper.tools.viz import collapse_str
 
-_tabulate.MIN_PADDING = 0
+_tabulate.MIN_PADDING = 0  # ty: ignore[invalid-assignment]
 
 
 def seed_and_simulate(HMM, xp):
@@ -58,7 +59,7 @@ def seed_and_simulate(HMM, xp):
     tuple (xx, yy)
         The simulated truth and observations.
     """
-    set_seed(getattr(xp, "seed", False))
+    set_seed(getattr(xp, "seed", False))  # type: ignore[arg-type]
     xx, yy = HMM.simulate()
     return HMM, xx, yy
 
@@ -329,7 +330,7 @@ class xpList(list):
                     if k not in aggregate:
                         # If dataclass, check repr:
                         if k in dc_names:
-                            if dc_fields[dc_names.index(k)].repr:
+                            if dc_fields[dc_names.index(k)].repr:  # type: ignore[reportPossiblyUnbound]
                                 aggregate.append(k)
                         # Else, just append
                         else:
@@ -337,7 +338,7 @@ class xpList(list):
 
             # Remove unwanted
             excluded = [re.compile("^_"), "avrgs", "stats", "HMM", "duration"]
-            aggregate = struct_tools.complement(aggregate, excluded)
+            aggregate = complement(aggregate, excluded)
             return aggregate
 
         def _getattr_safe(xp, key):
@@ -356,7 +357,7 @@ class xpList(list):
             #     comparison to literal.
             if isinstance(a, np.ndarray):
                 shorten = 6
-                a = f"arr(<id {id(a)//10**shorten}>)"
+                a = f"arr(<id {id(a) // 10**shorten}>)"
             # TODO 3: leave formatting to sub() below?
             # TODO 4: do similar formatting for other non-trivial params?
             # TODO 4: document alternative way to specify non-trivial params:
@@ -384,7 +385,7 @@ class xpList(list):
         for key in _aggregate_keys():
             vals = [_getattr_safe(xp, key) for xp in self]
 
-            if struct_tools.flexcomp(key, *nomerge):
+            if flexcomp(key, *nomerge):
                 dct, vals = distinct, vals
 
             elif all(vals[0] == v for v in vals):
@@ -404,10 +405,10 @@ class xpList(list):
 
     def __repr__(self):
         distinct, redundant, common = self.prep_table()
-        s = "<xpList> of length %d with attributes:\n" % len(self)
+        s = f"<xpList> of length {len(self)} with attributes:\n"
         s += tabulate(distinct, headers="keys", showindex=True)
         s += "\nOther attributes:\n"
-        s += str(struct_tools.AlignedDict({**redundant, **common}))
+        s += yaml_repr({**redundant, **common})
         return s
 
     def gen_names(self, abbrev=6, tab=False):
@@ -516,7 +517,7 @@ class xpList(list):
                 run_experiment(xp, label, xpi_dir(ixp), **kwargs)
 
         # Local multiprocessing
-        elif mp["server"].lower() == "local":
+        elif mp["server"].lower() == "local":  # ty: ignore[unresolved-attribute]
 
             def run_with_kwargs(arg):
                 xp, ixp = arg
@@ -532,7 +533,7 @@ class xpList(list):
             with Pool(NPROC) as pool:
                 list(
                     tqdm(
-                        pool.imap(run_with_kwargs, args),
+                        pool.imap(run_with_kwargs, args),  # type: ignore[attr-defined]
                         total=len(self),
                         desc="Parallel experim's",
                         smoothing=0.1,
@@ -544,18 +545,18 @@ class xpList(list):
         # Google cloud platform, multiprocessing
         elif mp["server"] == "GCP":
             for ixp, xp in enumerate(self):
-                with open(xpi_dir(ixp) / "xp.var", "wb") as f:
+                with open(xpi_dir(ixp) / "xp.var", "wb") as f:  # type: ignore[operator]
                     dill.dump(dict(xp=xp), f)
 
-            with open(save_as / "xp.com", "wb") as f:
+            with open(save_as / "xp.com", "wb") as f:  # type: ignore[operator]
                 dill.dump(kwargs, f)
 
             # mkdir extra_files
-            extra_files = save_as / "extra_files"
+            extra_files = save_as / "extra_files"  # type: ignore[operator]
             os.mkdir(extra_files)
             # Default extra_files: .py files in sys.path[0] (main script's path)
             if not mp.get("files", []):
-                mp["files"] = [
+                mp["files"] = [  # ty: ignore[invalid-assignment]
                     f.relative_to(sys.path[0])
                     for f in Path(sys.path[0]).glob("**/*.py")
                 ]
@@ -568,7 +569,7 @@ class xpList(list):
                 )
 
             # Copy into extra_files
-            for f in mp["files"]:
+            for f in mp["files"]:  # type: ignore[union-attr]
                 if isinstance(f, (str, Path)):
                     # Example: f = "A.py"
                     path = Path(sys.path[0]) / f
@@ -583,13 +584,6 @@ class xpList(list):
                     shutil.copytree(path, dst)  # dir -r
                 except OSError:
                     shutil.copy2(path, dst)  # file
-
-            with open(extra_files / "dpr_config.yaml", "w") as f:
-                f.write(
-                    "\n".join(
-                        ["data_root: '$cwd'", "liveplotting: no", "welcome_message: no"]
-                    )
-                )
 
             # Loads PWD/xp_{var,com} and calls run_experiment()
             with open(extra_files / "load_and_run.py", "w") as f:
@@ -616,7 +610,7 @@ class xpList(list):
                     raise
                 """
                     )
-                    % dedent(mp["code"])
+                    % dedent(mp["code"])  # ty: ignore[invalid-argument-type]
                 )
 
             submit_job_GCP(save_as)
@@ -644,16 +638,16 @@ def combinator(param_dict, **glob_dict):
 
     def for_params(method, **fixed_params):
         dc_fields = [f.name for f in dcs.fields(method)]
-        params = struct_tools.intersect(param_dict, dc_fields)
-        params = struct_tools.complement(params, fixed_params)
+        params = intersect(param_dict, dc_fields)
+        params = complement(params, fixed_params)
         params = {**glob_dict, **params}  # glob_dict 1st
 
         def xp1(dct):
-            xp = method(**struct_tools.intersect(dct, dc_fields), **fixed_params)
-            for key, v in struct_tools.intersect(dct, glob_dict).items():
+            xp = method(**intersect(dct, dc_fields), **fixed_params)
+            for key, v in intersect(dct, glob_dict).items():
                 setattr(xp, key, v)
             return xp
 
-        return [xp1(dct) for dct in struct_tools.prodct(params)]
+        return [xp1(dct) for dct in prodct(params)]
 
     return for_params

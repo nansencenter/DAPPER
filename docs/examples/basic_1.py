@@ -35,7 +35,7 @@ xx, yy = HMM.simulate()
 # xp = da.ExtKF(infl=90)
 xp = da.EnKF("Sqrt", N=10, infl=1.02, rot=True)
 # xp = da.PartFilt(N=100, reg=2.4, NER=0.3)
-xp  # ⇒ printout (in notebooks)
+print(xp)
 
 # ### Assimilate yy
 # Note that the assimilation "knows" the HMM,
@@ -104,4 +104,4 @@ viz.plot_hovmoller(xx)
 # ### Excercise (memory)
 # Why are the replay plots not as smooth as the liveplot?
 #
-# *Hint*: provide the keyword `store_u=True` to `assimilate()` to avoid this.
+# *Hint*: provide the keyword `store_i=True` to `assimilate()` to avoid this.

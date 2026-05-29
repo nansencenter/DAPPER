@@ -3,16 +3,16 @@
 import numpy as np
 
 import dapper.mods as modelling
-from dapper.mods.Lorenz96.bocquet2010 import Dyn, tseq
+from dapper.mods.Lorenz96 import step
+from dapper.mods.Lorenz96.bocquet2010 import tseq
 
 Nx = 40
-Dyn["M"] = Nx
+Dyn = modelling.Operator(M=Nx, model=step, noise=0)
 
 X0 = modelling.GaussRV(M=Nx, C=0.001)
 
 jj = np.arange(0, Nx, 2)
-Obs = modelling.partial_Id_Obs(Nx, jj)
-Obs["noise"] = 1.5
+Obs = modelling.Operator(**modelling.partial_Id_Obs(Nx, jj), noise=1.5)
 
 HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0)
 

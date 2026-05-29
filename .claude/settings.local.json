@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl:*)",
+      "Bash(git add:*)",
+      "Bash(base*)",
+      "Bash(git commit:*)",
+      "Bash(git fetch:*)",
+      "Bash(gh api:*)",
+      "Bash(python3 -c \"import json,sys;*\")",
+      "Bash(python -m \"pytest*\")",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(gh repo:*)",
+      "Bash(gh search:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(python3:*)",
+      "Bash(gh auth:*)",
+      "Bash(nvim:*)",
+      "Bash(find /Users/patnr/.config/nvim -type d -not -path */.*)",
+      "Read(//Users/patnr/.local/state/nvim/lazy/**)",
+      "Read(//Users/patnr/.local/state/nvim/**)",
+      "Bash(gh issue:*)",
+      "WebSearch",
+      "WebFetch(domain:stackoverflow.com)",
+      "Bash(pytest tests/ *)",
+      "Bash(~/.local/share/nvim/mason/bin/pyright *)",
+      "Bash(python -m pytest *)",
+      "Bash(mkdocs build *)",
+      "Bash(pip show *)",
+      "Bash(ruff check *)",
+      "Bash(ruff format *)",
+      "Bash(python *)",
+      "Bash(uv run *)"
+    ]
+  }
+}

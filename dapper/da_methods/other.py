@@ -8,11 +8,11 @@ from dapper.stats import center
 from dapper.tools.matrices import funm_psd
 from dapper.tools.progressbar import progbar
 
+from . import da_method
 from .ensemble import ens_method
 
 
-@ens_method
-class RHF:
+class RHF(da_method, ens_method):
     """Rank histogram filter.
 
     Refs: [anderson2010][].
@@ -82,8 +82,7 @@ class RHF:
             stats.assess(k, ko, E=E)
 
 
-@ens_method
-class LNETF:
+class LNETF(da_method, ens_method):
     """The Nonlinear-Ensemble-Transform-Filter (localized).
 
     Refs: [wiljes2016][], [todter2015a][].
@@ -158,6 +157,6 @@ def laplace_lklhd(xx):
     """
     logw = -np.sqrt(2) * np.sum(np.abs(xx), axis=1)
     logw -= logw.max()  # Avoid numerical error
-    w = np.np.exp(logw)  # non-log
+    w = np.exp(logw)  # non-log
     w /= w.sum()  # normalize
     return w
