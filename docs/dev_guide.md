@@ -37,64 +37,60 @@ hide:
 
 ## Install for development
 
-!!! note We recommend using [`uv`](https://docs.astral.sh/uv/).
-    It enables reproducible installs, strong dependency resolution,
+!!! note Devs should use [`uv`](https://docs.astral.sh/uv/) for reproducible installs.
+    It also has high-performance dependency resolution,
     and a streamlined workflow for building and publishing to PyPI.
 
-```sh
-uv pip install -e '.[dev]'
-```
-
-When **adding or removing a dependency** (i.e. modifying `pyproject.toml`), use `uv add` / `uv remove` instead of editing the file by hand — this keeps `uv.lock` in sync:
+`uv.lock` is checked in. Use `uv sync` to install from it (DAPPER gets installed as "editable"):
 
 ```sh
-uv add --optional lint some-tool
-uv remove some-tool
+uv sync --extra dev
 ```
 
-### Dependency pinning philosophy
+To add or remove dependencies, let `uv` manage both `pyproject.toml` and `uv.lock` together:
 
-`uv.lock` is checked in and used by `uv sync` for reproducible developer installs; `pip` ignores it.
+```sh
+uv add --optional lint package-to-be-installed
+uv remove package-to-uninstall
+```
 
-In `pyproject.toml`, most dependencies use a minimum version bound (`>=`).
-Upper bounds are only added where a known breakage exists — the main case being
-`notebook<6.5`, because Colab uses notebook 6.4.x and never migrated to `jupyter_server`.
-`dill` is pinned exactly because it must match the version on any remote computing servers
-(mismatched `dill` versions can corrupt serialised objects and require re-saving test data).
+Or edit `pyproject.toml` by hand and then run `uv lock` to update the lockfile.
 
-`requires-python = ">=3.12"` tracks Colab's runtime version.
-When Colab upgrades its Python, this bound (and the CI workflow below) should be updated together.
+## Dependency management
 
-Routine upgrades are not necessary — DAPPER is not actively developed and the maintenance burden should stay low.
-Good reasons to upgrade are: a security vulnerability in a direct dependency, a bug fix you need,
-or Colab upgrading its pre-installed packages (which would require updating the minimum bounds here
-to keep the Colab compatibility test meaningful).
+DAPPER being aimed at research experiments, it'd be best (reproducibility)
+if we could pin all its dependencies (like an "App" and not a "library").
+However, this might make it overly hard for people's to bring their models/methods.
+Meanwhile, we want to run on Colab; while `!pip install <dep>` sometimes works seamlessly,
+it can be slow due to dependency resolution in an already crowded environment,
+it requires kernel restarting (highly undesirable) for `matplotlib` and other packages that have been pre-imported.
+Therefore some leniency should be granted where possible in `pyproject.toml` (used by `pip`)
+by using minimum version bounds (`>=`, if the API is expected to be stable) or
+compatible release (`~=`) bounds.
 
-To upgrade a dependency, use `uv` so the lockfile stays in sync:
+Using cutting-edge dependencies is not necessary.
+The main reason to upgrade is if the Colab tests break.
+Again, use `uv` to keep lockfile in sync:
 
 ```sh
 uv lock --upgrade-package scipy   # upgrade one package
 uv lock --upgrade                 # upgrade everything
 ```
 
-Then run the tests and the Colab compatibility check.
-For `dill` specifically: also upgrade the version on any remote computing servers,
-and check whether existing serialised test data needs to be re-saved.
+!!! note For `dill` specifically: also upgrade the version on any remote computing servers,
+    and check whether existing serialised test data needs to be re-saved.
 
-### Colab compatibility
-
-DAPPER's tutorial notebooks (`basic_1`, `basic_2`) must run on Google Colab.
-The workflow `.github/workflows/colab-compat.yml` tests this against Google's
+The workflow `.github/workflows/colab-compat.yml` tests (`basic_1`, `basic_2`) against Google's
 [public Colab Docker image](https://us-docker.pkg.dev/colab-images/public/runtime).
-Trigger it manually from the GitHub Actions UI before each teaching session.
-
-To test locally (requires [podman](https://podman.io/)):
+It runs automatically on the 1st of each month, but can also be triggered via
+`GitHub UI → Actions → Colab compat → Run workflow`.
+To test it locally, get [Podman](https://podman.io/),
+setup the `podman` VM with at least 80 GB of virtual disk (`podman machine init --disk-size 80`)
+then do (is slow on first pull because ~5 GB image download):
 
 ```sh
 mise run test:colab
 ```
-
-Note: the image is ~5 GB; first pull is slow. Ensure the podman VM has at least 80 GB of virtual disk (`podman machine init --disk-size 80`).
 
 ## Run tests
 

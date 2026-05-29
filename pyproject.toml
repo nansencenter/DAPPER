@@ -37,14 +37,13 @@ dependencies = [
   "pyyaml>=6.0.2",
   "ipython>=7.34",
   "ipdb",
-  "setuptools",                  # necessary when installing via uv
   "notebook<6.5",                # 6.5 fails on Mac/Ubuntu ('Could not open static file'); Colab uses 6.4.13
   "mpl-tools==0.4.1",
   "tqdm~=4.67",
   "colorama~=0.4.1",
   "tabulate~=0.8.3",
   "pathos~=0.3",
-  "dill==0.3.8",                 # must be same on remote computing servers
+  "dill==0.3.8",                 # NB: use same version on remote computing servers (due to serialisation)
   "threadpoolctl>=3.0.0,<4.0.0",
 ]
 
