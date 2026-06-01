@@ -607,7 +607,7 @@ requires-dist = [
     { name = "ruff", marker = "extra == 'lint'" },
     { name = "scipy", specifier = ">=1.14" },
     { name = "tabulate", specifier = ">=0.9" },
-    { name = "threadpoolctl", specifier = ">=3.0.0,<4.0.0" },
+    { name = "threadpoolctl", specifier = ">=3.0.0" },
     { name = "tqdm", specifier = "~=4.67" },
     { name = "ty", marker = "extra == 'dev'" },
     { name = "ty", marker = "extra == 'lint'" },

@@ -35,14 +35,14 @@ dependencies = [
   "numpy~=2.0",
   "matplotlib>=3.10",
   "pyyaml>=6.0.2",
-  "notebook<6.5",                # Colab uses 6.4.13
+  "notebook<6.5",         # Colab uses 6.4.13
   "mpl-tools==0.4.1",
   "tqdm~=4.67",
   "colorama~=0.4.1",
   "tabulate>=0.9",
   "pathos~=0.3",
-  "dill==0.3.8",                 # NB: use same version on remote computing servers (due to serialisation)
-  "threadpoolctl>=3.0.0,<4.0.0",
+  "dill==0.3.8",          # NB: use same version on remote computing servers (due to serialisation)
+  "threadpoolctl>=3.0.0",
 ]
 
 [project.optional-dependencies]
