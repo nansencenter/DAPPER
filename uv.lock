@@ -485,8 +485,6 @@ source = { editable = "." }
 dependencies = [
     { name = "colorama" },
     { name = "dill" },
-    { name = "ipdb" },
-    { name = "ipython" },
     { name = "matplotlib" },
     { name = "mpl-tools" },
     { name = "notebook" },
@@ -505,12 +503,16 @@ build = [
     { name = "jupytext" },
 ]
 debug = [
+    { name = "ipdb" },
+    { name = "ipython" },
     { name = "line-profiler" },
     { name = "pre-commit" },
 ]
 dev = [
     { name = "build" },
     { name = "coverage" },
+    { name = "ipdb" },
+    { name = "ipython" },
     { name = "jupytext" },
     { name = "line-profiler" },
     { name = "mkdocs-gen-files" },
@@ -571,8 +573,10 @@ requires-dist = [
     { name = "coverage", marker = "extra == 'dev'", specifier = ">=5.1" },
     { name = "coverage", marker = "extra == 'test'", specifier = ">=5.1" },
     { name = "dill", specifier = "==0.3.8" },
-    { name = "ipdb" },
-    { name = "ipython", specifier = ">=7.34" },
+    { name = "ipdb", marker = "extra == 'debug'" },
+    { name = "ipdb", marker = "extra == 'dev'" },
+    { name = "ipython", marker = "extra == 'debug'", specifier = ">=7.34" },
+    { name = "ipython", marker = "extra == 'dev'", specifier = ">=7.34" },
     { name = "jupytext", marker = "extra == 'build'", specifier = "<=1.15" },
     { name = "jupytext", marker = "extra == 'dev'", specifier = "<=1.15" },
     { name = "line-profiler", marker = "extra == 'debug'" },
@@ -622,7 +626,7 @@ requires-dist = [
     { name = "ruff", marker = "extra == 'dev'" },
     { name = "ruff", marker = "extra == 'lint'" },
     { name = "scipy", specifier = ">=1.14" },
-    { name = "tabulate", specifier = "~=0.8.3" },
+    { name = "tabulate", specifier = ">=0.9" },
     { name = "threadpoolctl", specifier = ">=3.0.0,<4.0.0" },
     { name = "tqdm", specifier = "~=4.67" },
     { name = "ty", marker = "extra == 'dev'" },
@@ -2642,11 +2646,11 @@ wheels = [
 
 [[package]]
 name = "tabulate"
-version = "0.8.10"
+version = "0.10.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/7a/53/afac341569b3fd558bf2b5428e925e2eb8753ad9627c1f9188104c6e0c4a/tabulate-0.8.10.tar.gz", hash = "sha256:6c57f3f3dd7ac2782770155f3adb2db0b1a269637e42f27599925e64b114f519", size = 60154 }
+sdist = { url = "https://files.pythonhosted.org/packages/46/58/8c37dea7bbf769b20d58e7ace7e5edfe65b849442b00ffcdd56be88697c6/tabulate-0.10.0.tar.gz", hash = "sha256:e2cfde8f79420f6deeffdeda9aaec3b6bc5abce947655d17ac662b126e48a60d", size = 91754 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/92/4e/e5a13fdb3e6f81ce11893523ff289870c87c8f1f289a7369fb0e9840c3bb/tabulate-0.8.10-py3-none-any.whl", hash = "sha256:0ba055423dbaa164b9e456abe7920c5e8ed33fcc16f6d1b2f2d152c8e1e8b4fc", size = 29068 },
+    { url = "https://files.pythonhosted.org/packages/99/55/db07de81b5c630da5cbf5c7df646580ca26dfaefa593667fc6f2fe016d2e/tabulate-0.10.0-py3-none-any.whl", hash = "sha256:f0b0622e567335c8fabaaa659f1b33bcb6ddfe2e496071b743aa113f8774f2d3", size = 39814 },
 ]
 
 [[package]]
