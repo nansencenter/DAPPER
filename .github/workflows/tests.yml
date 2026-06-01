@@ -68,6 +68,28 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: coveralls --service=github
 
+  # Verify that a plain `pip install dapper` (no extras) works and that the
+  # core example scripts run. Mirrors colab-compat.yml, but runs on every
+  # PR/push rather than monthly so regressions are caught early.
+  normal-install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: "pyproject.toml"
+      - name: Install (no extras)
+        run: pip install -e .
+      - name: Smoke test
+        env:
+          MPLBACKEND: Agg
+          DAPPER_LIVEPLOTTING: "0"
+        run: |
+          python docs/examples/basic_1.py
+          python docs/examples/basic_2.py
+
   conda:
     defaults:
       run:
