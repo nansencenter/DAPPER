@@ -35,7 +35,8 @@ dependencies = [
   "numpy~=2.0",
   "matplotlib>=3.10",
   "pyyaml>=6.0.2",
-  "notebook<6.5",         # Colab uses 6.4.13
+  "notebook~=6.5",        # Colab uses 6.5.7
+  "setuptools>=65.5.0",   # Appears necessary when installing with uv?
   "mpl-tools==0.4.1",
   "tqdm~=4.67",
   "colorama~=0.4.1",
