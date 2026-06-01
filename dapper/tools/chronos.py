@@ -2,12 +2,12 @@
 
 import colorama
 import numpy as np
-from struct_tools import AlignedDict
 
 from dapper.tools.colors import color_text
+from dapper.tools.repr_util import YamlRepr
 
 
-class Chronology:
+class Chronology(YamlRepr):
     """Time schedules with consistency checks.
 
     - Uses int records, so `tt[k] == k*dt`.
@@ -45,18 +45,19 @@ class Chronology:
 
     def __init__(
         self,
-        dt=None,
-        dto=None,
-        T=None,
-        BurnIn=-1,
-        dko=None,
-        Ko=None,
-        K=None,
-        Tplot=None,
+        dt: float | None = None,
+        dto: float | None = None,
+        T: float | None = None,
+        BurnIn: float = -1,
+        dko: int | None = None,
+        Ko: int | None = None,
+        K: int | None = None,
+        Tplot: float | None = None,
     ):
-        assert 3 == [dt, dto, T, dko, Ko, K].count(
-            None
-        ), "Chronology is specified using exactly 3 parameters."
+        if 3 != [dt, dto, T, dko, Ko, K].count(None):
+            raise ValueError(
+                "Chronology requires exactly 3 of (dt, dto, T, dko, Ko, K)."
+            )
 
         # Reduce all to "state vars" dt,dko,K
         if not dt:
@@ -71,14 +72,17 @@ class Chronology:
         if not dko:
             if dto:
                 dko = round(dto / dt)
-                assert abs(dto - dko * dt) < dt * 1e-9
+                if abs(dto - dko * dt) >= dt * 1e-9:
+                    raise ValueError(f"dto={dto} is not a multiple of dt={dt}")
             else:
                 raise TypeError("Unable to interpret time setup")
-        assert isinstance(dko, int)
+        if not isinstance(dko, int):
+            raise ValueError(f"dko must be an integer, got {type(dko).__name__}")
         if not K:
             if T:
                 K = round(T / dt)
-                assert abs(T - K * dt) < dt * 1e-9
+                if abs(T - K * dt) >= dt * 1e-9:
+                    raise ValueError(f"T={T} is not a multiple of dt={dt}")
             elif Ko:
                 K = dko * (Ko + 1)
             else:
@@ -94,7 +98,7 @@ class Chronology:
         if self.T <= BurnIn:
             BurnIn = self.T / 2
             warning = (
-                "Warning: experiment duration < BurnIn time." "\nReducing BurnIn value."
+                "Warning: experiment duration < BurnIn time.\nReducing BurnIn value."
             )
             print(color_text(warning, colorama.Fore.RED))
         self.BurnIn = BurnIn
@@ -102,18 +106,22 @@ class Chronology:
             Tplot = BurnIn
         self.Tplot = Tplot  # don't enforce <T here
 
-        assert len(self.kko) == self.Ko + 1
+        if len(self.kko) != self.Ko + 1:
+            raise ValueError(
+                f"Internal inconsistency: len(kko)={len(self.kko)}"
+                f" != Ko+1={self.Ko + 1}"
+            )
 
     ######################################
     # "State vars". Can be set (changed).
     ######################################
 
     @property
-    def dt(self):
+    def dt(self) -> float:
         return self._dt
 
     @dt.setter
-    def dt(self, value):
+    def dt(self, value: float) -> None:
         dko_new = self.dko * self.dt / value
         if not np.isclose(int(dko_new), dko_new):
             raise ValueError("New value is amgiguous with respect to dko")
@@ -123,11 +131,11 @@ class Chronology:
         )
 
     @property
-    def dko(self):
+    def dko(self) -> int:
         return self._dko
 
     @dko.setter
-    def dko(self, value):
+    def dko(self, value: int) -> None:
         ratio = value / self.dko
         self.__init__(
             dt=self.dt,
@@ -138,11 +146,11 @@ class Chronology:
         )
 
     @property
-    def K(self):
+    def K(self) -> int:
         return self._K
 
     @K.setter
-    def K(self, value):
+    def K(self, value: int) -> None:
         self.__init__(
             dt=self.dt, dko=self.dko, K=value, BurnIn=self.BurnIn, Tplot=self.Tplot
         )
@@ -151,21 +159,21 @@ class Chronology:
     # Read/write (though not state var)
     ######################################
     @property
-    def T(self):
+    def T(self) -> float:
         return self.dt * self.K
 
     @T.setter
-    def T(self, value):
+    def T(self, value: float) -> None:
         self.__init__(
             dt=self.dt, dko=self.dko, T=value, BurnIn=self.BurnIn, Tplot=self.Tplot
         )
 
     @property
-    def Ko(self):
+    def Ko(self) -> int:
         return int(self.K / self.dko) - 1
 
     @Ko.setter
-    def Ko(self, value):
+    def Ko(self, value: int) -> None:
         self.__init__(
             dt=self.dt, dko=self.dko, Ko=value, BurnIn=self.BurnIn, Tplot=self.Tplot
         )
@@ -174,49 +182,49 @@ class Chronology:
     # Read-only
     ######################################
     @property
-    def dto(self):
+    def dto(self) -> float:
         return self.dko * self.dt
 
     @property
-    def kk(self):
+    def kk(self) -> np.ndarray:
         return np.arange(self.K + 1)
 
     @property
-    def kko(self):
+    def kko(self) -> np.ndarray:
         return self.kk[self.dko :: self.dko]
 
     @property
-    def tt(self):
+    def tt(self) -> np.ndarray:
         return self.kk * self.dt
 
     @property
-    def tto(self):
+    def tto(self) -> np.ndarray:
         return self.kko * self.dt
 
     # Burn In. NB: uses > (strict inequality)
     @property
-    def mask(self):
+    def mask(self) -> np.ndarray:
         """Example use: `kk_BI = kk[mask]`"""
         return self.tt > self.BurnIn
 
     @property
-    def masko(self):
+    def masko(self) -> np.ndarray:
         """Example use: `kko_BI = kko[masko]`"""
         return self.tto > self.BurnIn
 
     @property
-    def iBurnIn(self):
+    def iBurnIn(self) -> int:
         return self.mask.nonzero()[0][0]
 
     @property
-    def ioBurnIn(self):
+    def ioBurnIn(self) -> int:
         return self.masko.nonzero()[0][0]
 
     ######################################
     # Other
     ######################################
     @property
-    def ticker(self):
+    def ticker(self) -> "Ticker":
         """Fancy version of `range(1,K+1)`.
 
         Also yields `t`, `dt`, and `ko`.
@@ -225,7 +233,7 @@ class Chronology:
         next(tckr)
         return tckr
 
-    def cycle(self, ko):
+    def cycle(self, ko: int):
         """The range (in `kk`) between observation `ko-1` and `ko`.
 
         Also yields `t` and `dt`.
@@ -235,12 +243,10 @@ class Chronology:
             dt = t - self.tt[k - 1]
             yield k, t, dt
 
-    def __str__(self):
-        printable = ["K", "Ko", "T", "BurnIn", "dto", "dt"]
-        return str(AlignedDict([(k, getattr(self, k)) for k in printable]))
+    _print_fields = ["K", "Ko", "T", "BurnIn", "dto", "dt"]
 
-    def __repr__(self):
-        return "<" + type(self).__name__ + ">" + "\n" + str(self)
+    def _repr_fields(self):
+        return {k: getattr(self, k) for k in self._print_fields}
 
     ######################################
     # Utilities

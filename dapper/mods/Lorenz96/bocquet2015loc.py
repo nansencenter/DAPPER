@@ -11,12 +11,12 @@ def loc_shift(ii, dt):
     # NB: don't use builtin round; it returns integers -- except for round(0.0) !!!
     ii_new = ii + shift
     ii_new = np.remainder(ii_new, HMM.Nx)  # periodicity
-    assert HMM.Nx == HMM.Obs.M, "This func assumes the obs operator is identity."
+    assert HMM.Nx == HMM.Obs(0).M, "This func assumes the obs operator is identity."
     return ii_new
 
 
 HMM = _HMM.copy()
-HMM.Obs.loc_shift = loc_shift
+HMM.Obs(0).loc_shift = loc_shift
 
 
 ####################

@@ -28,7 +28,6 @@ from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.mplot3d.art3d import juggle_axes
 from mpl_tools import is_notebook_or_qt, place, place_ax
 from numpy import arange, nan, ones
-from struct_tools import DotDict, deep_getattr
 
 import dapper.tools.progressbar as pb
 import dapper.tools.viz as viz
@@ -37,7 +36,8 @@ from dapper.mods.utils import linspace_int
 from dapper.tools.chronos import format_time
 from dapper.tools.matrices import CovMat
 from dapper.tools.progressbar import read1
-from dapper.tools.series import FAUSt, RollingArray
+from dapper.tools.series import DACycleSeries, RollingArray
+from dapper.tools.struct import DotDict, deep_getattr
 from dapper.tools.viz import not_available_text, plot_pause
 
 
@@ -48,7 +48,7 @@ class LivePlot:
 
     - Pause, skip.
     - Which liveploters to call.
-    - `plot_u`
+    - `plot_i`
     - Figure window (title and number).
     """
 
@@ -56,7 +56,7 @@ class LivePlot:
         self,
         stats,
         liveplots,
-        key0=(0, None, "u"),
+        key0=(0, None, "i"),
         E=None,
         P=None,
         speed=1.0,
@@ -87,23 +87,23 @@ class LivePlot:
         else:
             return
 
-        # Determine whether all/universal/intermediate stats are plotted
-        self.plot_u = not replay or stats.store_u
+        # Determine whether integrational (between-obs) stats are plotted
+        self.plot_i = not replay or stats.store_i
 
         # Set speed/pause params
         self.params = {
             "pause_f": 0.05,
             "pause_a": 0.05,
             "pause_s": 0.05,
-            "pause_u": 0.001,
+            "pause_i": 0.001,
         }
         # If speed>100: set to inf. Coz pause=1e-99 causes hangup.
-        for pause in ["pause_" + x for x in "faus"]:
+        for pause in ["pause_" + x for x in "fais"]:
             speed = speed if speed < 100 else np.inf
             self.params[pause] /= speed
 
         # Write params
-        self.params.update(getattr(stats.xp, "LP_kwargs", {}))
+        self.params.update(getattr(stats, "_LP_kwargs", {}))
         self.params.update(kwargs)
 
         def get_name(init):
@@ -151,7 +151,7 @@ class LivePlot:
                 if not self.any_figs:
                     print("Initializing liveplots...")
                     if is_notebook_or_qt:
-                        pauses = [self.params["pause_" + x] for x in "faus"]
+                        pauses = [self.params["pause_" + x] for x in "fais"]
                         if any((p > 0) for p in pauses):
                             print(
                                 "Note: liveplotting does not work very well"
@@ -172,14 +172,15 @@ class LivePlot:
                     self.any_figs = True
 
                 # Init figure
-                post_title = "" if self.plot_u else "\n(obs times only)"
-                updater = init(name, stats, key0, self.plot_u, E, P, **kwargs)
+                post_title = "" if self.plot_i else "\n(obs times only)"
+                updater = init(name, stats, key0, self.plot_i, E, P, **kwargs)
                 if plt.fignum_exists(name) and getattr(updater, "is_active", 1):
                     self.figures[name] = updater
                     fig = plt.figure(name)
                     win = fig.canvas
                     ax0 = fig.axes[0]
-                    win.manager.set_window_title(str(name))
+                    if win.manager is not None:
+                        win.manager.set_window_title(str(name))
                     ax0.set_title(ax0.get_title() + post_title)
                     self.update(key0, E, P)  # Call initial update
                     if not (replay and np.isinf(speed)):
@@ -221,7 +222,7 @@ class LivePlot:
             pause()
 
         else:
-            if key == (0, None, "u"):
+            if key == (0, None, "i"):
                 # Skip read1 for key0 (coz it blocks)
                 pass
             else:
@@ -247,7 +248,7 @@ class LivePlot:
         # Update figures
         if not self.skipping:
             faus = key[-1]
-            if faus != "u" or self.plot_u:
+            if faus != "i" or self.plot_i:
                 for name, (updater) in self.figures.items():
                     if plt.fignum_exists(name) and getattr(updater, "is_active", 1):
                         _ = plt.figure(name)
@@ -267,14 +268,14 @@ class LivePlot:
 
 
 # TODO 6:
-# - iEnKS diagnostics don't work at all when store_u=False
+# - iEnKS diagnostics don't work at all when store_i=False
 star = "${}^*$"
 
 
 class sliding_diagnostics:
     """Plots a sliding window (like a heart rate monitor) of certain diagnostics."""
 
-    def __init__(self, fignum, stats, key0, plot_u, E, P, Tplot=None, **kwargs):
+    def __init__(self, fignum, stats, key0, plot_i, E, P, Tplot=None, **kwargs):
         # STYLE TABLES - Defines which/how diagnostics get plotted
         styles = {}
 
@@ -322,7 +323,7 @@ class sliding_diagnostics:
                     continue
                 # try: val0 = stat[key0[0]]
                 # except KeyError: continue
-                # PS: recall (from series.py) that even if store_u is false, stat[k] is
+                # PS: recall (from series.py) that even if store_i is false, stat[k] is
                 # still present if liveplots=True via the k_tmp functionality.
 
                 # Unpack style
@@ -332,11 +333,11 @@ class sliding_diagnostics:
                 ln["plt"] = style_table[name][2]
 
                 # Create series
-                if isinstance(stat, FAUSt):
-                    ln["plot_u"] = plot_u
-                    K_plot = comp_K_plot(K_lag, a_lag, ln["plot_u"])
+                if isinstance(stat, DACycleSeries):
+                    ln["plot_i"] = plot_i and stat.store_f
+                    K_plot = comp_K_plot(K_lag, a_lag, ln["plot_i"])
                 else:
-                    ln["plot_u"] = False
+                    ln["plot_i"] = False
                     K_plot = a_lag
                 ln["data"] = RollingArray(K_plot)
                 ln["tt"] = RollingArray(K_plot)
@@ -376,24 +377,19 @@ class sliding_diagnostics:
             for name, ln in lines.items():
                 stat = deep_getattr(stats, name)
                 t = tseq.tt[k]  # == tseq.tto[ko]
-                if isinstance(stat, FAUSt):
+                if isinstance(stat, DACycleSeries):
                     # ln['data'] will contain duplicates for f/a times.
-                    if ln["plot_u"]:
-                        val = stat[key]
-                        ln["tt"].insert(k, t)
-                        ln["data"].insert(k, ln["transf"](val))
-                    elif "u" not in faus:
-                        val = stat[key]
-                        ln["tt"].insert(ko, t)
-                        ln["data"].insert(ko, ln["transf"](val))
-                else:
-                    # ln['data'] will not contain duplicates, coz only 'a' is input.
-                    if "a" in faus:
-                        val = stat[ko]
-                        ln["tt"].insert(ko, t)
-                        ln["data"].insert(ko, ln["transf"](val))
-                    elif "f" in faus:
-                        pass
+                    if ln["plot_i"]:
+                        ind = (k if stat.store_i else 0) if faus == "i" else ko
+                        if hasattr(stat, faus):
+                            val = getattr(stat, faus)[ind]
+                            ln["tt"].insert(k, t)
+                            ln["data"].insert(k, ln["transf"](val))
+                    elif "i" not in faus:
+                        if hasattr(stat, faus):
+                            val = getattr(stat, faus)[ko]
+                            ln["tt"].insert(ko, t)
+                            ln["data"].insert(ko, ln["transf"](val))
 
         def update_plot_data(ax, lines):
             def bend_into(shape, xx, yy):
@@ -422,7 +418,7 @@ class sliding_diagnostics:
             for name in list(lines):
                 ln = lines[name]
                 stat = deep_getattr(stats, name)
-                if not stat.were_changed:
+                if not np.any(np.isfinite(stat.a)):
                     ln["handle"].remove()  # rm from axes
                     del lines[name]  # rm from dict
             # Add legends
@@ -486,7 +482,7 @@ def sliding_xlim(ax, tt, lag, margin=False):
 class weight_histogram:
     """Plots histogram of weights. Refreshed each analysis."""
 
-    def __init__(self, fignum, stats, key0, plot_u, E, P, **kwargs):
+    def __init__(self, fignum, stats, key0, plot_i, E, P, **kwargs):
         if not hasattr(stats, "w"):
             self.is_active = False
             return
@@ -518,21 +514,21 @@ class weight_histogram:
             ax.set_ylim(top=max(nn))
 
             ax.set_title(
-                f"N: {N:d}.   N_eff: {1/(w@w):.4g}."
-                "   Not shown: {N-np.sum(counted):d}. "
+                f"N: {N:d}.   N_eff: {1 / (w @ w):.4g}."
+                f"   Not shown: {N - np.sum(counted):d}. "
             )
 
 
 class spectral_errors:
     """Plots the (spatial-RMS) error as a functional of the SVD index."""
 
-    def __init__(self, fignum, stats, key0, plot_u, E, P, **kwargs):
+    def __init__(self, fignum, stats, key0, plot_i, E, P, **kwargs):
         fig, ax = place.freshfig(fignum, figsize=(6, 3))
         ax.set_xlabel("Sing. value index")
         ax.set_yscale("log")
         self.init_incomplete = True
         self.ax = ax
-        self.plot_u = plot_u
+        self.plot_i = plot_i
 
         try:
             self.msft = stats.umisf
@@ -546,7 +542,7 @@ class spectral_errors:
         k, ko, faus = key
         ax = self.ax
         if self.init_incomplete:
-            if self.plot_u or "f" == faus:
+            if self.plot_i or "f" == faus:
                 self.init_incomplete = False
                 msft = abs(self.msft[key])
                 sprd = self.sprd[key]
@@ -575,13 +571,13 @@ class correlations:
 
     half = True  # Whether to show half/full (symmetric) corr matrix.
 
-    def __init__(self, fignum, stats, key0, plot_u, E, P, **kwargs):
+    def __init__(self, fignum, stats, key0, plot_i, E, P, **kwargs):
         GS = {"height_ratios": [4, 1], "hspace": 0.09, "top": 0.95}
         fig, (ax, ax2) = place.freshfig(fignum, figsize=(5, 6), nrows=2, gridspec_kw=GS)
 
         if E is None and np.isnan(P.diag if isinstance(P, CovMat) else P).all():
             not_available_text(
-                ax, ("Not available in replays" "\ncoz full Ens/Cov not stored.")
+                ax, ("Not available in replays\ncoz full Ens/Cov not stored.")
             )
             self.is_active = False
             return
@@ -698,7 +694,7 @@ def sliding_marginals(
     # Store parameters
     params_orig = DotDict(**locals())
 
-    def init(fignum, stats, key0, plot_u, E, P, **kwargs):
+    def init(fignum, stats, key0, plot_i, E, P, **kwargs):
         xx, yy, mu, spread, tseq = (
             stats.xx,
             stats.yy,
@@ -716,7 +712,7 @@ def sliding_marginals(
 
         # Lag settings:
         T_lag, K_lag, a_lag = validate_lag(p.Tplot, tseq)
-        K_plot = comp_K_plot(K_lag, a_lag, plot_u)
+        K_plot = comp_K_plot(K_lag, a_lag, plot_i)
         # Extend K_plot forther for adding blanks in resampling (PartFilt):
         has_w = hasattr(stats, "w")
         if has_w:
@@ -733,7 +729,7 @@ def sliding_marginals(
         for ix, (m, ax) in enumerate(zip(p.dims, axs)):
             # ax.set_ylim(*viz.stretch(*viz.xtrema(xx[:, m]), 1/p.zoomy))
             if not p.labels:
-                ax.set_ylabel("$x_{%d}$" % m)
+                ax.set_ylabel(f"$x_{{{m}}}$")
             else:
                 ax.set_ylabel(p.labels[ix])
         axs[-1].set_xlabel("Time (t)")
@@ -764,17 +760,17 @@ def sliding_marginals(
             h.s = []
 
         # Plot (invisible coz everything here is nan, for the moment).
-        for ix, ax in zip(p.dims, axs):
+        for i, (_ix, ax) in enumerate(zip(p.dims, axs)):
             if True:
-                h.x += ax.plot(d.t, d.x[:, ix], "k")
+                h.x += ax.plot(d.t, d.x[:, i], "k")
             if not_empty(p.obs_inds):
-                h.y += ax.plot(d.t, d.y[:, ix], "g*", ms=10)
+                h.y += ax.plot(d.t, d.y[:, i], "g*", ms=10)
             if "E" in d:
-                h.E += [ax.plot(d.t, d.E[:, :, ix], **p.ens_props)]
+                h.E += [ax.plot(d.t, d.E[:, :, i], **p.ens_props)]
             if "mu" in d:
-                h.mu += ax.plot(d.t, d.mu[:, ix], "b")
+                h.mu += ax.plot(d.t, d.mu[:, i], "b")
             if "s" in d:
-                h.s += [ax.plot(d.t, d.s[:, :, ix], "b--", lw=1)]
+                h.s += [ax.plot(d.t, d.s[:, :, i], "b--", lw=1)]
 
         def update(key, E, P):
             k, ko, faus = key
@@ -782,7 +778,7 @@ def sliding_marginals(
             EE = duplicate_with_blanks_for_resampled(E, p.dims, key, has_w)
 
             # Roll data array
-            ind = k if plot_u else ko
+            ind = k if plot_i else ko
             for Ens in EE:  # If E is duplicated, so must the others be.
                 if "E" in d:
                     d.E.insert(ind, Ens)
@@ -796,26 +792,33 @@ def sliding_marginals(
                     xy = nan * ones(len(p.dims))
                     if ko is not None:
                         jj = p.obs_inds(ko) if callable(p.obs_inds) else p.obs_inds
-                        xy[jj] = yy[ko]
+                        jj = list(jj)
+                        for i, dim in enumerate(p.dims):
+                            try:
+                                iobs = jj.index(dim)
+                            except ValueError:
+                                pass
+                            else:
+                                xy[i] = yy[ko][iobs]
                     d.y.insert(ind, xy)
                 if True:
                     d.x.insert(ind, xx[k, p.dims])
 
             # Update graphs
-            for ix, ax in zip(p.dims, axs):
+            for i, (_ix, ax) in enumerate(zip(p.dims, axs)):
                 sliding_xlim(ax, d.t, T_lag, True)
                 if True:
-                    h.x[ix].set_data(d.t, d.x[:, ix])
+                    h.x[i].set_data(d.t, d.x[:, i])
                 if not_empty(p.obs_inds):
-                    h.y[ix].set_data(d.t, d.y[:, ix])
+                    h.y[i].set_data(d.t, d.y[:, i])
                 if "mu" in d:
-                    h.mu[ix].set_data(d.t, d.mu[:, ix])
+                    h.mu[i].set_data(d.t, d.mu[:, i])
                 if "s" in d:
-                    [h.s[ix][b].set_data(d.t, d.s[:, b, ix]) for b in [0, 1]]
+                    [h.s[i][b].set_data(d.t, d.s[:, b, i]) for b in [0, 1]]
                 if "E" in d:
-                    [h.E[ix][n].set_data(d.t, d.E[:, n, ix]) for n in range(len(E))]
+                    [h.E[i][n].set_data(d.t, d.E[:, n, i]) for n in range(len(E))]
                 if "E" in d:
-                    update_alpha(key, stats, h.E[ix])
+                    update_alpha(key, stats, h.E[i])
 
                 # TODO 3: fixup. This might be slow?
                 # In any case, it is very far from tested.
@@ -825,7 +828,7 @@ def sliding_marginals(
                     lims = d.E
                 elif "mu" in d:
                     lims = d.mu
-                lims = np.array(viz.xtrema(lims[..., ix]))
+                lims = np.array(viz.xtrema(lims[..., i]))
                 if lims[0] == lims[1]:
                     lims += [-0.5, +0.5]
                 ax.set_ylim(*viz.stretch(*lims, 1 / p.zoomy))
@@ -851,7 +854,7 @@ def phase_particles(
 
     M = 3 if is_3d else 2
 
-    def init(fignum, stats, key0, plot_u, E, P, **kwargs):
+    def init(fignum, stats, key0, plot_i, E, P, **kwargs):
         xx, yy, mu, _, tseq = stats.xx, stats.yy, stats.mu, stats.spread, stats.HMM.tseq
 
         # Set parameters (kwargs takes precedence over params_orig)
@@ -863,7 +866,7 @@ def phase_particles(
             K_plot = 1
         else:
             T_lag, K_lag, a_lag = validate_lag(p.Tplot, tseq)
-            K_plot = comp_K_plot(K_lag, a_lag, plot_u)
+            K_plot = comp_K_plot(K_lag, a_lag, plot_i)
             # Extend K_plot forther for adding blanks in resampling (PartFilt):
             if has_w:
                 K_plot += a_lag
@@ -872,7 +875,7 @@ def phase_particles(
         if not p.dims:
             p.dims = arange(M)
         if not p.labels:
-            p.labels = ["$x_%d$" % d for d in p.dims]
+            p.labels = [f"$x_{d}$" for d in p.dims]
         assert len(p.dims) == M
 
         # Set up figure, axes
@@ -882,7 +885,11 @@ def phase_particles(
         ax.set_title("Phase space trajectories")
         # Tune plot
         for ind, (s, i, t) in enumerate(zip(p.labels, p.dims, "xyz")):
-            viz.set_ilim(ax, ind, *viz.stretch(*viz.xtrema(xx[:, i]), 1 / p.zoom))
+            viz.set_ilim(
+                ax,
+                ind,
+                *viz.stretch(*viz.xtrema(xx[:, i]), 1 / p.zoom),
+            )
             eval(f"ax.set_{t}label('{s!s}')")
 
         # Allocate
@@ -919,7 +926,11 @@ def phase_particles(
             s.mu = ax.scatter(*ones(M), s=8**2, c=[h.mu.get_color()])
         if True:
             s.x = ax.scatter(
-                *ones(M), s=14**2, c=[h.x.get_color()], marker=(5, 1), zorder=99
+                *ones(M),
+                s=14**2,
+                c=[h.x.get_color()],
+                marker=(5, 1),  # ty: ignore[invalid-argument-type]
+                zorder=99,
             )
 
         def update(key, E, P):
@@ -939,7 +950,7 @@ def phase_particles(
             EE = duplicate_with_blanks_for_resampled(E, p.dims, key, has_w)
 
             # Roll data array
-            ind = k if plot_u else ko
+            ind = k if plot_i else ko
             for Ens in EE:  # If E is duplicated, so must the others be.
                 if "E" in d:
                     d.E.insert(ind, Ens)
@@ -1010,9 +1021,9 @@ def validate_lag(Tplot, tseq):
     return T_lag, K_lag, a_lag
 
 
-def comp_K_plot(K_lag, a_lag, plot_u):
+def comp_K_plot(K_lag, a_lag, plot_i):
     K_plot = 2 * a_lag  # Sum of lags of {f,a} series.
-    if plot_u:
+    if plot_i:
         K_plot += K_lag  # Add lag of u series.
     return K_plot
 
@@ -1063,7 +1074,7 @@ def duplicate_with_blanks_for_resampled(E, dims, key, has_w):
             pass
         elif faus == "a":
             _Ea[0] = E[:, 0]  # Store (1st dim of) ens.
-        elif faus == "u" and ko is not None:
+        elif faus == "i" and ko is not None:
             # Find resampled particles. Insert duplicate ensemble. Write nans (breaks).
             resampled = _Ea[0] != E[:, 0]  # Mark as resampled if ens changed.
             # Insert current ensemble (copy to avoid overwriting).
@@ -1154,7 +1165,7 @@ def spatial1d(
     # Store parameters
     params_orig = DotDict(**locals())
 
-    def init(fignum, stats, key0, plot_u, E, P, **kwargs):
+    def init(fignum, stats, key0, plot_i, E, P, **kwargs):
         xx, yy, mu = stats.xx, stats.yy, stats.mu
 
         # Set parameters (kwargs takes precedence over params_orig)
@@ -1245,7 +1256,7 @@ def spatial1d(
                     line_y.set_zorder(5)
                     line_y.set_visible(True)
 
-            if "u" in faus:
+            if "i" in faus:
                 if not_empty(p.obs_inds):
                     line_y.set_visible(False)
 
@@ -1260,10 +1271,10 @@ def spatial2d(
     square,
     ind2sub,
     obs_inds=(),
-    cm=plt.cm.jet,
+    cm=plt.cm.jet,  # ty: ignore[unresolved-attribute]
     clims=((-40, 40), (-40, 40), (-10, 10), (-10, 10)),
 ):
-    def init(fignum, stats, key0, plot_u, E, P, **kwargs):
+    def init(fignum, stats, key0, plot_i, E, P, **kwargs):
         GS = {"left": 0.125 - 0.04, "right": 0.9 - 0.04}
         fig, axs = place.freshfig(
             fignum,
@@ -1304,8 +1315,14 @@ def spatial2d(
         im_11 = ax_11.imshow(square(mu[key0]), cmap=cm)
         im_12 = ax_12.imshow(square(xx[k]), cmap=cm)
         # hot is better, but needs +1 colorbar
-        im_21 = ax_21.imshow(square(spread[key0]), cmap=plt.cm.bwr)
-        im_22 = ax_22.imshow(square(err[key0]), cmap=plt.cm.bwr)
+        im_21 = ax_21.imshow(
+            square(spread[key0]),
+            cmap=plt.cm.bwr,  # ty: ignore[unresolved-attribute]
+        )
+        im_22 = ax_22.imshow(
+            square(err[key0]),
+            cmap=plt.cm.bwr,  # ty: ignore[unresolved-attribute]
+        )
         ims = (im_11, im_12, im_21, im_22)
         # Obs init -- a list where item 0 is the handle of something invisible.
         lh = list(ax_12.plot(0, 0)[0:1])
@@ -1369,10 +1386,13 @@ def spatial2d(
             #  - plot() automatically adjusts to direction of y-axis in use.
             #  - ind2sub returns (iy,ix), while plot takes (ix,iy) => reverse.
 
-            if ko is not None and not_empty(obs_inds):
-                lh[0] = ax_12.plot(*ind2sub(obs_inds(ko))[::-1], "k.", ms=1, zorder=5)[
-                    0
-                ]
+            if ko is not None:
+                if callable(obs_inds):
+                    jj = obs_inds(ko)  # ty:ignore[call-top-callable]
+                else:
+                    jj = obs_inds[ko]
+                if not_empty(jj):
+                    lh[0] = ax_12.plot(*ind2sub(jj)[::-1], "k.", ms=1, zorder=5)[0]
 
             text_t.set_text(format_time(k, ko, t))
 

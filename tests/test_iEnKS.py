@@ -8,10 +8,10 @@ These are very useful for testing boundary cases of the iEnKS (e.g. nIter=1, Lag
 ##############################
 import numpy as np
 import pytest
-from struct_tools import deep_getattr
 
 import dapper as dpr
 import dapper.da_methods as da
+from dapper.tools.struct import deep_getattr
 
 
 @pytest.fixture(scope="module")
@@ -42,8 +42,8 @@ def data():
     for xp in xps:
         xp.seed = 3000
 
-    xps.launch(HMM, store_u=True, save_as=False)
-    print(xps.tabulate_avrgs(["rmse.a", "rmse.f", "rmse.u", "rmse.s"]))
+    xps.launch(HMM, store_i=True, save_as=False)
+    print(xps.tabulate_avrgs(["rmse.a", "rmse.f", "rmse.i", "rmse.s"]))
 
     return xps
 
@@ -85,23 +85,23 @@ def test_Sqrt(data):
     assert _allsame(_rmse(data, "f", ii))
 
 
-# However, the u stats depend on the Lag, of course.
+# However, the i stats depend on the Lag, of course.
 # Test together with non-iter filters:
-def test_Sqrt_u(data):
+def test_Sqrt_i(data):
     ii = data.inds(strict=0, upd_a="Sqrt", Lag=0)
-    assert _allsame(_rmse(data, "u", ii))
+    assert _allsame(_rmse(data, "i", ii))
 
 
 # Idem for s stats (not def'd for filters)
-def test_Sqrt_Lag1_u(data):
+def test_Sqrt_Lag1_i(data):
     ii = data.inds(strict=1, upd_a="Sqrt", Lag=1)
-    assert _allsame(_rmse(data, "u", ii))
+    assert _allsame(_rmse(data, "i", ii))
     assert _allsame(_rmse(data, "s", ii))
 
 
-def test_Sqrt_Lag3_u(data):
+def test_Sqrt_Lag3_i(data):
     ii = data.inds(strict=1, upd_a="Sqrt", Lag=3)
-    assert _allsame(_rmse(data, "u", ii))
+    assert _allsame(_rmse(data, "i", ii))
     assert _allsame(_rmse(data, "s", ii))
 
 
@@ -122,30 +122,30 @@ def test_PertObs_nIter4(data):
     assert _allsame(_rmse(data, "f", ii))
 
 
-# - u stats equal for filter and (iter/non-iter) smoothers with Lag=0,
+# - i stats equal for filter and (iter/non-iter) smoothers with Lag=0,
 #   except MDA with nIter>1:
-def test_PertObs_u(data):
+def test_PertObs_i(data):
     ii = data.inds(strict=0, upd_a="PertObs", MDA=0, Lag=0) + data.inds(
         strict=1, upd_a="PertObs", MDA=1, Lag=0, nIter=1
     )
-    assert _allsame(_rmse(data, "u", ii))
+    assert _allsame(_rmse(data, "i", ii))
 
 
-# - u stats equal for            (iter/non-iter) smoothers with Lag=1,
+# - i stats equal for            (iter/non-iter) smoothers with Lag=1,
 #   except MDA with nIter>1:
-def test_PertObs_Lag1_u(data):
+def test_PertObs_Lag1_i(data):
     ii = data.inds(upd_a="PertObs", Lag=1)
     ii.remove(data.inds(upd_a="PertObs", Lag=1, MDA=1, nIter=4)[0])
-    assert _allsame(_rmse(data, "u", ii))
+    assert _allsame(_rmse(data, "i", ii))
     assert _allsame(_rmse(data, "s", ii))
 
 
-# - u stats equal for            (iter/non-iter) smoothers with Lag=3,
+# - i stats equal for            (iter/non-iter) smoothers with Lag=3,
 #   except MDA with nIter>1:
-def test_PertObs_Lag3_u(data):
+def test_PertObs_Lag3_i(data):
     ii = data.inds(upd_a="PertObs", Lag=3)
     ii.remove(data.inds(upd_a="PertObs", Lag=3, MDA=1, nIter=4)[0])
-    assert _allsame(_rmse(data, "u", ii))
+    assert _allsame(_rmse(data, "i", ii))
     assert _allsame(_rmse(data, "s", ii))
 
 
@@ -172,30 +172,30 @@ def test_Order1_nIter4_MDA1(data):
 
 
 # u   stats equal for EnKS/iEnKS(nIter=1) for a given Lag:
-def test_Order1_nIter1_Lag0_u(data):
+def test_Order1_nIter1_Lag0_i(data):
     ii = data.inds(strict=0, upd_a="DEnKF", Lag=0) + data.inds(
         upd_a="Order1", Lag=0, nIter=1
     )
-    assert _allsame(_rmse(data, "u", ii))
+    assert _allsame(_rmse(data, "i", ii))
 
 
-def test_Order1_nIter1_Lag1_u(data):
+def test_Order1_nIter1_Lag1_i(data):
     ii = data.inds(da=da.EnKS, upd_a="DEnKF", Lag=1) + data.inds(
         upd_a="Order1", Lag=1, nIter=1
     )
-    assert _allsame(_rmse(data, "u", ii))
+    assert _allsame(_rmse(data, "i", ii))
 
 
-def test_Order1_nIter1_Lag3_u(data):
+def test_Order1_nIter1_Lag3_i(data):
     ii = data.inds(da=da.EnKS, upd_a="DEnKF", Lag=3) + data.inds(
         upd_a="Order1", Lag=3, nIter=1
     )
-    assert _allsame(_rmse(data, "u", ii))
+    assert _allsame(_rmse(data, "i", ii))
 
 
 # For nonlinear dynamics, the (non-iterative) EnKF (f/a/u stats)
 # are reproduced by the iEnKS with Lag=0 (requires nIter==1 if Obs.mod is also nonlin).
-# However, the 'u' stats of the non-iterative EnKS(Lag>0) are not reproduced.
+# However, the 'i' stats of the non-iterative EnKS(Lag>0) are not reproduced.
 # Re-use xps and test with:
 # from dapper.mods.Lorenz96.sakov2008 import HMM
 # HMM.tseq.Ko=100 # Here, must use >100 to avoid indistinguishable rmse stats.

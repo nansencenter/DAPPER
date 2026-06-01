@@ -1,13 +1,21 @@
 """Time stepping (integration) tools."""
 
+import inspect
+
 import numpy as np
 import scipy.linalg as sla
-from IPython.lib.pretty import pretty as pretty_repr
 
 from dapper.tools.progressbar import progbar
 from dapper.tools.seeding import rng
 
 from .utils import NamedFunc
+
+
+def pretty_repr(f):
+    try:
+        return f"{f.__qualname__} ({inspect.getfile(f)})"
+    except TypeError:
+        return repr(f)
 
 
 # fmt: off
@@ -87,7 +95,7 @@ def with_rk4(dxdt, autonom=False, stages=4, s=0):
     def step(x0, t0, dt):
         return rk4(tendency, x0, t0, dt, stages=stages)
 
-    name = "rk"+str(stages)+" integration of "+pretty_repr(dxdt)
+    name = "rk"+str(stages)+" integration of "+repr(dxdt)
     step = NamedFunc(step, name)
     return step
 

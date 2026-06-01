@@ -5,17 +5,19 @@ import functools
 import numpy as np
 import scipy.linalg as sla
 
+from dapper.tools.repr_util import YamlRepr
 from dapper.tools.rounding import is_whole
 
 
 # https://stackoverflow.com/q/22797580
 # https://stackoverflow.com/q/10875442
-class NamedFunc:
+class NamedFunc(YamlRepr):
     "Provides custom repr for functions."
 
-    def __init__(self, func, name):
+    def __init__(self, func, name, data=None):
         self._function = func
         self._new_name = name
+        self._data = data
         functools.update_wrapper(self, func)
 
     def __call__(self, *args, **kwargs):
@@ -24,15 +26,17 @@ class NamedFunc:
     def __str__(self):
         return self._new_name
 
-    def __repr__(self):
-        return str(self) + "\n" + repr(self._function)
+    def _repr_fields(self):
+        if self._data is None:
+            return self._new_name
+        return {"name": self._new_name, "data": self._data}
 
 
-def name_func(name):
+def name_func(name, data=None):
     """Decorator for creating NamedFunc."""
 
     def namer(func):
-        return NamedFunc(func, name)
+        return NamedFunc(func, name, data=data)
 
     return namer
 
@@ -162,7 +166,7 @@ def partial_Id_Obs(Nx, obs_inds):
     def model(x):
         return x[obs_inds]
 
-    @name_func(f"Constant matrix\n{H}")
+    @name_func("Constant matrix", data=H)
     def linear(x):
         return H
 

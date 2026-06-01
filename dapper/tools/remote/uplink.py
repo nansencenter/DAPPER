@@ -6,13 +6,13 @@ Requires rsync, gcloud and ssh access to the DAPPER cluster.
 # TODO 9: use Fabric? https://www.fabfile.org/
 
 import os
+import re
 import subprocess
 import tempfile
 import time
 from datetime import timedelta, timezone
 
 from dateutil.parser import parse as datetime_parse
-from patlib.std import sorted_human
 from tqdm import tqdm
 
 from dapper.dpr_config import rc
@@ -72,7 +72,7 @@ class SubmissionConnection:
             src, dst = dst, src
 
         # Get rsync version
-        v = sub_run("rsync --version", shell=True).splitlines()[0].split()
+        v = sub_run("rsync --version", shell=True).splitlines()[0].split()  # type: ignore[union-attr]
         i = v.index("version")
         v = v[i + 1]  # => '3.2.3'
         v = [int(w) for w in v.split(".")]
@@ -152,7 +152,7 @@ def submit_job_GCP(xps_path, **kwargs):
             if nHeld == sc.nJobs:
                 print("NB: All jobs failed")
             else:
-                print("NB: There were %d failed jobs" % nHeld)
+                print(f"NB: There were {nHeld} failed jobs")
             # Print path of error messages for a (the first found) failed job
             for d in list_job_dirs(sc.xps_path):
                 if (d / "xp").stat().st_size == 0:
@@ -204,7 +204,7 @@ def _submit_job(self):
 
 
 def _sync_job(self):
-    print("Syncing %d jobs" % self.nJobs)
+    print(f"Syncing {self.nJobs} jobs")
     xps_path = self.xps_path
 
     # NB: --delete => Must precede other rsync's!
@@ -220,7 +220,7 @@ def _sync_DAPPER(self):
     """Sync DAPPER (as on work-tree, not a specific version) to GCP."""
     # Get list of files: whatever mentioned by .git
     repo = f"--git-dir={rc.dirs.DAPPER}/.git"
-    files = sub_run(f"git {repo} ls-tree -r --name-only HEAD", shell=True).split()
+    files = sub_run(f"git {repo} ls-tree -r --name-only HEAD", shell=True).split()  # type: ignore[union-attr]
 
     def xcldd(f):
         return f.startswith("docs/") or f.endswith(".jpg") or f.endswith(".png")
@@ -238,7 +238,7 @@ def _sync_DAPPER(self):
             "--files-from=" + synclist.name,
         )
     except subprocess.SubprocessError as error:
-        print(error.stderr)
+        print(error.stderr)  # ty: ignore[unresolved-attribute]
         print("Did you mv/rm files (and not register it with `git`)?")
         raise
 
@@ -321,17 +321,18 @@ def _monitor_progress(self):
             pbar.update(increment)
             time.sleep(1)  # dont clog the ssh connection
     except (KeyboardInterrupt, Exception):
-        print(
-            "Some kind of exception occured,"
-            " while %d jobs have not even run." % unfinished
-        )
+        print(f"Exception occured while {unfinished} jobs have not even run.")  # type: ignore[reportPossiblyUnbound]
         raise
     finally:
         pbar.close()
 
 
 def list_job_dirs(xps_path):
-    dirs = sorted_human(os.listdir(xps_path))
+    # Sort the way a human would (numeric segments by value, not lexically)
+    dirs = sorted(
+        os.listdir(xps_path),
+        key=lambda s: [int(c) if c.isdigit() else c for c in re.split("([0-9]+)", s)],
+    )
     dirs = [xps_path / d for d in dirs]
     dirs = [d for d in dirs if d.is_dir() and d.stem.isnumeric()]
     return dirs
@@ -350,9 +351,9 @@ def get_ip(instance):
     # cloud.google.com/compute/docs/instances/view-ip-address
     getip = "get(networkInterfaces[0].accessConfigs[0].natIP)"
     ip = sub_run(
-        (f"gcloud compute instances describe {instance}" f" --format={getip}").split()
+        (f"gcloud compute instances describe {instance} --format={getip}").split()
     )
-    return ip.strip()
+    return ip.strip()  # type: ignore[union-attr]
 
     # # Parse ssh/config for the "Host" of condor-submit.
     # # Q: how reliable/portable is it?
@@ -385,7 +386,7 @@ def sub_run(*args, check=True, capture_output=True, text=True, **kwargs):
             # error.args += (f"The stderr is: \n\n{error.stderr}",)
             # The above won't get printed because CalledProcessError.__str__
             # is non-standard. Instead, print stdout (on top of stack trace):
-            print(error.stderr)
+            print(error.stderr)  # type: ignore[attr-defined]
         else:
             pass  # w/o capture_output, error is automatically printed.
         raise

@@ -7,26 +7,8 @@ import scipy.linalg as sla
 from numpy import ones, sqrt, zeros
 
 from dapper.tools.linalg import mrdiv, svd0, truncate_rank
+from dapper.tools.repr_util import YamlRepr
 from dapper.tools.seeding import rng
-
-
-class lazy_property:
-    """Lazy evaluation of property.
-
-    Should represent non-mutable data,
-    as it replaces itself.
-
-    From https://stackoverflow.com/q/3012421
-    """
-
-    def __init__(self, fget):
-        self.fget = fget
-        self.func_name = fget.__name__
-
-    def __get__(self, obj, cls):
-        value = self.fget(obj)
-        setattr(obj, self.func_name, value)
-        return value
 
 
 # Test matrices
@@ -48,10 +30,10 @@ def genOG(M):
     """Generate random orthonormal matrix."""
     # TODO 5: This (using Householder) is (slightly?) wrong,
     # as per section 4 of mezzadri2006generate.
-    Q, R = sla.qr(rng.standard_normal((M, M)))
+    Q, R = sla.qr(rng.standard_normal((M, M)))  # type: ignore[misc]
     for i in range(M):
         if R[i, i] < 0:
-            Q[:, i] = -Q[:, i]
+            Q[:, i] = -Q[:, i]  # type: ignore[index]
     return Q
 
 
@@ -81,7 +63,7 @@ def genOG_modified(M, opts=(0, 1.0)):
         dc = 1 / degree  # = "while"
         # Retrieve/store persistent variable
         counter = getattr(genOG_modified, "counter", 0) + 1
-        genOG_modified.counter = counter
+        genOG_modified.counter = counter  # ty: ignore[unresolved-attribute]
         # Compute rot or skip
         if np.mod(counter, dc) < 1:
             Q = genOG(M)
@@ -92,10 +74,10 @@ def genOG_modified(M, opts=(0, 1.0)):
         # https://stackoverflow.com/q/38426349
         # https://en.wikipedia.org/wiki/Orthogonal_matrix
         Q = genOG(M)
-        s, U = sla.eig(Q)
+        s, U = sla.eig(Q)  # type: ignore[misc]
         s2 = np.exp(1j * np.angle(s) * degree)  # reduce angles
         Q = mrdiv(U * s2, U)
-        Q = Q.real
+        Q = Q.real  # type: ignore[union-attr]
     elif ver == 3:
         # Reduce Given's rotations in QR algo
         raise NotImplementedError
@@ -184,7 +166,7 @@ def chol_reduce(Right):
     return R
 
 
-class CovMat:
+class CovMat(YamlRepr):
     """Covariance matrix class.
 
     Main tasks:
@@ -230,7 +212,8 @@ class CovMat:
             # automatically go for the EVD, seeing as e.g. the
             # diagonal can be computed without it.
             R = np.atleast_2d(data)
-            assert R.ndim == 2
+            if R.ndim != 2:
+                raise ValueError(f"Expected 2D array, got ndim={R.ndim}")
             self._R = R
             self._m = R.shape[1]
         else:
@@ -244,7 +227,8 @@ class CovMat:
                 # If full has been imput, then we have memory for an EVD,
                 # which will probably be put to use in the DA.
                 C = np.atleast_2d(data)
-                assert C.ndim == 2
+                if C.ndim != 2:
+                    raise ValueError(f"Expected 2D array, got ndim={C.ndim}")
                 self._C = C
                 M = len(C)
                 d, V = sla.eigh(C)
@@ -258,7 +242,8 @@ class CovMat:
                 # (or non-existant) representation of V,
                 # but that would require so much other adaption of other code.
                 d = np.atleast_1d(data)
-                assert d.ndim == 1
+                if d.ndim != 1:
+                    raise ValueError(f"Expected 1D array for diag, got ndim={d.ndim}")
                 self.diag = d
                 M = len(d)
                 if np.all(d == d[0]):
@@ -313,7 +298,7 @@ class CovMat:
         self._C = C
         return C
 
-    @lazy_property
+    @functools.cached_property
     def diag(self):
         """Diagonal of covariance matrix"""
         if hasattr(self, "_C"):
@@ -400,28 +385,26 @@ class CovMat:
 
         return (V * fun(w)) @ V.T
 
-    @lazy_property
+    @functools.cached_property
     def sym_sqrt(self):
         """S such that C = S@S (and i.e. S is square). Uses trunc-level."""
         return self.transform_by(sqrt)
 
-    @lazy_property
+    @functools.cached_property
     def sym_sqrt_inv(self):
         """S such that C^{-1} = S@S (and i.e. S is square). Uses trunc-level."""
         return self.transform_by(lambda x: 1 / sqrt(x))
 
-    @lazy_property
+    @functools.cached_property
     def pinv(self):
         """Pseudo-inverse. Uses trunc-level."""
         return self.transform_by(lambda x: 1 / x)
 
-    @lazy_property
+    @functools.cached_property
     def inv(self):
         if self.M != self.rk:
             raise RuntimeError(
-                "Matrix is rank deficient, "
-                "and cannot be inverted. "
-                "Use .tinv() instead?"
+                "Matrix is rank deficient, and cannot be inverted. Use .tinv() instead?"
             )
         # Temporarily remove any truncation
         tmp = self.trunc
@@ -434,57 +417,29 @@ class CovMat:
     ##################################
     # __repr__
     ##################################
-    def __repr__(self):
-        s = "\n    M: " + str(self.M)
-        s += "\n kind: " + repr(self.kind)
-        s += "\ntrunc: " + str(self.trunc)
-
-        # Rank
-        s += "\n   rk: "
+    def _repr_fields(self):
+        fields = {"M": self.M, "kind": self.kind}
+        if self.trunc != 1.0:
+            fields["trunc"] = self.trunc
         if self.has_done_EVD():
-            s += str(self.rk)
+            fields["rk"] = self.rk
         else:
-            s += "<=" + str(self.Right.shape[0])
-
-        # Full (as affordable)
-        s += "\n full:"
+            fields["rk"] = f"<={self.Right.shape[0]}"
+        K = np.get_printoptions()["edgeitems"]
         if hasattr(self, "_C") or np.get_printoptions()["threshold"] > self.M**2:
-            # We can afford to compute full matrix
-            t = "\n" + str(self.full)
+            fields["full"] = np.round(self.full, 3)
         else:
-            # Only compute corners of full matrix
-            K = np.get_printoptions()["edgeitems"]
-            s += " (only computing/printing corners)"
             if hasattr(self, "_R"):
-                U = self.Left[:K, :]  # Upper
-                L = self.Left[-K:, :]  # Lower
+                U, L = self.Left[:K, :], self.Left[-K:, :]
             else:
                 U = self.V[:K, :] * sqrt(self.ews)
                 L = self.V[-K:, :] * sqrt(self.ews)
-
-            # Corners
-            NW = U @ U.T
-            NE = U @ L.T
-            SW = L @ U.T
-            SE = L @ L.T
-
-            # Concatenate corners. Fill "cross" between them with nan's
-            N = np.hstack([NW, np.nan * ones((K, 1)), NE])
-            S = np.hstack([SW, np.nan * ones((K, 1)), SE])
-            All = np.vstack([N, np.nan * ones(2 * K + 1), S])
-
-            with np.printoptions(threshold=0):
-                t = "\n" + str(All)
-
-        # Indent all of cov array, and add to s
-        s += t.replace("\n", "\n   ")
-
-        # Add diag. Indent array +1 vs cov array
-        with np.printoptions(threshold=0):
-            s += "\n diag:\n   " + " " + str(self.diag)
-
-        s = "<" + type(self).__name__ + ">" + s.replace("\n", "\n  ")
-        return s
+            N = np.hstack([U @ U.T, np.nan * ones((K, 1)), U @ L.T])
+            S = np.hstack([L @ U.T, np.nan * ones((K, 1)), L @ L.T])
+            corners = np.vstack([N, np.nan * ones(2 * K + 1), S])
+            fields["full (corners)"] = np.round(corners, 3)
+        fields["diag"] = np.round(self.diag, 3)
+        return fields
 
 
 # Note: The diagonal representation is NOT memory-efficient.

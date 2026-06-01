@@ -1,0 +1,31 @@
+[env]
+UV_PROJECT_ENVIRONMENT = "{{env.HOME}}/.cache/venvs/{{config_root | split(pat='/') | last}}"
+
+# Test across different python versions (replacing `tox`!)
+# Example of using arguments: `mise run test:py312 -- -k my_test`
+[tasks.test]
+description = "Run tests with the default dev Python."
+run = "uv run pytest ${@:-tests}"
+
+[tasks."test:py312"]
+description = "Run tests with Python 3.12"
+run = "uv run --isolated --python 3.12 --extra test pytest ${@:-tests}"
+
+[tasks."test:py313"]
+description = "Run tests with Python 3.13"
+run = "uv run --isolated --python 3.13 --extra test pytest ${@:-tests}"
+
+[tasks."test:all"]
+description = "Run tests on all supported Python versions"
+depends = ["test:py312", "test:py313"]
+
+# This failed on my Mac (segfault after jupyter finished setting up!) but I'm guessing that's a Mac problem
+[tasks."test:colab"]
+description = "Test Colab compatibility using the official Colab Docker image (requires podman)"
+run = """
+podman run --rm --tls-verify=false \
+  -v $(pwd):/workspace:z -w /workspace \
+  -e MPLBACKEND=Agg -e DAPPER_LIVEPLOTTING=0 \
+  us-docker.pkg.dev/colab-images/public/runtime:latest \
+  bash -c "pip install -q . && python docs/examples/basic_1.py && python docs/examples/basic_2.py"
+"""

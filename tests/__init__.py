@@ -2,7 +2,7 @@
 
 To run tests run `pytest`. For ex., if you want to avoid the slow plotting tests, do:
 ```sh
-pytest --ignore=tests/test_plotting.py
+pytest --ignore=tests/test_plotting_interactive.py
 ```
 
 Assuming you have `pytest-xdist` installed, you can do

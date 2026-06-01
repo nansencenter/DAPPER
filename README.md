@@ -64,7 +64,7 @@ DAPPER demonstrates how to parallelise ensemble forecasts (e.g., the QG model),
 local analyses (e.g., the LETKF), and independent experiments (e.g., `docs/examples/basic_3.py`).
 It includes a battery of diagnostics and statistics,
 which all get averaged over subdomains (e.g., "ocean" and "land") and then in time.
-Confidence intervals are computed, including correction for auto-correlations,
+Confidence intervals are computed, taking into account auto-correlations,
 and used for uncertainty quantification, and significant digits printing.
 Several diagnostics are included in the on-line "liveplotting" illustrated below,
 which may be paused for further interactive inspection.
@@ -86,56 +86,36 @@ Also see its [drawbacks](#similar-projects).
 
 ## Installation
 
-Successfully tested on Linux/Mac/Windows.
+Successfully tested on Linux/Mac/Windows. Also see: [developer guide](https://nansencenter.github.io/DAPPER/dev_guide).
 
-### Prerequisite: Python>=3.12
+### Prerequisite: Python ≥ 3.12 and a virtual environment
 
-If you're an expert, setup a python environment however you like.
-Otherwise:
-Install [Anaconda](https://www.anaconda.com/download), then
-open the [Anaconda terminal](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#starting-conda)
-and run the following commands:
+Can be installed from [python.org/downloads](https://www.python.org/downloads/)
+but [Miniconda](https://docs.conda.io/en/latest/miniconda.html)
+or [uv](https://docs.astral.sh/uv/) will give you more options.
 
-```sh
-conda create --yes --name dapper-env python=3.12
-conda activate dapper-env
-python --version
-```
+Either way, check your current python by [opening a terminal](https://www.google.com/search?q=open+terminal+on+windows),
+and typing `python --version`
 
-Ensure the printed version is as desired.
-*Keep using the same terminal for the commands below.*
+Create and activate (and keep using!) a virtual environment using your chosen tool.
 
 ### Install
 
-#### *Either*: Install for development (recommended)
-
-*Do you want the DAPPER code available to play around with?* Then
-
 - Download and unzip (or `git clone`) DAPPER.
-- Move the resulting folder wherever you like,  
-  and `cd` into it *(ensure you're in the folder with a `setup.py` file)*.
-- `pip install -e '.'`  
+- Move the resulting folder wherever you like.
+- In the terminal, navigate (`cd`) into that "DAPPER" folder and enter
+- `pip install -e .`
 
-#### *Or*: Install as library
+PS: If all you need is to use (but not modify and play around with) DAPPER as a library package,
+then all of the above can be replaced simply by `pip install dapper`.
 
-*Do you just want to run a script that requires DAPPER?* Then
+### Try out
 
-- If the script comes with a `requirements.txt` file that lists DAPPER, then do  
-  `pip install -r path/to/requirements.txt`.
-- If not, hopefully you know the version of DAPPER needed. Run  
-  `pip install dapper==1.6.0` to get version `1.6.0` (as an example).
+Assuming you are in the DAPPER dir, do
 
-#### *Finally*: Test the installation
-
-You should now be able to do run your script with
-`python path/to/script.py`.  
-For example, if you are in the DAPPER dir,
-
-    python docs/examples/basic_1.py
-
-**PS**: If you closed the terminal (or shut down your computer),
-you'll first need to run `conda activate dapper-env`
-
+```sh
+python docs/examples/basic_1.py
+```
 
 ## DA methods
 
@@ -224,6 +204,45 @@ along with their expected, average `rmse.a` score for that experiment.
 As mentioned [above](#da-methods), DAPPER reproduces literature results.
 You will also find results that were not reproduced by DAPPER.
 
+
+## Statistics
+
+Each experiment (`xp`) populates `xp.stats` with per-timestep timeseries diagnostics
+and `xp.avrgs` with time-averages and their confidence intervals.
+Most of these carry subscripts `.f`, `.a`, `.s`, `.i`
+corresponding to forecast, analysis, smoothed (smoothers only), and integrational statistics.
+Vector statistics (one value per state dimension) are also summarised spatially
+via `rms`, `m`, `ma`, `ms`, `gm`, and per `HMM.sectors` if defined.
+
+<!-- markdownlint-capture -->
+<!-- markdownlint-disable line-length -->
+| Statistic | Type | Description |
+|-----------|------|-------------|
+| `mu` | vector | Mean estimate (ensemble mean or Kalman/variational estimate) |
+| `spread` | vector | Spread (ensemble std dev or posterior std dev) |
+| `err` | vector | Error of mean estimate vs. truth (`mu − truth`) |
+| `gscore` | vector | Gaussian (log) score: `2·log(spread) + (err/spread)²` |
+| `crps` | vector | Continuous ranked probability score (proper scoring rule) |
+| `mad` | scalar | Mean absolute deviation of ensemble from its mean |
+| `skew` | scalar <sup>e</sup> | Skewness of the ensemble |
+| `kurt` | scalar <sup>e</sup> | Excess kurtosis (0 for Gaussians) |
+| `svals` | vector <sup>e,s</sup> | Singular values of the ensemble anomalies |
+| `umisf` | vector <sup>e,s</sup> | Error projected onto the leading ensemble directions |
+| `w` | vector <sup>p</sup> | Importance weights |
+| `rh` | vector <sup>e</sup> | Rank histogram (rank of truth among sorted ensemble members) |
+| `trHK` | scalar <sup>†</sup> | Trace of the obs-space gain matrix `HK` |
+| `infl` | scalar <sup>†</sup> | Inflation factor applied at this step |
+| `iters` | scalar <sup>†</sup> | Iteration count (iterative methods) |
+| `N_eff` | scalar <sup>p,†</sup> | Effective ensemble size `1 / Σwᵢ²` |
+| `wroot` | scalar <sup>p,†</sup> | Root for optimal weight tempering |
+| `resmpl` | scalar <sup>p,†</sup> | Resampling indicator/count |
+| `duration` | — | Wall-clock time (s) for the full `assimilate()` call |
+<!-- markdownlint-restore -->
+
+<sup>e</sup>: Ensemble methods only.
+<sup>s</sup>: Only computed when √(Nx·N) ≤ `rc.comps.max_spectral`.
+<sup>p</sup>: Particle filter (weighted ensemble) methods only.
+<sup>†</sup>: Analysis-only (no `.f` or `.i` subscript).
 
 ## Similar projects
 
