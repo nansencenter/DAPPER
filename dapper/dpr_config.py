@@ -1,6 +1,6 @@
 """Runtime configuration for DAPPER.
 
-Defaults are set below. Override at runtime::
+Defaults are set below. Override at runtime:
 
     import dapper
     dapper.rc.liveplotting = False

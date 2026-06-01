@@ -21,8 +21,9 @@ def _interaction_impossible():
             (
                 "Keyboard interaction (to skip/stop/pause the liveplotting)"
                 " does not work in the current python frontend."
-                " If you wish, you can use dpr_config.yaml to disable the"
-                " liveplotting altogether, which will silence this message."
+                " To disable liveplotting (and silence this message), set"
+                " `dapper.rc.liveplotting = False` or the env var"
+                " `DAPPER_LIVEPLOTTING=false`."
             ),
             stacklevel=2,
         )

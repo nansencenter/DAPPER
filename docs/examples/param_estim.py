@@ -106,7 +106,7 @@ LP = [
 # Labels for sectors of state vector.
 # DAPPER will compute diagnostic statistics for the full state vector,
 # but also for each sector of it (averaged in space according to the
-# methods specified in your .dpr_config.yaml:field_summaries key).
+# methods specified in your dpr.config.field_summaries key).
 # The name "sector" comes from its typical usage to distinguish
 # "ocean" and "land" parts of the state vector.
 # Here we use it to get individual statistics of the parameter and state.
