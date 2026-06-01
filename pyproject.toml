@@ -48,16 +48,7 @@ dependencies = [
 [project.optional-dependencies]
 Qt = ["PyQt5", "qtpy"]
 debug = ["line_profiler", "pre-commit", "ipython>=7.34", "ipdb"]
-test = [
-  "coverage>=5.1",
-  "pytest",
-  "pytest-cov",
-  "pytest-sugar",
-  "pytest-benchmark",
-  "pytest-clarity",
-  "pytest-xdist",
-  "pytest-timeout",
-]
+test = ["pytest", "pytest-cov", "pytest-timeout"]
 lint = ["ruff", "ty"]
 doc = [
   "mkdocs-material",
