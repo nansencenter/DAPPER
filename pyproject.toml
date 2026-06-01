@@ -44,6 +44,7 @@ dependencies = [
   "pathos~=0.3",
   "dill==0.3.8",          # NB: use same version on remote computing servers (due to serialisation)
   "threadpoolctl>=3.0.0",
+  "ipywidgets>=8.1.8",    # tqdm.auto needs this to be installed
 ]
 
 [project.optional-dependencies]

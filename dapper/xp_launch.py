@@ -17,12 +17,12 @@ import dill
 import numpy as np
 import tabulate as _tabulate
 from tabulate import tabulate
-from tqdm.auto import tqdm
 
 import dapper.stats
 import dapper.tools.progressbar as pb
 from dapper.tools.colors import stripe
 from dapper.tools.datafiles import create_run_dir
+from dapper.tools.progressbar import tqdm
 from dapper.tools.remote.uplink import submit_job_GCP
 from dapper.tools.repr_util import yaml_repr
 from dapper.tools.seeding import set_seed

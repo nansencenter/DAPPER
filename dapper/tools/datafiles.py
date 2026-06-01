@@ -6,10 +6,10 @@ from datetime import datetime
 from pathlib import Path
 
 import dill
-from tqdm.auto import tqdm
 
 import dapper.tools.remote.uplink as uplink
 from dapper.dpr_config import rc
+from dapper.tools.progressbar import tqdm
 
 XP_TIMESTAMP_TEMPLATE = "run_%Y-%m-%d__%H-%M-%S"
 
