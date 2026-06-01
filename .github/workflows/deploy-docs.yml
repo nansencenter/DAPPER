@@ -21,8 +21,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
-      - run: uv pip install -e '.[doc]' --system
-      - run: mkdocs build -f properdocs.yml
+      - run: uv sync --extra doc
+      - run: uv run mkdocs build -f properdocs.yml
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site/
