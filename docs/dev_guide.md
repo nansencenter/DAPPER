@@ -259,47 +259,32 @@ creates an artefact that is deployed to Github Pages.
 
 ## Publishing a release on PyPI
 
-`cd DAPPER`
-
-Bump version number in `dapper/__init__.py`
-
-Tag
+Bump version number in `dapper/__init__.py`, commit, then tag and push:
 
 ```sh
-git tag -a v$(python -c "import dapper; print(dapper.__version__)") -m 'My description'
+git tag -a v$(python -c "import dapper; print(dapper.__version__)") -m 'New version'
 git push origin --tags
 ```
 
-Build
+Pushing a `v*` tag triggers the `publish.yml` CI workflow,
+which builds and uploads to PyPI automatically via [Trusted Publishing](#trusted-publishing).
+No API tokens are stored in GitHub.
+Instead, PyPI issues a short-lived token to the workflow.
+
+### Manual upload
+
+To publish manually (e.g. to Test.PyPI):
 
 ```sh
-python -m build
-```
-
-Upload to PyPI
-
-```sh
-uv publish dist/*
-```
-
-Upload to Test.PyPI
-
-```sh
+uv build
 uv publish --publish-url https://test.pypi.org/legacy/ dist/*
 ```
 
 Credentials are read from `~/.pypirc` or passed via `--token`.
 
-Upload to `Test.PyPI`
-
-```sh
-git checkout dev1
-```
-
 ### Test installation
 
-
-Install from `Test.PyPI`
+Install from `Test.PyPI` using (regular) `pip`
 
 ```sh
 pip install --extra-index-url https://test.pypi.org/simple/ dapper
@@ -322,4 +307,3 @@ Install from local (makes installation accessible from everywhere)
 ```sh
 pip install -e .
 ```
-

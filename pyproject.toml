@@ -62,12 +62,9 @@ doc = [
   "mkdocs-glightbox",
   "mkdocs-jupyter",
   "pybtex",
+  "jupytext",
 ]
-build = [
-  "build",
-  "jupytext<=1.15", # menu item disappeared for 1.16
-]
-dev = ["dapper[debug,test,lint,build,doc]"]
+dev = ["dapper[debug,test,lint,doc]"]
 
 [project.urls]
 Documentation = "https://nansencenter.github.io/DAPPER/"

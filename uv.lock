@@ -155,20 +155,6 @@ css = [
 ]
 
 [[package]]
-name = "build"
-version = "1.5.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "colorama", marker = "os_name == 'nt'" },
-    { name = "packaging" },
-    { name = "pyproject-hooks" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/78/e0/df5e171f685f82f37b12e1f208064e24244911079d7b767447d1af7e0d70/build-1.5.0.tar.gz", hash = "sha256:302c22c3ba2a0fd5f3911918651341ebb3896176cbdec15bd421f80b1afc7647", size = 89796 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/0d/fe/6bea5c9162869c5beba5d9c8abbed835ec85bf1ec1fba05a3822325c45f3/build-1.5.0-py3-none-any.whl", hash = "sha256:13f3eecb844759ab66efec90ca17639bbf14dc06cb2fdf37a9010322d9c50a6f", size = 26018 },
-]
-
-[[package]]
 name = "certifi"
 version = "2026.5.20"
 source = { registry = "https://pypi.org/simple" }
@@ -526,10 +512,6 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
-build = [
-    { name = "build" },
-    { name = "jupytext" },
-]
 debug = [
     { name = "ipdb" },
     { name = "ipython" },
@@ -537,7 +519,6 @@ debug = [
     { name = "pre-commit" },
 ]
 dev = [
-    { name = "build" },
     { name = "ipdb" },
     { name = "ipython" },
     { name = "jupytext" },
@@ -559,6 +540,7 @@ dev = [
     { name = "ty" },
 ]
 doc = [
+    { name = "jupytext" },
     { name = "mkdocs-gen-files" },
     { name = "mkdocs-glightbox" },
     { name = "mkdocs-jupyter" },
@@ -585,8 +567,6 @@ test = [
 
 [package.metadata]
 requires-dist = [
-    { name = "build", marker = "extra == 'build'" },
-    { name = "build", marker = "extra == 'dev'" },
     { name = "colorama", specifier = "~=0.4.1" },
     { name = "dill", specifier = "==0.3.8" },
     { name = "ipdb", marker = "extra == 'debug'" },
@@ -594,8 +574,8 @@ requires-dist = [
     { name = "ipython", marker = "extra == 'debug'", specifier = ">=7.34" },
     { name = "ipython", marker = "extra == 'dev'", specifier = ">=7.34" },
     { name = "ipywidgets", specifier = ">=8.1.8" },
-    { name = "jupytext", marker = "extra == 'build'", specifier = "<=1.15" },
-    { name = "jupytext", marker = "extra == 'dev'", specifier = "<=1.15" },
+    { name = "jupytext", marker = "extra == 'dev'" },
+    { name = "jupytext", marker = "extra == 'doc'" },
     { name = "line-profiler", marker = "extra == 'debug'" },
     { name = "line-profiler", marker = "extra == 'dev'" },
     { name = "matplotlib", specifier = ">=3.10" },
@@ -642,7 +622,7 @@ requires-dist = [
     { name = "ty", marker = "extra == 'dev'" },
     { name = "ty", marker = "extra == 'lint'" },
 ]
-provides-extras = ["build", "debug", "dev", "doc", "lint", "qt", "test"]
+provides-extras = ["debug", "dev", "doc", "lint", "qt", "test"]
 
 [[package]]
 name = "debugpy"
@@ -1128,18 +1108,18 @@ wheels = [
 
 [[package]]
 name = "jupytext"
-version = "1.15.0"
+version = "1.19.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "markdown-it-py" },
     { name = "mdit-py-plugins" },
     { name = "nbformat" },
+    { name = "packaging" },
     { name = "pyyaml" },
-    { name = "toml" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/2e/eb/867502060a5931dea70a6df6e7c87384ecd6258a38c47d4c39ad0ad8621a/jupytext-1.15.0.tar.gz", hash = "sha256:290c0a04b0a0a341d7ca87a2992cf407eb83898873baddf0bc48039a5e301ff8", size = 831956 }
+sdist = { url = "https://files.pythonhosted.org/packages/ef/2d/15624c3d9440d85a280ff13d2d23afd989802f25470ac59932f4fef6f0c6/jupytext-1.19.3.tar.gz", hash = "sha256:713c3ed4441afe0f31474d28ea2e6b61a268c04c40fd78e5ccfd7f7ac9e9f766", size = 4305350 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/31/a6/7dd0d2da784ce724bd7410f45259279ebc43f34828c423f46028c3cf3ed1/jupytext-1.15.0-py3-none-any.whl", hash = "sha256:7bb7cf4c0a91f5b1591f7558fa3a6494ac6ccf9810d1aa58565d4d9a2675a4a1", size = 299443 },
+    { url = "https://files.pythonhosted.org/packages/aa/ec/d9be3bd1db141e76b2f525c265f70e66edd30a51a3307d8edf0ef1909c54/jupytext-1.19.3-py3-none-any.whl", hash = "sha256:acf75492f80895ad8e664fd8db1708b617008dd0e71c341a1abc3d0d07310ed0", size = 170579 },
 ]
 
 [[package]]
@@ -2204,15 +2184,6 @@ wheels = [
 ]
 
 [[package]]
-name = "pyproject-hooks"
-version = "1.2.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/e7/82/28175b2414effca1cdac8dc99f76d660e7a4fb0ceefa4b4ab8f5f6742925/pyproject_hooks-1.2.0.tar.gz", hash = "sha256:1e859bd5c40fae9448642dd871adf459e5e2084186e8d2c2a79a824c970da1f8", size = 19228 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/bd/24/12818598c362d7f300f18e74db45963dbcb85150324092410c8b49405e42/pyproject_hooks-1.2.0-py3-none-any.whl", hash = "sha256:9e5c6bfa8dcc30091c74b0cf803c81fdd29d94f01992a7707bc97babb1141913", size = 10216 },
-]
-
-[[package]]
 name = "pyqt5"
 version = "5.15.11"
 source = { registry = "https://pypi.org/simple" }
@@ -2834,15 +2805,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/7a/fd/7a5ee21fd08ff70d3d33a5781c255cbe779659bd03278feb98b19ee550f4/tinycss2-1.4.0.tar.gz", hash = "sha256:10c0972f6fc0fbee87c3edb76549357415e94548c1ae10ebccdea16fb404a9b7", size = 87085 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e6/34/ebdc18bae6aa14fbee1a08b63c015c72b64868ff7dae68808ab500c492e2/tinycss2-1.4.0-py3-none-any.whl", hash = "sha256:3a49cf47b7675da0b15d0c6e1df8df4ebd96e9394bb905a5775adb0d884c5289", size = 26610 },
-]
-
-[[package]]
-name = "toml"
-version = "0.10.2"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/be/ba/1f744cdc819428fc6b5084ec34d9b30660f6f9daaf70eead706e3203ec3c/toml-0.10.2.tar.gz", hash = "sha256:b3bda1d108d5dd99f4a20d24d9c348e91c4db7ab1b749200bded2f839ccbe68f", size = 22253 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/44/6f/7120676b6d73228c96e17f1f794d8ab046fc910d781c8d151120c3f1569e/toml-0.10.2-py2.py3-none-any.whl", hash = "sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b", size = 16588 },
 ]
 
 [[package]]
