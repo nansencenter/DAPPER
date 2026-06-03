@@ -94,7 +94,7 @@ Can be installed from [python.org/downloads](https://www.python.org/downloads/)
 but [Miniconda](https://docs.conda.io/en/latest/miniconda.html)
 or [uv](https://docs.astral.sh/uv/) will give you more options.
 
-Either way, check your current python by [opening a terminal](https://www.google.com/search?q=open+terminal+on+windows),
+Either way, subsequently check your current python by [opening a terminal](https://www.google.com/search?q=open+terminal+on+windows),
 and typing `python --version`
 
 Create and activate (and keep using!) a virtual environment using your chosen tool.
@@ -107,9 +107,9 @@ Create and activate (and keep using!) a virtual environment using your chosen to
 - `pip install -e .`
 
 PS: If all you need is to use (but not modify and play around with) DAPPER as a library package,
-then all of the above can be replaced simply by `pip install dapper`.
+then all of the above can be replaced simply by `pip install dapper`
 
-### Try out
+### Try it out
 
 Assuming you are in the DAPPER dir, do
 
