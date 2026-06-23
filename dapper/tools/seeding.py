@@ -24,7 +24,6 @@ def set_seed(sd="clock"):
         MAXSEED = 2**32
         sd = microsec % MAXSEED
 
-    assert isinstance(sd, int)
     rng.bit_generator.state = _rnd.default_rng(sd).bit_generator.state
 
     return rng
