@@ -3,10 +3,11 @@
 # Launch many experiments (to explore a bunch of control variables),
 # and plot the compiled results as in a variety of ways.
 #
-# As an example, we will reproduce Figure 6.6 from reference [1].
+# As an example, we will reproduce Figure 6.6 from reference [1],
+# or Figure 5.7 of https://cerea.enpc.fr/HomePages/bocquet/teaching/assim-mb-en-0.52.pdf
 # The figure reveals the (relative) importance (in the EnKF) of
-# localization and inflation. The output of this script is shown here:
-# https://github.com/nansencenter/DAPPER#highlights
+# localization and inflation. The results are plotted using basic_3b.py
+# and can be seen here https://github.com/nansencenter/DAPPER#highlights
 #
 # The code also demonstrates:
 # - Parallelization (accross independent experiments) with mp=True/Google.

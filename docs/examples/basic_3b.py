@@ -22,9 +22,9 @@ xp_dict = dpr.xpSpace.from_list(xps)
 # #### Plot
 
 # Single out (highlight) particular settings, to add as a line to the plot.
-#
-# Note: Must use `infl=1.01` (not 1) to reproduce "no infl" scores in Ref[1],
-# as well as rot=True (better scores can be obtained without rot).
+# NOTE: using `infl=1.01` tells a similar story (to infl=1),
+# but does not requires such long time series (or many seeds)
+# in order to produce a smooth (statistically converged) plot of results.
 
 highlight = xp_dict.label_xSection
 highlight("NO-infl", ("infl"), da_method="LETKF", infl=1.01, rot=True)
