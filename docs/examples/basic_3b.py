@@ -33,7 +33,7 @@ highlight("NO-infl/loc", ("infl"), da_method="EnKF", infl=1.01, rot=True)
 # Choose attribute roles for plot
 
 tunable = {"loc_rad", "infl", "xB", "rot"}
-dims = dict(outer="F", inner="N", mean="seed", optim=tunable)
+dims = dict(outer="Force", inner="N", mean="seed", optim=tunable)
 # xp_dict.print("rmse.a", dims, subcols=False)  # as in basic_3a.py
 
 
