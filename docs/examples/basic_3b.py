@@ -27,8 +27,8 @@ xp_dict = dpr.xpSpace.from_list(xps)
 # in order to produce a smooth (statistically converged) plot of results.
 
 highlight = xp_dict.label_xSection
-highlight("NO-infl", ("infl"), da_method="LETKF", infl=1.01, rot=True)
-highlight("NO-infl/loc", ("infl"), da_method="EnKF", infl=1.01, rot=True)
+highlight("NO-infl", ("infl"), da_method="LETKF", infl=1.01)
+highlight("NO-infl/loc", ("infl"), da_method="EnKF", infl=1.01)
 
 # Choose attribute roles for plot
 

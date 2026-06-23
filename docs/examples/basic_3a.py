@@ -13,15 +13,10 @@
 # - Parallelization (accross independent experiments) with mp=True/Google.
 # - Data management with xpSpace: load, sub-select, print, plot.
 #
-# NB: unless you have access to the DAPPER cluster, you probably want to reduce
-# the number of experiments by shortening the list of `seed`
-# (and maybe those of some tuning parameters) and/or reducing `Ko`.
-#
 # [1]: Asch, Bocquet, Nodet:
 #      "Data Assimilation: Methods, Algorithms, and Applications",
 #      Figure 6.6. Alternatively, see figure 5.7 of
 #      http://cerea.enpc.fr/HomePages/bocquet/teaching/assim-mb-en.pdf .
-#
 
 # #### Imports
 
@@ -45,8 +40,8 @@ def setup(hmm, xp):
     return dpr.seed_and_simulate(hmm, xp)
 
 
-# This is shorter than ref. [1], but we also use repetitions (a seed list).
-HMM.tseq.Ko = 10**4
+# NB: This is shorter than ref. [1], but we also use repetitions (a seed list).
+HMM.tseq.Ko = 10**3
 
 # #### DA method configurations
 
@@ -59,23 +54,23 @@ params = dict(
     loc_rad=dpr.round2sigfig([a * b for b in [0.1, 1, 10] for a in [1, 2, 4, 7]], 2),
 )
 # Combines all the params suitable for a method. See doc for dpr.combinator.
-for_params = dpr.combinator(params, seed=3000 + np.arange(10), Force=[8, 10])
+for_params = dpr.combinator(params, seed=3000 + np.arange(4), Force=[8, 10])
 
 xps = dpr.xpList()
 xps += for_params(da.Climatology)
 xps += for_params(da.OptInterp)
 xps += for_params(da.Var3D, B="eye")
-xps += for_params(da.EnKF, upd_a="PertObs")
+# xps += for_params(da.EnKF, upd_a="PertObs") # not part of the original figure
 xps += for_params(da.EnKF, upd_a="Sqrt")
 xps += for_params(da.EnKF_N, infl=1.0)
-xps += for_params(da.LETKF)
+# xps += for_params(da.LETKF) # uncomment if you're patient!
 
 
 # #### Run experiments
 
 # Paralellize/distribute experiments across CPUs.
-mp = False  # 1 CPU only
-# mp = 7         # 7 CPUs (requires that you pip-installed DAPPER with [MP])
+# mp = False  # 1 CPU only
+mp = 7         # 7 CPUs
 # mp = True      # All CPUs
 # mp = "Google"  # Requires access to DAPPER cluster
 
