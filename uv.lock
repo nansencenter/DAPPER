@@ -595,7 +595,7 @@ requires-dist = [
     { name = "mkdocstrings", marker = "extra == 'doc'" },
     { name = "mkdocstrings-python", marker = "extra == 'dev'" },
     { name = "mkdocstrings-python", marker = "extra == 'doc'" },
-    { name = "mpl-tools", specifier = "==0.4.1" },
+    { name = "mpl-tools", specifier = "==0.4.2" },
     { name = "notebook", specifier = "~=6.5" },
     { name = "numpy", specifier = "~=2.0" },
     { name = "pathos", specifier = "~=0.3" },
@@ -1633,14 +1633,14 @@ wheels = [
 
 [[package]]
 name = "mpl-tools"
-version = "0.4.1"
+version = "0.4.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "matplotlib" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/5e/9b/42f2d58dc4b960624ced175d58b88190f0de1c21c48818dd97e4570eb7e1/mpl_tools-0.4.1.tar.gz", hash = "sha256:de49da3ff39fcd226e883dd319198495ec6cd81198b2c619760163217bc3a858", size = 17480 }
+sdist = { url = "https://files.pythonhosted.org/packages/db/e6/f9c92d9ae1312b34d75574f99f1a77c6fc24acf3f1c4b646e0116b39b45d/mpl_tools-0.4.2.tar.gz", hash = "sha256:e2a1fdb78653731ce66dbfccb0eb970a039fe381074d5909801a52b74824046c", size = 16940 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a7/96/5bbe9fcc8fa7129fccf82623aeacabbe154fd9e41f64656724a7dd902fd3/mpl_tools-0.4.1-py3-none-any.whl", hash = "sha256:328dd4a136b4d71ae1872c622928b2de222bfc86b45688beac656ea62c309b30", size = 19033 },
+    { url = "https://files.pythonhosted.org/packages/58/24/34544c5257652bc0ed2c21890b3c7c51b99672283df1e3ab4f84bc695df8/mpl_tools-0.4.2-py3-none-any.whl", hash = "sha256:ebbeab746bbb7b8d6a17d3bfb49ff6551e1a63d0aa1316fc1a72a91bc0f2eed8", size = 19024 },
 ]
 
 [[package]]
