@@ -5,8 +5,8 @@ Defaults are set below. Override at runtime:
     import dapper
     dapper.rc.liveplotting = False
 
-Or use environment variables: `DAPPER_DATA_ROOT`, `DAPPER_LIVEPLOTTING`
-(these in particular are useful for remote jobs).
+Or use environment variables: `DAPPER_DATA_ROOT`, `DAPPER_LIVEPLOTTING`,
+`DAPPER_PROGBAR` (the latter two are useful for remote jobs).
 """
 
 import os
@@ -50,6 +50,7 @@ class RC:
     store_i: bool = False  # Store stats between analysis times?
     sigfig: int = 4  # Default significant figures
     liveplotting: bool = True  # Enable liveplotting?
+    progbar: bool = True  # Enable progress bars?
     place_figs: bool = False  # Place (certain) figures automatically (experimental)?
     comps: Comps = field(default_factory=Comps)
     dirs: DirPaths = field(default_factory=DirPaths)
@@ -66,6 +67,9 @@ _data_root: str | Path = os.environ.get("DAPPER_DATA_ROOT", "~")
 
 if (_liveplotting := os.environ.get("DAPPER_LIVEPLOTTING")) is not None:
     rc.liveplotting = _liveplotting.lower() not in ("no", "false", "0")
+
+if (_progbar := os.environ.get("DAPPER_PROGBAR")) is not None:
+    rc.progbar = _progbar.lower() not in ("no", "false", "0")
 
 ##################################
 # Setup dir paths

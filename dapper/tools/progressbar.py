@@ -60,7 +60,9 @@ def pdesc(desc):
 
 def progbar(iterable, desc=None, leave: bool = True, **kwargs):  # pyright: ignore[reportRedeclaration]
     """Prints a nice progress bar in the terminal"""
-    if disable_progbar:
+    from dapper.dpr_config import rc
+
+    if disable_progbar or not rc.progbar:
         return iterable
     else:
         desc = pdesc(desc)
