@@ -4,7 +4,8 @@ import numpy as np
 
 import dapper.mods as modelling
 from dapper.mods.Lorenz96 import step
-from dapper.mods.Lorenz96.bocquet2010 import tseq
+
+tseq = modelling.Chronology(0.05, dko=1, T=4**3, BurnIn=20)
 
 Nx = 40
 Dyn = modelling.Operator(M=Nx, model=step, noise=0)
@@ -12,7 +13,7 @@ Dyn = modelling.Operator(M=Nx, model=step, noise=0)
 X0 = modelling.GaussRV(M=Nx, C=0.001)
 
 jj = np.arange(0, Nx, 2)
-Obs = modelling.Operator(**modelling.partial_Id_Obs(Nx, jj), noise=1.5)
+Obs = modelling.Operator(**modelling.partial_Id_Obs(Nx, jj), noise=1.5**2)
 
 HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0)
 
@@ -20,15 +21,14 @@ HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0)
 # Suggested tuning
 ####################
 #                                                         # rmse.a
-# xps += EnKF_N(      N=24,      rot=True ,infl=1.01)     # 0.38
-# xps += iEnKS('Sqrt',N=19,Lag=2,rot=False,infl=1.04)     # 0.39
-# xps += iEnKS('Sqrt',N=19,Lag=2,rot=False,xN=1.5)        # 0.39
+# xps += EnKF_N(      N=24,      rot=True ,infl=1.01)     # 0.58
 
-# NB: Particle filter scores very sensitive to rare events => Need T>=2000.
-# xps += PartFilt(N=3000,NER=0.20,reg=1.2)                # 0.77
-# xps += PartFilt(N=5000,NER=0.10,reg=1.1)                # 0.72
-# xps += PartFilt(N=10000,NER=0.05,reg=0.8)               # 0.45
+# xps += iEnKS('Sqrt',N=19,Lag=2,rot=False,infl=1.04)     # 0.46
+# xps += iEnKS('Sqrt',N=19,Lag=2,rot=False,xN=1.5)        # 0.45
 
-# xps += PFxN(    N=100, xN=1000,NER=0.9,Qs=1.0)          # 0.87
-# xps += PFxN(    N=100, xN=1000,NER=0.3,Qs=0.9)          # 0.72 Diverges
-# xps += PFxN(    N=1000,xN=100, NER=0.9,Qs=0.6)          # 0.51
+# xps += PartFilt(N=3000,NER=0.20,reg=1.2)                # 1.01
+# xps += PartFilt(N=5000,NER=0.10,reg=1.1)                # 0.88
+# xps += PartFilt(N=10000,NER=0.05,reg=0.8)               # 0.57
+
+# xps += PFxN(    N=100, xN=1000,NER=0.9,Qs=1.0)          # 1.02
+# xps += PFxN(    N=1000,xN=100, NER=0.9,Qs=0.6)          # 0.62
