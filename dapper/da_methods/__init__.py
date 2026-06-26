@@ -86,17 +86,31 @@ class da_method:
         pb_name_hook = self.da_method if desc is None else desc  # noqa
         self.stats = Stats(self, HMM, xx, yy, **stat_kwargs)
         time0 = time.time()
-        with warnings.catch_warnings():
-            warnings.showwarning = _tqdm_showwarning
-            try:
-                self._assimilate(HMM, xx, yy)
-            except Exception as ERR:
-                if fail_gently:
+        if fail_gently == "collect":
+            with warnings.catch_warnings(record=True) as _caught:
+                warnings.simplefilter("always")
+                try:
+                    self._assimilate(HMM, xx, yy)
+                    self._caught_exception_str = None
+                except Exception as ERR:
                     self.crashed = True
-                    if fail_gently not in ["silent", "quiet"]:
-                        _print_cropped_traceback(ERR)
-                else:
-                    raise
+                    self._caught_exception_str = _format_exception_str(ERR)
+            self._caught_warnings = [
+                warnings.formatwarning(w.message, w.category, w.filename, w.lineno)
+                for w in _caught
+            ]
+        else:
+            with warnings.catch_warnings():
+                warnings.showwarning = _tqdm_showwarning
+                try:
+                    self._assimilate(HMM, xx, yy)
+                except Exception as ERR:
+                    if fail_gently:
+                        self.crashed = True
+                        if fail_gently not in ["silent", "quiet"]:
+                            _print_cropped_traceback(ERR)
+                    else:
+                        raise
         self.stats.register("duration", time.time() - time0)
 
     def __init_subclass__(cls, **kwargs: object) -> None:
@@ -122,39 +136,37 @@ def _tqdm_showwarning(message, category, filename, lineno, file=None, source=Non
     tqdm.write(msg, file=sys.stderr, end="")
 
 
-def _print_cropped_traceback(ERR):
+def _format_exception_str(ERR):
+    """Format ERR with a cropped traceback, returning a string."""
     import inspect
-    import sys
     import traceback
 
-    # A more "standard" (robust) way:
-    # https://stackoverflow.com/a/32999522
-    def crop_traceback(ERR):
-        msg = "Traceback (most recent call last):\n"
-        try:
-            # If in IPython, use its coloring functionality
-            __IPYTHON__  # type: ignore # noqa: B018
-        except (NameError, ImportError):
-            msg += "".join(traceback.format_tb(ERR.__traceback__))
-        else:
-            from IPython.core.debugger import Pdb
+    msg = "Traceback (most recent call last):\n"
+    try:
+        __IPYTHON__  # type: ignore # noqa: B018
+    except (NameError, ImportError):
+        msg += "".join(traceback.format_tb(ERR.__traceback__))
+    else:
+        from IPython.core.debugger import Pdb
 
-            pdb_instance = Pdb()
-            pdb_instance.curframe = inspect.currentframe()
+        pdb_instance = Pdb()
+        pdb_instance.curframe = inspect.currentframe()
 
-            import dapper.da_methods
+        import dapper.da_methods
 
-            keep = False
-            for frame in traceback.walk_tb(ERR.__traceback__):
-                if keep:
-                    msg += pdb_instance.format_stack_entry(frame)
-                elif frame[0].f_code.co_filename == dapper.da_methods.__file__:
-                    keep = True
-                    msg += "   ⋮ [cropped] \n"
+        keep = False
+        for frame in traceback.walk_tb(ERR.__traceback__):
+            if keep:
+                msg += pdb_instance.format_stack_entry(frame)
+            elif frame[0].f_code.co_filename == dapper.da_methods.__file__:
+                keep = True
+                msg += "   ⋮ [cropped] \n"
 
-        return msg
+    return msg + "\nError message: " + str(ERR)
 
-    msg = crop_traceback(ERR) + "\nError message: " + str(ERR)
+
+def _print_cropped_traceback(ERR):
+    msg = _format_exception_str(ERR)
     msg += (
         "\n\nResuming execution."
         "\nIf instead you wish to raise the exceptions as usual,"

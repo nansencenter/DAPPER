@@ -518,10 +518,22 @@ class xpList(list):
 
         # Local multiprocessing
         elif mp["server"].lower() == "local":  # ty: ignore[unresolved-attribute]
+            # When fail_gently is truthy, use "collect" mode so each worker
+            # captures its warnings/exceptions and returns them for deferred
+            # printing after the batch finishes (avoids interleaved stderr).
+            collect_issues = bool(kwargs.get("fail_gently"))
+            mp_kwargs = (
+                {**kwargs, "fail_gently": "collect"} if collect_issues else kwargs
+            )
 
             def run_with_kwargs(arg):
                 xp, ixp = arg
-                run_experiment(xp, None, xpi_dir(ixp), **kwargs)
+                run_experiment(xp, None, xpi_dir(ixp), **mp_kwargs)
+                return (
+                    ixp,
+                    getattr(xp, "_caught_warnings", []),
+                    getattr(xp, "_caught_exception_str", None),
+                )
 
             args = zip(self, range(len(self)))
 
@@ -531,7 +543,7 @@ class xpList(list):
             from dapper.tools.multiproc import Pool  # will fail on GCP
 
             with Pool(NPROC) as pool:
-                list(
+                results = list(
                     tqdm(
                         pool.imap(run_with_kwargs, args),  # type: ignore[attr-defined]
                         total=len(self),
@@ -541,6 +553,30 @@ class xpList(list):
                 )
             pb.disable_progbar = False
             pb.disable_user_interaction = False
+
+            if collect_issues:
+                names = self.gen_names()
+                had_exception = False
+                for ixp, caught_warnings, caught_exception_str in results:
+                    if caught_warnings or caught_exception_str:
+                        print(
+                            f"\n{'=' * 60}\nIssues for xp[{ixp}]: "
+                            f"{names[ixp]}\n{'=' * 60}",
+                            file=sys.stderr,
+                        )
+                        for w in caught_warnings:
+                            print(w, file=sys.stderr, end="")
+                        if caught_exception_str:
+                            had_exception = True
+                            print(caught_exception_str, file=sys.stderr)
+                if had_exception:
+                    print(
+                        "\nResuming execution."
+                        "\nTo raise exceptions instead"
+                        " (halts execution, enables post-mortem debug),"
+                        "\nuse `fail_gently=False`",
+                        file=sys.stderr,
+                    )
 
         # Google cloud platform, multiprocessing
         elif mp["server"] == "GCP":
