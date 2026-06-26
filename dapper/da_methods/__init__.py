@@ -3,7 +3,9 @@
 --8<-- "dapper/da_methods/README.md"
 """
 
+import sys
 import time
+import warnings
 from dataclasses import dataclass, field
 from typing import dataclass_transform
 
@@ -84,15 +86,17 @@ class da_method:
         pb_name_hook = self.da_method if desc is None else desc  # noqa
         self.stats = Stats(self, HMM, xx, yy, **stat_kwargs)
         time0 = time.time()
-        try:
-            self._assimilate(HMM, xx, yy)
-        except Exception as ERR:
-            if fail_gently:
-                self.crashed = True
-                if fail_gently not in ["silent", "quiet"]:
-                    _print_cropped_traceback(ERR)
-            else:
-                raise
+        with warnings.catch_warnings():
+            warnings.showwarning = _tqdm_showwarning
+            try:
+                self._assimilate(HMM, xx, yy)
+            except Exception as ERR:
+                if fail_gently:
+                    self.crashed = True
+                    if fail_gently not in ["silent", "quiet"]:
+                        _print_cropped_traceback(ERR)
+                else:
+                    raise
         self.stats.register("duration", time.time() - time0)
 
     def __init_subclass__(cls, **kwargs: object) -> None:
@@ -107,6 +111,15 @@ class da_method:
         cls._assimilate = cls.__dict__["assimilate"]
         del cls.assimilate  # inherit da_method.assimilate (the wrapper) via MRO
         cls.da_method = cls.__name__
+
+
+def _tqdm_showwarning(message, category, filename, lineno, file=None, source=None):
+    """Route warnings through tqdm so they don't interleave with progress bars."""
+    # NOTE: as for Exceptions (`fail_gently`), this has no effect if multiprocessing
+    from tqdm.auto import tqdm
+
+    msg = warnings.formatwarning(message, category, filename, lineno)
+    tqdm.write(msg, file=sys.stderr, end="")
 
 
 def _print_cropped_traceback(ERR):
@@ -134,10 +147,7 @@ def _print_cropped_traceback(ERR):
             keep = False
             for frame in traceback.walk_tb(ERR.__traceback__):
                 if keep:
-                    msg += pdb_instance.format_stack_entry(
-                        frame,
-                        context=3,  # ty: ignore[unknown-argument]
-                    )
+                    msg += pdb_instance.format_stack_entry(frame)
                 elif frame[0].f_code.co_filename == dapper.da_methods.__file__:
                     keep = True
                     msg += "   ⋮ [cropped] \n"

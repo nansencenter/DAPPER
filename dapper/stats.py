@@ -442,10 +442,11 @@ class Stats(series.StatPrint):
                 now.umisf = UT @ now.err
             else:
                 P = (A.T * w) @ A
-                s2, U = sla.eigh(P)
-                s2 *= ub
-                now.svals = np.sqrt(s2.clip(0))[::-1]
-                now.umisf = U.T[::-1] @ now.err
+                if np.all(np.isfinite(P)):
+                    s2, U = sla.eigh(P)
+                    s2 *= ub
+                    now.svals = np.sqrt(s2.clip(0))[::-1]
+                    now.umisf = U.T[::-1] @ now.err
 
             # For each state dim [i], compute rank of truth (x) among the ensemble (E)
             E_x = np.sort(np.vstack((E, x)), axis=0, kind="heapsort")
