@@ -345,8 +345,8 @@ class Var4D(da_method, var_method):
                     # Observe.
                     Obs = HMM.Obs(ko)
                     Rm12 = Obs.noise.C.sym_sqrt_inv
-                    Y = Obs(ko).linear(x) @ X
-                    xo = Obs(ko)(x)
+                    Y = Obs.linear(x) @ X
+                    xo = Obs(x)
 
                     # Analysis prep.
                     y = yy[ko]  # Get current obs
