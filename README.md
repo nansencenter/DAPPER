@@ -166,6 +166,7 @@ and interpretability of experiment results.
 | Model                | Lin | TLM`**` | PDE?  | Phys.dim. | State len | Lyap≥0 | Implementer         |
 |----------------------|-----|-------|-------|-----------|-----------|--------|---------------------|
 | Id                   | Yes | Yes   | No    | N/A       | `*`         | 0      | Raanes              |
+| Linear AR(1) (AR)    | Yes | Yes   | No    | 0d        | 4 `*`       | 0      | Raanes              |
 | Linear Advect. (LA)  | Yes | Yes   | Yes   | 1d        | 1000 `*`    | 51     | Evensen/Raanes      |
 | DoublePendulum       | No  | Yes   | No    | 0d        | 4         | 2      | Matplotlib/Raanes   |
 | Ikeda                | No  | Yes   | No    | 0d        | 2         | 1      | Raanes              |
