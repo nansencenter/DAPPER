@@ -59,14 +59,28 @@ def find_latest_run(root: Path):
 
 
 def load_HMM(save_as):
-    """Load HMM from `xp.com` from given dir."""
+    """Load HMM from `xp.com` from given dir.
+
+    Warnings
+    --------
+    Uses `dill` (i.e. pickle), so loading files from an untrusted source
+    can execute arbitrary code. Only load results produced by yourself
+    or by someone you trust.
+    """
     save_as = Path(save_as).expanduser()
     HMM = dill.load(open(save_as / "xp.com", "rb"))["HMM"]
     return HMM
 
 
 def load_xps(save_as):
-    """Load `xps` (as a `list`) from given dir."""
+    """Load `xps` (as a `list`) from given dir.
+
+    Warnings
+    --------
+    Uses `dill` (i.e. pickle), so loading files from an untrusted source
+    can execute arbitrary code. Only load results produced by yourself
+    or by someone you trust.
+    """
     save_as = Path(save_as).expanduser()
     files = [d / "xp" for d in uplink.list_job_dirs(save_as)]
     if not files:
