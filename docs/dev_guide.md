@@ -81,8 +81,9 @@ uv lock --upgrade                 # upgrade everything
 
 !!! note
 
-    For `dill` specifically: also upgrade the version on any remote computing servers,
-    and check whether existing serialised test data needs to be re-saved.
+    For `dill` specifically: check that the serialised test data (`tests/data`)
+    still loads (`tests/test_data.py`), and re-save it if not.
+    If using remote computing servers (`uplink`), they need the same `dill` version.
 
 The workflow `.github/workflows/colab-compat.yml` tests (`basic_1`, `basic_2`) against Google's
 [public Colab Docker image](https://us-docker.pkg.dev/colab-images/public/runtime).
