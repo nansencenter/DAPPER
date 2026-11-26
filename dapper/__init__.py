@@ -4,7 +4,7 @@
 --8<-- "dapper/README.md"
 """
 
-__version__ = "1.8.1"
+__version__ = "1.9.0"
 
 # A parsimonious list of imports used in the examples
 from .dpr_config import rc
