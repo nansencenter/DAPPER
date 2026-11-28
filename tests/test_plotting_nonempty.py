@@ -5,6 +5,8 @@ not just that it doesn't crash. The old test_plotting_interactive.py
 is preserved for manual visual testing with an interactive backend.
 """
 
+from types import SimpleNamespace
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
@@ -15,6 +17,7 @@ plt.switch_backend("agg")  # headless; must come before dapper import
 
 import dapper as dpr
 import dapper.da_methods as da
+from dapper.tools.liveplotting import correlations
 
 # dpr_config disables liveplotting at import time when the backend is
 # non-interactive. Re-enable it: Agg renders fine for headless testing.
@@ -165,3 +168,45 @@ def test_L96_replay(L96_HMM):
     before = set(plt.get_fignums())
     xps[-1].stats.replay("all", speed=np.inf)
     _check_figures(before)
+
+
+@pytest.mark.parametrize("half", [True, False])
+def test_correlation_panels(half, monkeypatch):
+    key = (0, 0, "a")
+    stats = SimpleNamespace(mu={key: np.zeros(3)})
+    ensemble = np.array([[0, 1, 0], [1, 0, 0], [0, 2, 1], [0, 0, 3]])
+    monkeypatch.setattr(correlations, "half", half)
+    plot = correlations("Correlations", stats, key, True, ensemble, None)
+    fig = plot.ax.figure
+
+    for use_ensemble in (True, False):
+        if use_ensemble:
+            plot(key, ensemble, None)
+        else:
+            fig.set_size_inches(9, 4)
+            ensemble = ensemble * [1, -1, 1]
+            plot(key, None, np.cov(ensemble, rowvar=False))
+        fig.canvas.draw()
+
+        expected = np.corrcoef(ensemble, rowvar=False)
+        image = plot.im.get_array()
+        mask = np.triu(np.ones_like(expected, dtype=bool), k=1) & half
+        np.testing.assert_array_equal(np.ma.getmaskarray(image), mask)
+        np.testing.assert_allclose(image.compressed(), expected[~mask])
+        off_diag = expected[np.triu_indices(3, k=1)]
+        signed = off_diag.mean()
+        absolute = abs(off_diag).mean()
+        np.testing.assert_allclose(plot.line_AC.get_ydata(), [1, signed, signed])
+        np.testing.assert_allclose(plot.line_AA.get_ydata(), [1, absolute, absolute])
+
+        assert plot.ax.get_shared_x_axes().joined(plot.ax, plot.ax2)
+        assert not any(
+            tick.label1.get_visible() or tick.label2.get_visible()
+            for tick in plot.ax.xaxis.get_major_ticks()
+        )
+        assert any(t.get_text() for t in plot.ax2.get_xticklabels())
+        points = [[0, 0], [2, 0]]
+        np.testing.assert_allclose(
+            plot.ax.transData.transform(points)[:, 0],
+            plot.ax2.transData.transform(points)[:, 0],
+        )
