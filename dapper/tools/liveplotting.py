@@ -25,6 +25,7 @@ import numpy as np
 import scipy.linalg as sla
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MaxNLocator
+from matplotlib.transforms import Bbox
 from mpl_toolkits.mplot3d.art3d import juggle_axes
 from mpl_tools import is_notebook_or_qt, place, place_ax
 from numpy import arange, nan, ones
@@ -572,7 +573,7 @@ class correlations:
     half = True  # Whether to show half/full (symmetric) corr matrix.
 
     def __init__(self, fignum, stats, key0, plot_i, E, P, **kwargs):
-        GS = {"height_ratios": [4, 1], "hspace": 0.09, "top": 0.95}
+        GS = {"height_ratios": [4, 1], "hspace": 0.2, "top": 0.95}
         fig, (ax, ax2) = place.freshfig(fignum, figsize=(5, 6), nrows=2, gridspec_kw=GS)
 
         if E is None and np.isnan(P.diag if isinstance(P, CovMat) else P).all():
@@ -587,7 +588,7 @@ class correlations:
             C = np.eye(Nx)
             # Mask half
             mask = np.zeros_like(C, dtype=bool)
-            mask[np.tril_indices_from(mask)] = True
+            mask[np.triu_indices_from(mask, k=1)] = True
             cmap = plt.get_cmap("RdBu_r")
             VM = 1.0  # abs(np.percentile(C,[1,99])).max()
             im = ax.imshow(C, cmap=cmap, vmin=-VM, vmax=VM)
@@ -597,22 +598,26 @@ class correlations:
             plt.box(False)
             ax.set_facecolor("w")
             ax.grid(False)
-            ax.set_title("State correlation matrix:", y=1.07)
-            ax.xaxis.tick_top()
+            ax.set_title("State correlation matrix:")
+            ax.tick_params(axis="x", labelbottom=False)
+            ax2.sharex(ax)
 
-            # ax2 = inset_axes(ax,width="30%",height="60%",loc=3)
             (line_AC,) = ax2.plot(arange(Nx), ones(Nx), label="Correlation")
             (line_AA,) = ax2.plot(arange(Nx), ones(Nx), label="Abs. corr.")
             _ = ax2.hlines(0, 0, Nx - 1, "k", "dotted", lw=1)
-            # Align ax2 with ax
-            bb_AC = ax2.get_position()
-            bb_C = ax.get_position()
-            ax2.set_position([bb_C.x0, bb_AC.y0, bb_C.width, bb_AC.height])
+
+            # The square image changes width when the figure is resized.
+            def align_with_matrix(panel, renderer):
+                matrix = ax.get_position()
+                row = panel.get_position(original=True)
+                return Bbox.from_extents(matrix.x0, row.y0, matrix.x1, row.y1)
+
+            ax2.set_axes_locator(align_with_matrix)
             # Tune plot
             ax2.set_title("Auto-correlation:")
             ax2.set_ylabel("Mean value")
             ax2.set_xlabel("Distance (in state indices)")
-            ax2.set_xticklabels([])
+            ax2.xaxis.set_major_locator(MaxNLocator(integer=True))
             ax2.set_yticks([0, 1] + list(ax2.get_yticks()[[0, -1]]))
             ax2.set_ylim(top=1)
             ax2.legend(
@@ -650,11 +655,8 @@ class correlations:
         std = np.sqrt(np.diag(C))
         C /= std[:, None]
         C /= std[None, :]
-        # Mask
-        if self.half:
-            C = np.ma.masked_where(self.mask, C)
-        # Plot
-        self.im.set_data(C)
+        # Only the image hides the upper triangle.
+        self.im.set_data(np.ma.masked_where(self.mask, C) if self.half else C)
         # Auto-corr function
         ACF = circulant_ACF(C)
         AAF = circulant_ACF(C, do_abs=True)
@@ -679,7 +681,6 @@ def circulant_ACF(C, do_abs=False):
         if do_abs:
             row = abs(row)
         ACF += row
-        # Note: this actually also accesses masked values in C.
     return ACF / M
 
 
